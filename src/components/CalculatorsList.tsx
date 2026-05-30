@@ -9,6 +9,8 @@ interface CalculatorsListProps {
   setSearchFilter: (term: string) => void;
   activeCategory: string | null;
   setActiveCategory: (cat: string | null) => void;
+  userTier?: 'FREE' | 'PRO';
+  onProRequired?: (featureName: string) => void;
 }
 
 export default function CalculatorsList({
@@ -16,7 +18,9 @@ export default function CalculatorsList({
   searchFilter,
   setSearchFilter,
   activeCategory,
-  setActiveCategory
+  setActiveCategory,
+  userTier = 'FREE',
+  onProRequired
 }: CalculatorsListProps) {
 
   // Suggestion chips handler
@@ -147,44 +151,81 @@ export default function CalculatorsList({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCalculators.map((calc) => (
-            <div 
-              key={calc.id}
-              onClick={() => onSelectCalculator(calc)}
-              className="bg-white border border-[#E5E7EB] rounded-xl p-5 hover:shadow-md hover:border-[#0F766E] cursor-pointer transition-all flex flex-col justify-between h-56 group"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3 text-xs">
-                  <span className={`px-2.5 py-1 font-bold rounded-full text-[10px] uppercase tracking-wider ${
-                    calc.category === 'impuestos' ? 'text-teal-700 bg-teal-50' :
-                    calc.category === 'laboral' ? 'text-amber-700 bg-amber-50' :
-                    calc.category === 'finanzas' ? 'text-blue-700 bg-blue-50' :
-                    'text-indigo-700 bg-indigo-50'
-                  }`}>
-                    {calc.category}
-                  </span>
-                  <div className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-xs font-semibold text-[#0F766E]">Abrir Calculadora →</span>
-                  </div>
-                </div>
-                <h3 className="font-bold text-base text-[#111827] group-hover:text-[#0F766E] transition-colors mb-2">
-                  {calc.name}
-                </h3>
-                <p className="text-xs text-[#6B7280] line-clamp-3 leading-relaxed">
-                  {calc.description}
-                </p>
-              </div>
+          {filteredCalculators.map((calc) => {
+            const isProCalculator = calc.id === 'recargos-dgii' || calc.id === 'retenciones-dgii';
+            const isLocked = isProCalculator && userTier === 'FREE';
 
-              {/* Tags panel */}
-              <div className="flex flex-wrap gap-1.5 pt-3 border-t border-gray-50">
-                {calc.tags.map((tag, tIdx) => (
-                  <span key={tIdx} className="text-[10px] font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
-                    #{tag}
-                  </span>
-                ))}
+            const handleClick = () => {
+              if (isLocked) {
+                if (onProRequired) {
+                  onProRequired(calc.name);
+                } else {
+                  alert(`La ${calc.name} es una función Premium PRO.`);
+                }
+              } else {
+                onSelectCalculator(calc);
+              }
+            };
+
+            return (
+              <div 
+                key={calc.id}
+                onClick={handleClick}
+                className={`bg-white border rounded-xl p-5 hover:shadow-md cursor-pointer transition-all flex flex-col justify-between min-h-[250px] h-auto group ${
+                  isLocked 
+                    ? 'border-amber-200 bg-amber-50/5 hover:border-amber-500' 
+                    : 'border-[#E5E7EB] hover:border-[#0F766E]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3 text-xs">
+                    <div className="flex gap-1.5 items-center">
+                      <span className={`px-2.5 py-1 font-bold rounded-full text-[10px] uppercase tracking-wider ${
+                        calc.category === 'impuestos' ? 'text-teal-700 bg-teal-50' :
+                        calc.category === 'laboral' ? 'text-amber-700 bg-amber-50' :
+                        calc.category === 'finanzas' ? 'text-blue-700 bg-blue-50' :
+                        'text-indigo-700 bg-indigo-50'
+                      }`}>
+                        {calc.category}
+                      </span>
+                      {isProCalculator && (
+                        <span className="px-2 py-0.5 bg-amber-500 text-white text-[8px] font-black rounded-md uppercase tracking-tight flex items-center gap-0.5">
+                          👑 PRO
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className={`text-xs font-semibold ${isLocked ? 'text-amber-600' : 'text-[#0F766E]'}`}>
+                        {isLocked ? 'Desbloquear PRO 🔒' : 'Abrir Calculadora →'}
+                      </span>
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-base text-[#111827] group-hover:text-[#0F766E] transition-colors mb-2 flex items-center gap-1">
+                    {calc.name}
+                  </h3>
+                  <p className="text-xs text-[#6B7280] line-clamp-3 leading-relaxed">
+                    {calc.description}
+                  </p>
+                </div>
+
+                {/* Tags panel */}
+                <div className="flex flex-wrap gap-1.5 pt-3 border-t border-gray-50 items-center justify-between">
+                  <div className="flex flex-wrap gap-1">
+                    {calc.tags.map((tag, tIdx) => (
+                      <span key={tIdx} className="text-[10px] font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                  {isLocked && (
+                    <span className="text-[10px] font-bold text-amber-600 flex items-center gap-0.5 bg-amber-55 px-1.5 py-0.5 rounded uppercase">
+                      Premium
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,4 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from './lib/firebase';
 import { CALCULATORS, CATEGORIES, HOME_FAQS, PROGRAMMATIC_GUIDES } from './data';
 import { CalculatorInfo } from './types';
 import CalculatorsList from './components/CalculatorsList';
@@ -7,6 +10,7 @@ import GuidesView from './components/GuidesView';
 import NewsSection from './components/NewsSection';
 import AdSenseBlock from './components/AdSenseBlock';
 import ProfessionalPortal from './components/ProfessionalPortal';
+import UserAccountModal from './components/UserAccountModal';
 import CentroLaboral from './components/CentroLaboral';
 import CentroFinanciero from './components/CentroFinanciero';
 import { 
@@ -168,11 +172,202 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
   }
 };
 
+// --- MULTI-TIER PRO vs FREE PAYWALL OVERLAY COMPONENT ---
+interface PaywallProps {
+  title: string;
+  description: string;
+  benefits: string[];
+  onUpgrade: () => void;
+}
+
+function PremiumFeaturePaywall({ title, description, benefits, onUpgrade }: PaywallProps) {
+  return (
+    <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-8 md:p-12 text-center max-w-2xl mx-auto shadow-xs my-4 animate-in fade-in duration-200" id="premium-paywall">
+      <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-6 border border-amber-200">
+        <span className="text-3xl text-amber-500">🔒</span>
+      </div>
+      
+      <span className="px-3.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase tracking-wider inline-block mb-4">
+        Función Exclusiva PRO
+      </span>
+      
+      <h3 className="text-2xl font-extrabold text-[#111827] mb-3">{title}</h3>
+      <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-lg mx-auto">{description}</p>
+      
+      <div className="bg-gray-50 rounded-xl p-5 mb-8 max-w-md mx-auto text-left border border-gray-150">
+        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3">¿Qué incluye la Licencia PRO?</span>
+        <ul className="space-y-2.5">
+          {benefits.map((b, idx) => (
+            <li key={idx} className="flex items-start gap-2 text-xs font-semibold text-gray-700">
+              <span className="text-emerald-600 shrink-0">✔</span>
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <button 
+          onClick={onUpgrade}
+          className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1"
+        >
+          <span>💎 Activar Prueba Gratis PRO en 1-Clic</span>
+        </button>
+      </div>
+      
+      <p className="text-[10px] text-gray-400 mt-4 leading-normal">
+        Navegación libre de publicidad. Los datos introducidos se sincronizan automáticamente en tu navegador usando almacenamiento local encriptado.
+      </p>
+    </div>
+  );
+}
+
+// --- GLOBAL PRO UPGRADE DIALOG MODAL ---
+interface ProUpgradeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onUpgrade: () => void;
+  featureName?: string;
+}
+
+function ProUpgradeModal({ isOpen, onClose, onUpgrade, featureName }: ProUpgradeModalProps) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black/65 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl border border-gray-150 max-w-xl w-full p-6 md:p-8 shadow-2xl relative animate-in zoom-in-95 duration-150">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+        >
+          <X size={18} />
+        </button>
+
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-5 border border-amber-200 text-2xl">
+            👑
+          </div>
+
+          <span className="px-3 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-extrabold rounded-full uppercase tracking-wider inline-block mb-3">
+            NegocioRD Licencias Premium
+          </span>
+
+          <h3 className="text-2xl font-extrabold text-[#111827] mb-2">
+            {featureName ? `Desbloquear ${featureName}` : 'Acceso Ilimitado Profesional (PRO)'}
+          </h3>
+          <p className="text-xs text-gray-500 leading-relaxed max-w-md mx-auto mb-6">
+            Adquiere acceso completo a todas las plataformas contables avanzadas, automatización de nóminas y plantillas de contratos para fiscales y pymes en la República Dominicana.
+          </p>
+
+          {/* Benefits Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left mb-6 bg-gray-50 p-4 rounded-2xl border border-gray-150">
+            <div className="flex items-start gap-2 text-xs font-semibold text-gray-700">
+              <span className="text-emerald-600 font-extrabold">✓</span>
+              <span>Lote Multi-facturas ITBIS con NCF</span>
+            </div>
+            <div className="flex items-start gap-2 text-xs font-semibold text-gray-700">
+              <span className="text-emerald-600 font-extrabold">✓</span>
+              <span>Centro de Nómina & Asistencias (RH)</span>
+            </div>
+            <div className="flex items-start gap-2 text-xs font-semibold text-gray-700">
+              <span className="text-emerald-600 font-extrabold">✓</span>
+              <span>Centro de Deudas & Repagos Franceses</span>
+            </div>
+            <div className="flex items-start gap-2 text-xs font-semibold text-gray-700">
+              <span className="text-emerald-600 font-extrabold">✓</span>
+              <span>Logo y Membrete en Reportes</span>
+            </div>
+            <div className="flex items-start gap-2 text-xs font-semibold text-gray-700">
+              <span className="text-emerald-600 font-extrabold">✓</span>
+              <span>Sin publicidad de Google AdSense</span>
+            </div>
+            <div className="flex items-start gap-2 text-xs font-semibold text-gray-700">
+              <span className="text-emerald-600 font-extrabold">✓</span>
+              <span>Soporte prioritario DGII & TSS</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={onUpgrade}
+              className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              🚀 Activar Cuenta Demo PRO Gratis (1-Clic)
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-500 font-semibold text-xs rounded-lg transition-all cursor-pointer"
+            >
+              Seguir explorando la versión limitada
+            </button>
+          </div>
+
+          <p className="text-[10px] text-gray-400 mt-4">
+            * Almacenamiento local privado garantizado bajo encriptado SSL del navegador.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'news' | 'centro-laboral' | 'centro-financiero'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios'>('home');
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Subscription tier state
+  const [userTier, setUserTier] = useState<'FREE' | 'PRO'>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem('negociord_user_tier') as 'FREE' | 'PRO') || 'FREE';
+    }
+    return 'FREE';
+  });
+
+  const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  const [showAccountModal, setShowAccountModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (current) => {
+      setFirebaseUser(current);
+      if (current) {
+        // Sync user role with Firestore
+        try {
+          const userDocRef = doc(db, 'users', current.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.role) {
+              setUserTier(data.role as 'FREE' | 'PRO');
+              localStorage.setItem('negociord_user_tier', data.role);
+            }
+          }
+        } catch (err) {
+          console.error("Error reading synced tier from Firestore:", err);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [targetedProFeature, setTargetedProFeature] = useState<string>('');
+
+  const activateProDemo = () => {
+    setUserTier('PRO');
+    localStorage.setItem('negociord_user_tier', 'PRO');
+    setShowUpgradeModal(false);
+  };
+
+  const deactivateProDemo = () => {
+    setUserTier('FREE');
+    localStorage.setItem('negociord_user_tier', 'FREE');
+  };
+
+  const handleProRequired = (featureName: string) => {
+    setTargetedProFeature(featureName);
+    setShowUpgradeModal(true);
+  };
 
   // Search state
   const [searchFilter, setSearchFilter] = useState('');
@@ -236,6 +431,11 @@ export default function App() {
       setActiveCalculator(null);
       setSelectedGuideSlug(null);
       return;
+    } else if (path === '/precios') {
+      setCurrentView('precios');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
     }
     
     // Default fallback to home
@@ -282,6 +482,8 @@ export default function App() {
       updateMetaTags("Centro Laboral RD - Asistencia & Prestaciones | NegocioRD", "Herramientas de cálculo especializadas y guías de asistencia laboral de conformidad con el Código de Trabajo dominicano.", "/centro-laboral", "website");
     } else if (currentView === 'centro-financiero') {
       updateMetaTags("Centro Financiero RD - Amortizaciones & Tasas | NegocioRD", "Simuladores profesionales de créditos, amortizaciones francesas y divisores legales dominicanos.", "/centro-financiero", "website");
+    } else if (currentView === 'precios') {
+      updateMetaTags("Planes y Precios PRO | NegocioRD", "Membresía simple de NegocioRD: Navegación libre de publicidad, historial ampliado, exportación ilimitada y recursos exclusivos para contadores de RD.", "/precios", "website");
     } else {
       updateMetaTags("NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.", "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.", "/", "website");
     }
@@ -427,11 +629,80 @@ export default function App() {
               Nosotros
             </button>
             <button 
+              onClick={() => navigateTo('/precios')}
+              className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
+                currentView === 'precios' ? 'text-[#0F766E] font-semibold' : ''
+              }`}
+            >
+              Precios
+            </button>
+            <button 
               onClick={() => setShowPortalModal(true)}
               className="px-4 py-1.5 bg-[#0F766E] text-white rounded-md text-xs font-semibold hover:opacity-95 transition-opacity hidden md:inline-block cursor-pointer active:scale-95"
             >
               Acceso Profesional
             </button>
+
+            {/* Google Account Profile / Login Button */}
+            <div className="hidden md:flex items-center gap-2">
+              {firebaseUser ? (
+                <button
+                  onClick={() => setShowAccountModal(true)}
+                  className="flex items-center gap-1.5 focus:outline-none cursor-pointer group active:scale-95 transition-all text-left bg-teal-50/40 p-1.5 rounded-lg border border-teal-100"
+                  title="Gestionar mi cuenta y tarjetas"
+                >
+                  {firebaseUser.photoURL ? (
+                    <img 
+                      src={firebaseUser.photoURL} 
+                      alt="Avatar" 
+                      className="w-5.5 h-5.5 rounded-full border border-teal-600"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-5.5 h-5.5 rounded-full bg-teal-600 text-white flex items-center justify-center text-[10px] font-bold">
+                      {firebaseUser.displayName ? firebaseUser.displayName[0].toUpperCase() : 'U'}
+                    </div>
+                  )}
+                  <span className="text-[11px] font-bold text-gray-750 max-w-[80px] truncate">
+                    {firebaseUser.displayName?.split(' ')[0]}
+                  </span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowAccountModal(true)}
+                  className="px-3 py-1.5 border border-[#0F766E]/40 text-[#0F766E] hover:bg-teal-50/40 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+                >
+                  <span>👤 Mi Cuenta</span>
+                </button>
+              )}
+            </div>
+
+            {/* Live Interactive Tier Selector */}
+            <div className="flex items-center gap-2 border-l border-gray-200 pl-4 h-6 hidden sm:flex">
+              {userTier === 'FREE' ? (
+                <button
+                  onClick={activateProDemo}
+                  className="px-3 py-1 bg-amber-500 hover:bg-amber-650 text-white rounded-full text-[10px] sm:text-xs font-bold transition-all shadow-xs flex items-center gap-1 active:scale-95 cursor-pointer animate-pulse"
+                  title="Cambia a perfil PRO para probar libre de anuncios y con recursos Premium"
+                >
+                  <span>Plan: Gratis ✦</span>
+                  <span className="bg-white/20 text-[9px] px-1.5 py-0.5 rounded-full font-extrabold uppercase">Demo PRO</span>
+                </button>
+              ) : (
+                <button
+                  onClick={deactivateProDemo}
+                  className="px-3 py-1 bg-[#111827] text-white rounded-full text-[10px] sm:text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer border border-[#0F766E]/40"
+                  title="Volver a plan Gratuito con anuncios para ver limitaciones"
+                >
+                  <span className="flex h-2 w-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-amber-400 font-extrabold">Plan: PRO 💎</span>
+                  <span className="text-[10px] text-gray-400 hover:text-white underline">Free</span>
+                </button>
+              )}
+            </div>
           </nav>
 
           {/* Hamburger Menu Toggle Button for Tablet/Mobile - visible on (< lg) screens */}
@@ -503,12 +774,41 @@ export default function App() {
                 Noticias & Actualizaciones
               </button>
               <button 
+                onClick={() => { navigateTo('/precios'); setMobileMenuOpen(false); }}
+                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'precios' ? 'text-[#0F766E]' : ''}`}
+                id="mob-nav-pricing"
+              >
+                Precios y Planes
+              </button>
+              <button 
                 onClick={() => { navigateTo('/nosotros'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors font-semibold text-sm ${currentView === 'nosotros' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-about"
               >
                 Nosotros
               </button>
+            </div>
+
+            {/* Mobile Google Account Portal Trigger */}
+            <div className="pt-2">
+              {firebaseUser ? (
+                <button 
+                  onClick={() => { setShowAccountModal(true); setMobileMenuOpen(false); }}
+                  className="w-full text-center py-2.5 border border-teal-500/50 bg-teal-50/20 text-[#0F766E] rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+                >
+                  {firebaseUser.photoURL && (
+                    <img src={firebaseUser.photoURL} alt="User" className="w-5 h-5 rounded-full border border-teal-600" referrerPolicy="no-referrer" />
+                  )}
+                  <span>Mi Perfil: {firebaseUser.displayName?.split(' ')[0]} 👤</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={() => { setShowAccountModal(true); setMobileMenuOpen(false); }}
+                  className="w-full text-center py-2.5 border border-[#0F766E]/40 text-[#0F766E] rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                >
+                  <span>👤 Iniciar Sesión con Google</span>
+                </button>
+              )}
             </div>
 
             <button 
@@ -518,6 +818,32 @@ export default function App() {
             >
               Acceso Profesional
             </button>
+
+            {/* Mobile plan switcher */}
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center mt-2.5">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Simulador de Licencias</span>
+              {userTier === 'FREE' ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-gray-500 leading-relaxed">Prueba el Centro Laboral (RH) y Financiero sin anuncios publicitarios.</p>
+                  <button
+                    onClick={() => { activateProDemo(); setMobileMenuOpen(false); }}
+                    className="w-full py-2 bg-amber-500 hover:bg-amber-650 text-white rounded-lg text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                  >
+                    <span>💎 Activar Versión PRO Demo</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-gray-500">Licencia <strong className="text-[#0F766E] font-extrabold pb-0.5">PRO Activa</strong> libre de interrupciones.</p>
+                  <button
+                    onClick={() => { deactivateProDemo(); setMobileMenuOpen(false); }}
+                    className="w-full py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg text-xs font-semibold transition-all active:scale-95"
+                  >
+                    Ver versión Gratuita (Free)
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -689,6 +1015,8 @@ export default function App() {
                   setSearchFilter={setSearchFilter}
                   activeCategory={activeCategory}
                   setActiveCategory={setActiveCategory}
+                  userTier={userTier}
+                  onProRequired={handleProRequired}
                 />
               </div>
 
@@ -868,14 +1196,42 @@ export default function App() {
           {/* CENTRO LABORAL (RH) */}
           {currentView === 'centro-laboral' && (
             <div className="animate-in fade-in duration-150">
-              <CentroLaboral />
+              {userTier === 'PRO' ? (
+                <CentroLaboral />
+              ) : (
+                <PremiumFeaturePaywall 
+                  title="Centro Laboral de Recursos Humanos (TSS)"
+                  description="Gestiona la nómina de tu personal, calcula retenciones TSS individuales en lote, monitorea horas extras trabajadas y lleva un control de asistencia fidedigno desde un panel consolidado."
+                  benefits={[
+                    "Cálculo automático de aportaciones SFS, AFP y Riesgos Laborales por colaborador",
+                    "Registro persistente de ausencias, amonestaciones y primas salariales",
+                    "Generación automatizada de reportes listos para la TSS y el SIRLA",
+                    "Control local 100% privado de planillas para micro y medianas empresas"
+                  ]}
+                  onUpgrade={activateProDemo}
+                />
+              )}
             </div>
           )}
 
           {/* CENTRO FINANCIERO (DEUDAS/COMPARATIVAS) */}
           {currentView === 'centro-financiero' && (
             <div className="animate-in fade-in duration-150">
-              <CentroFinanciero />
+              {userTier === 'PRO' ? (
+                <CentroFinanciero />
+              ) : (
+                <PremiumFeaturePaywall 
+                  title="Centro de Planificación Financiera y Pasivos"
+                  description="Consolida múltiples obligaciones financieras bajo tasas y metodologías de cooperativas y bancos dominicanos (APAP, Banreservas, Banco Popular). Simule pagos recurrentes para liquidar anticipadamente deudas pasivas."
+                  benefits={[
+                    "Gráficos interactivos de amortización y distribución de intereses",
+                    "Simulador bento de deudas consolidadas con ponderación de deudas",
+                    "Cálculo de ahorro proyectado por abonos extraordinarios al capital",
+                    "Exportación limpia de calendarios de pago integrados"
+                  ]}
+                  onUpgrade={activateProDemo}
+                />
+              )}
             </div>
           )}
 
@@ -954,6 +1310,120 @@ export default function App() {
                   >
                     Regresar al portal principal
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PRECIOS VIEWS */}
+          {currentView === 'precios' && (
+            <div className="animate-in fade-in duration-150 py-4 max-w-5xl mx-auto w-full">
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 shadow-xs space-y-8">
+                <div className="text-center space-y-3">
+                  <span className="px-3 py-1 bg-teal-50 text-[#0F766E] text-xs font-black rounded-full uppercase tracking-wider inline-block">Membresía Simple PRO</span>
+                  <h1 className="text-3xl md:text-4xl font-extrabold text-[#111827]">Planes de Precios Flexibles</h1>
+                  <p className="text-gray-500 text-sm max-w-2xl mx-auto leading-relaxed">
+                    Potencie su productividad contable en República Dominicana con nuestra licencia PRO simple y de valor incomparable. Sin burocracia empresarial.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                  
+                  {/* Plan 1: Free */}
+                  <div className="border border-gray-200 rounded-2xl p-6 bg-[#FAFAFA] flex flex-col justify-between h-[450px]">
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-900">Básico Gratuito</h3>
+                      <p className="text-xs text-gray-500 mt-1">Perfecto para consultas ocasionales.</p>
+                      
+                      <div className="my-6">
+                        <span className="text-3xl font-extrabold text-gray-900">RD$ 0</span>
+                        <span className="text-xs text-gray-400"> / siempre</span>
+                      </div>
+
+                      <ul className="space-y-2.5 text-xs text-gray-600">
+                        <li className="flex items-center gap-1.5 font-medium">✨ Accesibilidad total a calculadoras</li>
+                        <li className="flex items-center gap-1.5 font-medium">📣 Anuncios publicitarios visibles</li>
+                        <li className="flex items-center gap-1.5 text-gray-400 line-through">🗄️ Historial ampliado de cálculos</li>
+                        <li className="flex items-center gap-1.5 text-gray-400 line-through">📄 Exportaciones ilimitadas a PDF/CSV</li>
+                        <li className="flex items-center gap-1.5 text-gray-400 line-through">⭐ Guardar cálculos favoritos</li>
+                      </ul>
+                    </div>
+
+                    <button 
+                      onClick={() => navigateTo('/')}
+                      className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                    >
+                      Usar Gratis Ahora
+                    </button>
+                  </div>
+
+                  {/* Plan 2: Pro Mensual - DESTACADO */}
+                  <div className="border-2 border-[#0F766E] rounded-2xl p-6 bg-white flex flex-col justify-between h-[450px] shadow-md relative overflow-hidden">
+                    <div className="absolute top-3 right-3 bg-[#0F766E] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Popular</div>
+                    <div>
+                      <h3 className="font-extrabold text-[#0F766E] text-lg">PRO Mensual</h3>
+                      <p className="text-xs text-gray-500 mt-1">Para contadores independientes y pymes.</p>
+                      
+                      <div className="my-6">
+                        <span className="text-3xl font-extrabold text-gray-900">RD$ 495</span>
+                        <span className="text-xs text-gray-400"> / al mes</span>
+                      </div>
+
+                      <ul className="space-y-2.5 text-xs text-gray-800">
+                        <li className="flex items-center gap-1.5 font-semibold text-[#0F766E]">✦ Totalmente libre de anuncios</li>
+                        <li className="flex items-center gap-1.5 font-semibold">✦ Historial ilimitado de simulaciones</li>
+                        <li className="flex items-center gap-1.5 font-semibold">✦ Exportaciones ilimitadas (PDF y CSV)</li>
+                        <li className="flex items-center gap-1.5 font-semibold">✦ Guardar cálculos favoritos de nómina</li>
+                        <li className="flex items-center gap-1.5 font-semibold">✦ Acceso completo Centro Laboral y Financiero</li>
+                      </ul>
+                    </div>
+
+                    <button 
+                      onClick={() => setShowAccountModal(true)}
+                      className="w-full py-2.5 bg-[#0F766E] hover:bg-opacity-95 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+                    >
+                      {userTier === 'PRO' ? 'Mi suscripción PRO' : 'Adquirir Licencia PRO'}
+                    </button>
+                  </div>
+
+                  {/* Plan 3: Pro Anual */}
+                  <div className="border border-gray-200 rounded-2xl p-6 bg-[#FAFAFA] flex flex-col justify-between h-[450px]">
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-lg">PRO Anual</h3>
+                      <p className="text-xs text-gray-500 mt-1">El mejor valor para consultores fiscales de RD.</p>
+                      
+                      <div className="my-6">
+                        <span className="text-3xl font-extrabold text-gray-950">RD$ 3,950</span>
+                        <span className="text-xs text-gray-400"> / al año</span>
+                        <span className="block text-[10px] text-emerald-600 font-extrabold tracking-wide mt-1">¡Ahorre un 33% sobre mensual!</span>
+                      </div>
+
+                      <ul className="space-y-2.5 text-xs text-gray-650">
+                        <li className="flex items-center gap-1.5 font-medium text-[#0F766E]">✦ Todo lo incluido en mensual</li>
+                        <li className="flex items-center gap-1.5 font-medium">✦ Cero publicidad garantizada</li>
+                        <li className="flex items-center gap-1.5 font-medium">✦ Soporte prioritario por WhatsApp</li>
+                        <li className="flex items-center gap-1.5 font-medium">✦ Factura fiscal con NCF de crédito</li>
+                        <li className="flex items-center gap-1.5 font-medium text-emerald-600">✦ Regalo de plantillas avanzadas en Excel</li>
+                      </ul>
+                    </div>
+
+                    <button 
+                      onClick={() => setShowAccountModal(true)}
+                      className="w-full py-2.5 bg-gray-900 hover:bg-stone-850 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                    >
+                      {userTier === 'PRO' ? 'Mi membresía anual' : 'Comprar plan Anual'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-left text-xs text-amber-900 leading-normal flex gap-2">
+                  <span>💡</span>
+                  <div className="space-y-1">
+                    <span className="font-bold">Garantía de tranquilidad absoluta:</span>
+                    <p className="text-gray-600">
+                      Garantizamos de forma transparente reembolsos dentro de los primeros 14 días si no se encuentra satisfecho con las funcionalidades.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1065,6 +1535,27 @@ export default function App() {
       <ProfessionalPortal 
         isOpen={showPortalModal} 
         onClose={() => setShowPortalModal(false)} 
+        userTier={userTier}
+        onUpgrade={activateProDemo}
+      />
+
+      {/* Trial Activation Pro Modal */}
+      <ProUpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)} 
+        onUpgrade={activateProDemo}
+        featureName={targetedProFeature}
+      />
+
+      {/* Dynamic Firebase-Backed Google Auth and Payments Portal Modal */}
+      <UserAccountModal
+        isOpen={showAccountModal}
+        onClose={() => setShowAccountModal(false)}
+        userTier={userTier}
+        onTierChange={(newTier) => {
+          setUserTier(newTier);
+          localStorage.setItem('negociord_user_tier', newTier);
+        }}
       />
 
     </div>

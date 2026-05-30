@@ -13,6 +13,7 @@ import {
   compareLoanScenarios, 
   calculateRefinancingSavings 
 } from '../lib/calculations/all_new_calculations';
+import { logUsage } from '../lib/firebase';
 
 interface FinanzasCalculatorsProps {
   calc: CalculatorInfo;
@@ -75,6 +76,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
     const updated = [fresh, ...history.slice(0, 9)];
     setHistory(updated);
     localStorage.setItem(`history-${calc.id}`, JSON.stringify(updated));
+    logUsage(calc.id, `Guardó cálculo en historial local. Principal: RD$ ${principalInput.toLocaleString()}`);
   };
 
   const handleClearHistory = () => {
@@ -194,6 +196,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
     }
     navigator.clipboard.writeText(text);
     triggerFeedback('¡Copiado!');
+    logUsage(calc.id, `Copió los resultados financieros al portapapeles. Principal: RD$ ${principalInput.toLocaleString()}`);
   };
 
   const handleExcelExport = () => {
@@ -218,6 +221,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    logUsage(calc.id, `Exportó resultados financieros a un archivo CSV. Principal: RD$ ${principalInput.toLocaleString()}`);
   };
 
   const getToolMetadata = () => {

@@ -287,6 +287,59 @@ app.post("/api/rates/refresh", async (req, res) => {
   }
 });
 
+// 5. GET /sitemap.xml - Dynamic XML sitemap for search engines
+app.get("/sitemap.xml", (req, res) => {
+  const calculatedUrls = CALCULATORS.map(calc => `
+  <url>
+    <loc>https://negociord.com/herramientas/${calc.urlSlug}</loc>
+    <lastmod>2026-05-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`).join('');
+
+  const guideUrls = PROGRAMMATIC_GUIDES.map(guide => `
+  <url>
+    <loc>https://negociord.com/guia/${guide.slug}</loc>
+    <lastmod>${guide.publishDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`).join('');
+
+  const staticUrls = [
+    '/',
+    '/noticias',
+    '/nosotros',
+    '/precios'
+  ].map(path => `
+  <url>
+    <loc>https://negociord.com${path}</loc>
+    <lastmod>2026-05-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>`).join('');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticUrls}
+${calculatedUrls}
+${guideUrls}
+</urlset>`;
+
+  res.header("Content-Type", "application/xml");
+  res.status(200).send(xml);
+});
+
+// 6. GET /robots.txt - Search engine crawl instructions
+app.get("/robots.txt", (req, res) => {
+  const robots = `User-agent: *
+Allow: /
+Disallow: /api/
+Sitemap: https://negociord.com/sitemap.xml`;
+
+  res.header("Content-Type", "text/plain");
+  res.status(200).send(robots);
+});
+
 // Helper to pre-render HTML with unique meta tags, OpenGraph, dynamic canonicals & JSON-LD schemas
 function getPrerenderedHTML(html: string, originalUrl: string): string {
   let title = "NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.";

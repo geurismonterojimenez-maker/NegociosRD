@@ -10,6 +10,7 @@ import {
   calculateReturnOnInvestment, 
   calculateCashFlow 
 } from '../lib/calculations/all_new_calculations';
+import { logUsage } from '../lib/firebase';
 
 interface EmpresarialesCalculatorsProps {
   calc: CalculatorInfo;
@@ -223,6 +224,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
     raw += `Monto Global Estimado: RD$ ${documentTotals.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
     navigator.clipboard.writeText(raw);
     showToast('Copiado perfectamente en el portapapeles.');
+    logUsage(calc.id, `Copió estructura de texto del documento al portapapeles. Empresa: ${empresaNombre}`);
   };
 
   const handleExportCSV = () => {
@@ -238,6 +240,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    logUsage(calc.id, `Exportó líneas del documento corporativo a CSV. Empresa: ${empresaNombre}`);
   };
 
   const getFaqs = () => {
@@ -627,7 +630,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
                 </div>
 
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => { window.print(); logUsage(calc.id, `Imprimió el documento corporativo. Empresa: ${empresaNombre}`); }}
                   className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold text-gray-950 cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
                   aria-label="Imprimir Comprobante corporativo"
                 >
@@ -777,7 +780,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
                 </div>
 
                 <button 
-                  onClick={() => window.print()} 
+                  onClick={() => { window.print(); logUsage(calc.id, "Imprimió reporte de matriz de resultado operativo"); }} 
                   className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold cursor-pointer text-gray-950 inline-flex items-center gap-1"
                   aria-label="Imprimir Reporte Corporativo"
                 >

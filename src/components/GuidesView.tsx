@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PROGRAMMATIC_GUIDES } from '../data';
 import { GuidePage } from '../types';
 import { BookOpen, Calendar, Clock, ArrowLeft, ArrowUpRight, DollarSign } from 'lucide-react';
+import AdSlot from './AdSlot';
 
 interface GuidesViewProps {
   onBackToHome: () => void;
@@ -139,15 +140,8 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                 </button>
               </div>
 
-              {/* Sidebar AdSense box placeholder */}
-              <div className="p-4 bg-gray-50/70 border border-dashed border-[#bdc9c6] rounded-xl text-center flex flex-col justify-center items-center py-6">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">Publicidad Patrocinada</span>
-                <div className="h-60 w-full max-w-[300px] bg-white border border-gray-100 flex flex-col justify-center items-center rounded-lg shadow-inner">
-                  <DollarSign size={24} className="text-gray-300 mb-1" />
-                  <span className="text-xs text-gray-400 font-medium">Bannner Lateral AdSense</span>
-                  <span className="text-[10px] text-gray-300 mt-0.5">Adaptable (300 x 600 o similar)</span>
-                </div>
-              </div>
+              {/* Sidebar AdSense reusable slot */}
+              <AdSlot position="rectangle" />
             </div>
           </div>
         </div>

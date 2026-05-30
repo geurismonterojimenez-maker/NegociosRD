@@ -25,6 +25,8 @@ import {
 interface ProfessionalPortalProps {
   isOpen: boolean;
   onClose: () => void;
+  userTier?: 'FREE' | 'PRO';
+  onUpgrade?: () => void;
 }
 
 interface InvoiceRow {
@@ -36,7 +38,7 @@ interface InvoiceRow {
   itbisRate: number; // 0.18, 0.16, 0.0
 }
 
-export default function ProfessionalPortal({ isOpen, onClose }: ProfessionalPortalProps) {
+export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE', onUpgrade }: ProfessionalPortalProps) {
   if (!isOpen) return null;
 
   const [activeTab, setActiveTab] = useState<'itbis-ncf' | 'contratos-trabajo' | 'exportacion-reportes' | 'retenciones-recargos'>('itbis-ncf');
@@ -46,6 +48,38 @@ export default function ProfessionalPortal({ isOpen, onClose }: ProfessionalPort
   const showToast = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
+  };
+
+  // Reusable inline tab paywall for FREE users
+  const renderTabPaywall = (featureTitle: string, desc: string, items: string[]) => {
+    return (
+      <div className="bg-[#FAFBFB] rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center max-w-xl mx-auto my-6 animate-in fade-in duration-200 text-gray-750" id="tab-paywall-container">
+        <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-4 text-2xl">
+          🔒
+        </div>
+        <span className="px-2.5 py-0.5 bg-amber-100 text-amber-850 text-[9px] font-extrabold rounded-full uppercase tracking-wider inline-block mb-3">
+          Suscripción PRO Exclusiva
+        </span>
+        <h4 className="text-xl font-bold text-gray-900 mb-2">{featureTitle}</h4>
+        <p className="text-xs text-gray-500 leading-relaxed mb-5 max-w-sm mx-auto">{desc}</p>
+        
+        <div className="bg-white rounded-xl p-4 mb-6 text-left border border-gray-150 max-w-xs mx-auto space-y-2">
+          {items.map((item, index) => (
+            <div key={index} className="flex gap-2 text-xs font-semibold text-gray-600">
+              <span className="text-emerald-500 font-extrabold">✓</span>
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={onUpgrade}
+          className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
+        >
+          <span>💎 Activar Licencia PRO Gratis (1-Clic)</span>
+        </button>
+      </div>
+    );
   };
 
   // ==========================================
@@ -790,45 +824,62 @@ Sello de Recibido Empresa (Fecha y Hora):`;
             onClick={() => setActiveTab('itbis-ncf')}
             className={`px-4 sm:px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'itbis-ncf' 
-                ? 'border-[#0F766E] text-[#0F766E] bg-white border-b-3' 
+                ? 'border-[#0F766E] text-[#0F766E] bg-white border-b-4' 
                 : 'border-transparent text-gray-550 hover:text-gray-900 hover:bg-gray-100/40'
             }`}
+            id="tab-btn-itbis"
           >
-            <Layers size={14} />
-            1. Desglose ITBIS & NCF
+            <Layers size={14} className="text-teal-600 animate-pulse" />
+            <span>1. Desglose ITBIS & NCF</span>
+            <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black uppercase tracking-tight">Gratis</span>
           </button>
+
           <button 
             onClick={() => setActiveTab('contratos-trabajo')}
-            className={`px-4 sm:px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 sm:px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap border-b-4 ${
               activeTab === 'contratos-trabajo' 
-                ? 'border-[#0F766E] text-[#0F766E] bg-white border-b-3' 
-                : 'border-transparent text-gray-550 hover:text-gray-900 hover:bg-gray-100/40'
+                ? 'border-amber-500 text-amber-700 bg-white' 
+                : 'border-transparent text-gray-500 hover:text-amber-600 hover:bg-amber-50/10'
             }`}
+            id="tab-btn-contratos"
           >
-            <FileSignature size={14} />
-            2. Generador de Contratos (Código)
+            <FileSignature size={14} className="text-amber-550" />
+            <span>2. Contratos RD</span>
+            <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tight flex items-center gap-0.5">
+              {userTier === 'FREE' ? '🔒 PRO' : '💎 PRO'}
+            </span>
           </button>
+
           <button 
             onClick={() => setActiveTab('exportacion-reportes')}
-            className={`px-4 sm:px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 sm:px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap border-b-4 ${
               activeTab === 'exportacion-reportes' 
-                ? 'border-[#0F766E] text-[#0F766E] bg-white border-b-3' 
-                : 'border-transparent text-gray-550 hover:text-gray-900 hover:bg-gray-100/40'
+                ? 'border-amber-500 text-amber-700 bg-white' 
+                : 'border-transparent text-gray-550 hover:text-amber-600 hover:bg-amber-50/10'
             }`}
+            id="tab-btn-reportes"
           >
-            <Printer size={14} />
-            3. Hojas Timbradas & PDF/Excel
+            <Printer size={14} className="text-amber-550" />
+            <span>3. Hojas Timbradas</span>
+            <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black tracking-tight uppercase flex items-center gap-0.5">
+              {userTier === 'FREE' ? '🔒 PRO' : '💎 PRO'}
+            </span>
           </button>
+
           <button 
             onClick={() => setActiveTab('retenciones-recargos')}
-            className={`px-4 sm:px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 sm:px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap border-b-4 ${
               activeTab === 'retenciones-recargos' 
-                ? 'border-[#0F766E] text-[#0F766E] bg-white border-b-3' 
-                : 'border-transparent text-gray-550 hover:text-gray-900 hover:bg-gray-100/40'
+                ? 'border-amber-500 text-amber-700 bg-white' 
+                : 'border-transparent text-gray-550 hover:text-amber-600 hover:bg-amber-50/10'
             }`}
+            id="tab-btn-recargos"
           >
-            <Coins size={14} />
-            4. Retenciones & Recargos DGII
+            <Coins size={14} className="text-amber-550" />
+            <span>4. Calculadoras DGII</span>
+            <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black tracking-tight uppercase flex items-center gap-0.5">
+              {userTier === 'FREE' ? '🔒 PRO' : '💎 PRO'}
+            </span>
           </button>
         </div>
 
@@ -1029,6 +1080,18 @@ Sello de Recibido Empresa (Fecha y Hora):`;
 
           {/* TAB 2: GENERADOR DE CONTRATOS Y DOCUMENTOS LEGALES (CÓDIGO DE TRABAJO DE RD) */}
           {activeTab === 'contratos-trabajo' && (
+            userTier === 'FREE' ? (
+              renderTabPaywall(
+                "Redactor y Generador de Contratos Laborales (Ley 16-92)",
+                "Crea de forma interactiva contratos de trabajo por tiempo indefinido, definido o por labor determinada, listos con firmas de conformidad y cláusulas alineadas al Código de Trabajo dominicano (Ley 16-92).",
+                [
+                  "Contratos Laborales según Ley 16-92 del Código de Trabajo",
+                  "Cláusulas de confidencialidad, propiedad intelectual y periodo probatorio",
+                  "Descarga inmediata en Texto Enriquecido .txt",
+                  "Cálculo automatizado de jornadas semanales válidas"
+                ]
+              )
+            ) : (
             <div className="space-y-6">
               <div className="bg-teal-55/40 rounded-xl p-4 border border-teal-100 text-[#0F766E] text-xs leading-relaxed">
                 <span className="font-bold text-sm block mb-1">Generador de Documentos y Redactor del Código de Trabajo de RD:</span>
@@ -1518,11 +1581,24 @@ Sello de Recibido Empresa (Fecha y Hora):`;
               </div>
 
             </div>
+            )
           )}
 
 
           {/* TAB 3: HOJAS TIMBRADAS DE REPORTES PRO Y EXPORTACIONES */}
           {activeTab === 'exportacion-reportes' && (
+            userTier === 'FREE' ? (
+              renderTabPaywall(
+                "Exportación de Reportes y Hojas Timbradas Corporativas",
+                "Personaliza reportes de cálculo de prestaciones, nóminas y deudas con el nombre, dirección, rastro RNC y logotipo de tu empresa. Imprime en formato formal (.letter / .legal) o exporta a Microsoft Excel sin sellos de prueba.",
+                [
+                  "Branding corporativo personalizable (Logotipo, Dirección y RNC)",
+                  "Estructura formal de hoja timbrada adaptada a leyes societarias",
+                  "Descarga limpia en formato CSV/XLSX para auditores",
+                  "Reportes libre de marcas de agua informativas"
+                ]
+              )
+            ) : (
             <div className="space-y-6">
               
               <div className="bg-teal-55/40 rounded-xl p-4 border border-teal-100 text-[#0F766E] text-xs leading-relaxed">
@@ -2060,6 +2136,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
               </div>
 
             </div>
+            )
           )}
 
 

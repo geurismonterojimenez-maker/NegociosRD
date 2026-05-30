@@ -15,6 +15,7 @@ import {
   calculateRegaliaProporcional, 
   calculateCostoEmpleado 
 } from '../lib/calculations/all_new_calculations';
+import { logUsage } from '../lib/firebase';
 
 interface LaboralCalculatorsProps {
   calc: CalculatorInfo;
@@ -74,6 +75,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
     setHistory(updated);
     localStorage.setItem(`history-${calc.id}`, JSON.stringify(updated));
     triggerFeedback('save', 'Cálculo guardado en tu historial local.');
+    logUsage(calc.id, `Guardó cálculo en historial local. Salario base: RD$ ${salaryInput.toLocaleString()}`);
   };
 
   const handleClearHistory = () => {
@@ -148,10 +150,12 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
     copyText += `Calcule sus impuestos de forma segura en: ${window.location.origin}`;
     navigator.clipboard.writeText(copyText);
     triggerFeedback('copy', 'Resultados copiados en el portapapeles.');
+    logUsage(calc.id, `Copió los resultados al portapapeles. Salario base: RD$ ${salaryInput.toLocaleString()}`);
   };
 
   const handlePrint = () => {
     window.print();
+    logUsage(calc.id, `Imprimió reporte de cálculo laboral. Salario base: RD$ ${salaryInput.toLocaleString()}`);
   };
 
   const handleExportCSV = () => {
@@ -170,6 +174,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
     link.click();
     document.body.removeChild(link);
     triggerFeedback('export', 'Archivo CSV descargado correctamente.');
+    logUsage(calc.id, `Exportó resultados a CSV corporativo. Salario base: RD$ ${salaryInput.toLocaleString()}`);
   };
 
   // Specific informational templates per calculator

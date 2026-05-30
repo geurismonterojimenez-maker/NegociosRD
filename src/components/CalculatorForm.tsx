@@ -9,6 +9,7 @@ import { calculateAmortization } from '../lib/calculations/prestamos';
 import { calculateBusinessMargin, calculateDGIILateFees } from '../lib/calculations/negocios';
 import { ArrowLeft, Share2, Info, Check, Sparkles, TrendingUp, DollarSign, Calculator, HelpCircle, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import AdSenseBlock from './AdSenseBlock';
+import AdSlot from './AdSlot';
 import LaboralCalculators from './LaboralCalculators';
 import FinanzasCalculators from './FinanzasCalculators';
 import EmpresarialesCalculators from './EmpresarialesCalculators';
@@ -1507,16 +1508,8 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             </div>
           </div>
 
-          {/* Monetización: AdSense safe box placeholder */}
-          <div className="p-4 bg-gray-50/70 border border-dashed border-[#bdc9c6] rounded-xl text-center flex flex-col justify-center items-center py-8">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">Anuncio Patrocinado</span>
-            <div className="h-60 w-full max-w-[300px] bg-white border border-gray-100 flex flex-col justify-center items-center rounded-lg shadow-inner">
-              <DollarSign size={24} className="text-gray-300 mb-1" />
-              <span className="text-xs text-gray-400 font-medium">Espacio Segurizado AdSense</span>
-              <span className="text-[10px] text-gray-300 mt-1">Bloque Adaptable (300 x 250)</span>
-            </div>
-            <span className="text-[9px] text-gray-400 mt-2 block leading-normal">Los anuncios se adaptan de forma sutil sin interrumpir su navegación o alterar los resultados del cálculo.</span>
-          </div>
+          {/* Monetización: Reusable AdSlot */}
+          <AdSlot position="rectangle" />
         </div>
       </div>
     </div>

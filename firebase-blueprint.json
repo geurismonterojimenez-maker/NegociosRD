@@ -1,0 +1,116 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and subscription metadata",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Unique Firebase Auth UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "Verified Google email"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Full name"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Google avatar URL"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["FREE", "PRO"],
+          "description": "Standard user tier"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp ISO"
+        }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "PaymentMethod": {
+      "title": "PaymentMethod",
+      "description": "Linked credit card or mock payment method",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID of payment method"
+        },
+        "cardholderName": {
+          "type": "string",
+          "description": "Full cardholder name"
+        },
+        "brand": {
+          "type": "string",
+          "description": "Card brand: visa, mastercard, amex"
+        },
+        "last4": {
+          "type": "string",
+          "description": "Last 4 digits of the card"
+        },
+        "expiry": {
+          "type": "string",
+          "description": "MM/YY expiry format"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp ISO"
+        }
+      },
+      "required": ["id", "cardholderName", "brand", "last4", "expiry"]
+    },
+    "UsageLog": {
+      "title": "UsageLog",
+      "description": "Audit trail log of tool/calculator usage to monitor activity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "calculatorId": { "type": "string" },
+        "description": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "uid", "email", "calculatorId", "description", "timestamp"]
+    },
+    "SubscriptionLog": {
+      "title": "SubscriptionLog",
+      "description": "Subscription mutation details for financial audits",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "previousTier": { "type": "string" },
+        "newTier": { "type": "string" },
+        "reason": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "uid", "email", "previousTier", "newTier", "reason", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Core profile document for each user"
+    },
+    "/users/{userId}/paymentMethods/{methodId}": {
+      "schema": "PaymentMethod",
+      "description": "Collection of payment options added by the user"
+    },
+    "/usageLogs/{logId}": {
+      "schema": "UsageLog",
+      "description": "Platform-wide calculator usage audit logs"
+    },
+    "/subscriptionLogs/{logId}": {
+      "schema": "SubscriptionLog",
+      "description": "Platform-wide subscription modifications history logs"
+    }
+  }
+}
