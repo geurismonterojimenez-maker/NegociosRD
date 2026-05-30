@@ -1,0 +1,6 @@
+{
+  "name": "NegocioRD",
+  "description": "Plataforma fiscal, laboral y financiera experta para República Dominicana con 20 calculadoras técnicas e informes SEO de la DGII.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
