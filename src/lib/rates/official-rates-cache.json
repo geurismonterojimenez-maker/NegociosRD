@@ -1,0 +1,96 @@
+{
+  "lastCheckedAll": "2026-05-30T15:00:00Z",
+  "status": "synchronized",
+  "rates": {
+    "itbis_general": {
+      "value": 0.18,
+      "label": "ITBIS General",
+      "sourceName": "Dirección General de Impuestos Internos (DGII)",
+      "sourceUrl": "https://dgii.gov.do",
+      "effectiveDate": "2013-01-01",
+      "lastChecked": "2026-05-30",
+      "status": "current",
+      "notes": "Establecido por la Ley 253-12 sobre Reforma Tributaria."
+    },
+    "itbis_reducida": {
+      "value": 0.16,
+      "label": "ITBIS Reducido",
+      "sourceName": "Dirección General de Impuestos Internos (DGII)",
+      "sourceUrl": "https://dgii.gov.do",
+      "effectiveDate": "2016-01-01",
+      "lastChecked": "2026-05-30",
+      "status": "current",
+      "notes": "Aplica a productos alimenticios lácteos y procesados de cacao."
+    },
+    "afp_empleado": {
+      "value": 0.0287,
+      "label": "AFP Empleado",
+      "sourceName": "Tesorería de la Seguridad Social (TSS)",
+      "sourceUrl": "https://tss.gob.do",
+      "effectiveDate": "2003-06-01",
+      "lastChecked": "2026-05-30",
+      "status": "current",
+      "notes": "Aporte de pensión de colaboradores según Ley 87-01."
+    },
+    "sfs_empleado": {
+      "value": 0.0304,
+      "label": "SFS Empleado",
+      "sourceName": "Tesorería de la Seguridad Social (TSS)",
+      "sourceUrl": "https://tss.gob.do",
+      "effectiveDate": "2007-09-01",
+      "lastChecked": "2026-05-30",
+      "status": "current",
+      "notes": "Seguro Familiar de Salud para empleados según Ley 87-01."
+    },
+    "afp_empleador": {
+      "value": 0.0710,
+      "label": "AFP Empleador",
+      "sourceName": "Tesorería de la Seguridad Social (TSS)",
+      "sourceUrl": "https://tss.gob.do",
+      "effectiveDate": "2003-06-01",
+      "lastChecked": "2026-05-30",
+      "status": "current",
+      "notes": "Contribución patronal al plan de pensiones ordinario."
+    },
+    "sfs_empleador": {
+      "value": 0.0709,
+      "label": "SFS Empleador",
+      "sourceName": "Tesorería de la Seguridad Social (TSS)",
+      "sourceUrl": "https://tss.gob.do",
+      "effectiveDate": "2007-09-01",
+      "lastChecked": "2026-05-30",
+      "status": "current",
+      "notes": "Contribución patronal al seguro de salud familiar."
+    },
+    "srl_base": {
+      "value": 0.0120,
+      "label": "SRL Seguro Riesgos Laborales Base",
+      "sourceName": "Tesorería de la Seguridad Social (TSS)",
+      "sourceUrl": "https://tss.gob.do",
+      "effectiveDate": "2003-06-01",
+      "lastChecked": "2026-05-30",
+      "status": "current",
+      "notes": "Aporte patronal de riesgos de accidentes laborales."
+    },
+    "infotep": {
+      "value": 0.0100,
+      "label": "Aporte INFOTEP Patronal",
+      "sourceName": "Instituto de Formación Técnica (INFOTEP)",
+      "sourceUrl": "https://www.infotep.gob.do",
+      "effectiveDate": "1980-01-16",
+      "lastChecked: ": "2026-05-30",
+      "status": "current",
+      "notes": "Ley 116-80 sobre capacitación laboral dominicana."
+    },
+    "salario_minimo_tss": {
+      "value": 23223.00,
+      "label": "Salario Mínimo Nacional TSS",
+      "sourceName": "Consejo Nacional de la Seguridad Social (CNSS)",
+      "sourceUrl": "https://www.cnss.gob.do",
+      "effectiveDate": "2024-02-01",
+      "lastChecked": "2026-05-30",
+      "status": "current",
+      "notes": "Sueldo de referencia nacional usado por la TSS para fijar topes cotizables."
+    }
+  }
+}

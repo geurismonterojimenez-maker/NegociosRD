@@ -987,14 +987,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                 <div className="mt-6 p-4 bg-teal-950/40 border border-teal-500/20 rounded-lg text-xs leading-relaxed space-y-2.5">
                   <span className="font-bold text-teal-200 uppercase block">Costos Patronales del Empleador (Adicionales)</span>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-teal-100">
-                    <div>AFP Patronal (7.10%): <span className="font-mono text-white">RD$ {calculatedResults.patronalEstimated.afp.toLocaleString('en-US')}</span></div>
-                    <div>SFS Patronal (7.09%): <span className="font-mono text-white">RD$ {calculatedResults.patronalEstimated.sfs.toLocaleString('en-US')}</span></div>
-                    <div>SRL Laboral (~1.2%): <span className="font-mono text-white">RD$ {calculatedResults.patronalEstimated.srl.toLocaleString('en-US')}</span></div>
-                    <div>INFOTEP (1%): <span className="font-mono text-white">RD$ {calculatedResults.patronalEstimated.infotep.toLocaleString('en-US')}</span></div>
+                    <div>AFP Patronal (7.10%): <span className="font-mono text-white">RD$ {calculatedResults.patronalEstimado.afp.toLocaleString('en-US')}</span></div>
+                    <div>SFS Patronal (7.09%): <span className="font-mono text-white">RD$ {calculatedResults.patronalEstimado.sfs.toLocaleString('en-US')}</span></div>
+                    <div>SRL Laboral (~1.2%): <span className="font-mono text-white">RD$ {calculatedResults.patronalEstimado.srl.toLocaleString('en-US')}</span></div>
+                    <div>INFOTEP (1%): <span className="font-mono text-white">RD$ {calculatedResults.patronalEstimado.infotep.toLocaleString('en-US')}</span></div>
                   </div>
                   <div className="mt-2 border-t border-teal-500/10 pt-2 font-bold text-teal-200 flex justify-between">
                     <span>Cargos corporativos totales de empleador:</span>
-                    <span className="font-mono">RD$ {calculatedResults.patronalEstimated.total.toLocaleString('en-US')}</span>
+                    <span className="font-mono">RD$ {calculatedResults.patronalEstimado.total.toLocaleString('en-US')}</span>
                   </div>
                 </div>
               </div>
@@ -1333,7 +1333,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             <div>
               <h5 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Aviso de Validación NegocioRD 2026</h5>
               <p className="text-[11px] text-teal-800 leading-normal mt-0.5">
-                Todos los cálculos mostrados han sido verificados cruzando las bases impositivas anuales y mensuales de la DGII Dominicana y los topes TSS de RD$ 19,300.00 base. Puede exportar estos resultados en CSV o imprimir en PDF usando los botones dedicados superiores.
+                Estimación basada en tasas oficiales y topes vigentes documentados de la DGII Dominicana y la TSS (salario base RD$ 23,223.00). Por favor, consulta las fuentes oficiales antes de tomar decisiones legales, fiscales o laborales definitivas. Puedes exportar estos resultados en CSV o imprimir en PDF usando los botones dedicados superiores.
               </p>
             </div>
           </div>

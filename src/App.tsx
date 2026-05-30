@@ -30,8 +30,146 @@ import {
   X
 } from 'lucide-react';
 
+interface FaqSchemaItem {
+  question: string;
+  answer: string;
+}
+
+const injectSchema = (schemaObj: any) => {
+  if (typeof document === "undefined") return;
+  const script = document.createElement('script');
+  script.setAttribute('type', 'application/ld+json');
+  script.classList.add('dynamic-schema');
+  script.textContent = JSON.stringify(schemaObj);
+  document.head.appendChild(script);
+};
+
+const updateMetaTags = (title: string, description: string, path: string, type: 'article' | 'website' = 'website', faqItems?: FaqSchemaItem[]) => {
+  if (typeof document === "undefined") return;
+  
+  // 1. Update Title
+  document.title = title;
+
+  // 2. Update Meta Description
+  const metaDesc = document.querySelector('meta[name="description"]') || document.createElement('meta');
+  metaDesc.setAttribute('name', 'description');
+  metaDesc.setAttribute('content', description);
+  if (!metaDesc.parentNode) document.head.appendChild(metaDesc);
+
+  // 3. Update Canonical
+  const origin = window.location.origin;
+  const canonicalUrl = `${origin}${path}`;
+  const canonical = document.querySelector('link[rel="canonical"]') || document.createElement('link');
+  canonical.setAttribute('rel', 'canonical');
+  canonical.setAttribute('href', canonicalUrl);
+  if (!canonical.parentNode) document.head.appendChild(canonical);
+
+  // 4. Update Open Graph Meta
+  const ogTitle = document.querySelector('meta[property="og:title"]') || document.createElement('meta');
+  ogTitle.setAttribute('property', 'og:title');
+  ogTitle.setAttribute('content', title);
+  if (!ogTitle.parentNode) document.head.appendChild(ogTitle);
+
+  const ogDesc = document.querySelector('meta[property="og:description"]') || document.createElement('meta');
+  ogDesc.setAttribute('property', 'og:description');
+  ogDesc.setAttribute('content', description);
+  if (!ogDesc.parentNode) document.head.appendChild(ogDesc);
+
+  const ogUrl = document.querySelector('meta[property="og:url"]') || document.createElement('meta');
+  ogUrl.setAttribute('property', 'og:url');
+  ogUrl.setAttribute('content', canonicalUrl);
+  if (!ogUrl.parentNode) document.head.appendChild(ogUrl);
+
+  const ogType = document.querySelector('meta[property="og:type"]') || document.createElement('meta');
+  ogType.setAttribute('property', 'og:type');
+  ogType.setAttribute('content', type);
+  if (!ogType.parentNode) document.head.appendChild(ogType);
+
+  // 5. Update Twitter Card Meta
+  const twitterCard = document.querySelector('meta[name="twitter:card"]') || document.createElement('meta');
+  twitterCard.setAttribute('name', 'twitter:card');
+  twitterCard.setAttribute('content', 'summary_large_image');
+  if (!twitterCard.parentNode) document.head.appendChild(twitterCard);
+
+  const twitterTitle = document.querySelector('meta[name="twitter:title"]') || document.createElement('meta');
+  twitterTitle.setAttribute('name', 'twitter:title');
+  twitterTitle.setAttribute('content', title);
+  if (!twitterTitle.parentNode) document.head.appendChild(twitterTitle);
+
+  const twitterDesc = document.querySelector('meta[name="twitter:description"]') || document.createElement('meta');
+  twitterDesc.setAttribute('name', 'twitter:description');
+  twitterDesc.setAttribute('content', description);
+  if (!twitterDesc.parentNode) document.head.appendChild(twitterDesc);
+
+  // 6. Schemas Integration
+  // Remove existing dynamic schemas
+  document.querySelectorAll('script[type="application/ld+json"].dynamic-schema').forEach(el => el.remove());
+
+  // A. BreadcrumbList Schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": origin
+      },
+      ...(path !== '/' ? [{
+        "@type": "ListItem",
+        "position": 2,
+        "name": type === 'article' ? "Guías" : "Herramientas",
+        "item": `${origin}${path.split('/').slice(0, -1).join('/')}`
+      }, {
+        "@type": "ListItem",
+        "position": 3,
+        "name": title,
+        "item": canonicalUrl
+      }] : [])
+    ]
+  };
+
+  injectSchema(breadcrumbSchema);
+
+  // B. Specific Schemas based on Page Type
+  if (path.startsWith('/herramientas/')) {
+    // SoftwareApplication
+    const appSchema = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": title,
+      "operatingSystem": "All",
+      "applicationCategory": "BusinessApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "DOP"
+      }
+    };
+    injectSchema(appSchema);
+  }
+
+  // C. FAQPage Schema if FAQs are provided
+  if (faqItems && faqItems.length > 0) {
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqItems.map(item => ({
+        "@type": "Question",
+        "name": item.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.answer
+        }
+      }))
+    };
+    injectSchema(faqSchema);
+  }
+};
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'news'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'news' | 'centro-laboral' | 'centro-financiero'>('home');
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -58,11 +196,100 @@ export default function App() {
     setCtaItbisCalculado(Math.max(0, itbisCalculado));
   };
 
+  // --- 1. Reactive History API url parsing & navigation block ---
+  const parseUrlToState = () => {
+    if (typeof window === "undefined") return;
+    const path = window.location.pathname;
+    if (path.startsWith('/herramientas/')) {
+      const slug = path.replace('/herramientas/', '');
+      const calc = CALCULATORS.find(c => c.urlSlug === slug || c.id === slug);
+      if (calc) {
+        setCurrentView('calculator');
+        setActiveCalculator(calc);
+        return;
+      }
+    } else if (path.startsWith('/guia/')) {
+      const slug = path.replace('/guia/', '');
+      const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === slug);
+      if (guide) {
+        setCurrentView('blog');
+        setSelectedGuideSlug(slug);
+        return;
+      }
+    } else if (path === '/nosotros') {
+      setCurrentView('nosotros');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (path === '/noticias') {
+      setCurrentView('news');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (path === '/centro-laboral') {
+      setCurrentView('centro-laboral');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (path === '/centro-financiero') {
+      setCurrentView('centro-financiero');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    }
+    
+    // Default fallback to home
+    setCurrentView('home');
+    setActiveCalculator(null);
+    setSelectedGuideSlug(null);
+  };
+
+  // Safe navigation abstraction updating url bar
+  const navigateTo = (path: string) => {
+    if (typeof window === "undefined") return;
+    window.history.pushState(null, '', path);
+    parseUrlToState();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 2. Mounting popstate hook
+  React.useEffect(() => {
+    parseUrlToState();
+    const handlePopState = () => parseUrlToState();
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // 3. Client-side SEO metadata update effect
+  React.useEffect(() => {
+    if (currentView === 'calculator' && activeCalculator) {
+      const desc = activeCalculator.seoMetaDescription;
+      const faqsList = [
+        { question: `¿Cómo funciona la ${activeCalculator.name}?`, answer: activeCalculator.description },
+        { question: `¿Qué tasas oficiales toma de referencia la ${activeCalculator.name}?`, answer: "Usa de referencia las tasas de ley más recientes del Ministerio de Trabajo, DGII dominicana para ITBIS e ISR, y topes de aportación a la TSS actualizados al año 2026." }
+      ];
+      updateMetaTags(activeCalculator.seoTitle, desc, `/herramientas/${activeCalculator.urlSlug}`, 'website', faqsList);
+    } else if (currentView === 'blog' && selectedGuideSlug) {
+      const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === selectedGuideSlug);
+      if (guide) {
+        updateMetaTags(guide.seoTitle, guide.seoMetaDescription, `/guia/${selectedGuideSlug}`, 'article');
+      }
+    } else if (currentView === 'nosotros') {
+      updateMetaTags("Sobre Nosotros | NegocioRD", "Conoce al equipo de NegocioRD y nuestro compromiso con proveer herramientas de cálculo y consultoría fiscal confiables en República Dominicana.", "/nosotros", "website");
+    } else if (currentView === 'news') {
+      updateMetaTags("Últimas Noticias Financieras y Fiscales de R.D. | NegocioRD", "Mantente al día con investigaciones exclusivas sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.", "/noticias", "website");
+    } else if (currentView === 'centro-laboral') {
+      updateMetaTags("Centro Laboral RD - Asistencia & Prestaciones | NegocioRD", "Herramientas de cálculo especializadas y guías de asistencia laboral de conformidad con el Código de Trabajo dominicano.", "/centro-laboral", "website");
+    } else if (currentView === 'centro-financiero') {
+      updateMetaTags("Centro Financiero RD - Amortizaciones & Tasas | NegocioRD", "Simuladores profesionales de créditos, amortizaciones francesas y divisores legales dominicanos.", "/centro-financiero", "website");
+    } else {
+      updateMetaTags("NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.", "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.", "/", "website");
+    }
+  }, [currentView, activeCalculator, selectedGuideSlug]);
+
   // Switch to a calculator view
   const handleSelectCalculator = (calc: CalculatorInfo) => {
-    setActiveCalculator(calc);
-    setCurrentView('calculator');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('/herramientas/' + calc.urlSlug);
   };
 
   // Navigating by slug string
@@ -74,15 +301,13 @@ export default function App() {
       return cId === cleanSlug || cSlug === cleanSlug || c.urlSlug === slug || c.id === slug;
     });
     if (calc) {
-      handleSelectCalculator(calc);
+      navigateTo('/herramientas/' + calc.urlSlug);
     }
   };
 
   // Switch to a guide view
   const handleSelectGuide = (slug: string) => {
-    setSelectedGuideSlug(slug);
-    setCurrentView('blog');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('/guia/' + slug);
   };
 
   const toggleFaq = (idx: number) => {
@@ -122,7 +347,7 @@ export default function App() {
           
           {/* Logo brand */}
           <div 
-            onClick={() => { setCurrentView('home'); setActiveCalculator(null); setSelectedGuideSlug(null); setSearchFilter(''); }} 
+            onClick={() => { navigateTo('/'); setSearchFilter(''); }} 
             className="flex items-center gap-3 cursor-pointer group select-none hover:opacity-90 transition-opacity"
             id="header-logo-brand"
           >
@@ -154,7 +379,7 @@ export default function App() {
           {/* Nav links - hidden on mobile/tablet screens (< lg) */}
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#6B7280]">
             <button 
-              onClick={() => { setCurrentView('home'); setActiveCalculator(null); setSelectedGuideSlug(null); setSearchFilter(''); }}
+              onClick={() => { navigateTo('/'); setSearchFilter(''); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -162,7 +387,7 @@ export default function App() {
               Herramientas
             </button>
             <button 
-              onClick={() => { setCurrentView('centro-laboral'); setActiveCalculator(null); setSelectedGuideSlug(null); }}
+              onClick={() => { navigateTo('/centro-laboral'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'centro-laboral' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -170,7 +395,7 @@ export default function App() {
               Centro Laboral RD
             </button>
             <button 
-              onClick={() => { setCurrentView('centro-financiero'); setActiveCalculator(null); setSelectedGuideSlug(null); }}
+              onClick={() => { navigateTo('/centro-financiero'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'centro-financiero' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -178,7 +403,7 @@ export default function App() {
               Centro Financiero RD
             </button>
             <button 
-              onClick={() => { setSelectedGuideSlug(null); setCurrentView('blog'); }}
+              onClick={() => { navigateTo('/guia-itbis'); /* Matches path directly */ navigateTo('/guia/guia-itbis'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'blog' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -186,7 +411,7 @@ export default function App() {
               Guías y Blog
             </button>
             <button 
-              onClick={() => { setSelectedGuideSlug(null); setCurrentView('news'); }}
+              onClick={() => { navigateTo('/noticias'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'news' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -194,7 +419,7 @@ export default function App() {
               Noticias
             </button>
             <button 
-              onClick={() => setCurrentView('nosotros')}
+              onClick={() => navigateTo('/nosotros')}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'nosotros' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -243,42 +468,42 @@ export default function App() {
 
             <div className="flex flex-col gap-1 font-medium text-gray-600">
               <button 
-                onClick={() => { setCurrentView('home'); setActiveCalculator(null); setSelectedGuideSlug(null); setSearchFilter(''); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/'); setSearchFilter(''); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-home"
               >
                 Herramientas de Cálculos
               </button>
               <button 
-                onClick={() => { setCurrentView('centro-laboral'); setActiveCalculator(null); setSelectedGuideSlug(null); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/centro-laboral'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'centro-laboral' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-laboral"
               >
                 Centro Laboral RD (RH)
               </button>
               <button 
-                onClick={() => { setCurrentView('centro-financiero'); setActiveCalculator(null); setSelectedGuideSlug(null); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/centro-financiero'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'centro-financiero' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-financiero"
               >
                 Centro Financiero RD (Deudas)
               </button>
               <button 
-                onClick={() => { setSelectedGuideSlug(null); setCurrentView('blog'); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/guia-itbis'); navigateTo('/guia/guia-itbis'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'blog' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-blog"
               >
                 Guías y Blog Fiscal/Laboral
               </button>
               <button 
-                onClick={() => { setSelectedGuideSlug(null); setCurrentView('news'); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/noticias'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'news' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-news"
               >
                 Noticias & Actualizaciones
               </button>
               <button 
-                onClick={() => { setCurrentView('nosotros'); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/nosotros'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors font-semibold text-sm ${currentView === 'nosotros' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-about"
               >
@@ -531,7 +756,7 @@ export default function App() {
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-650 font-medium">
                         <CheckCircle size={14} className="text-[#0F766E]" />
-                        <span>Fórmula 100% Exacta</span>
+                        <span>Fórmula de Referencia Oficial</span>
                       </div>
                     </div>
                   </div>
@@ -669,7 +894,7 @@ export default function App() {
               
               <CalculatorForm 
                 calc={activeCalculator} 
-                onBack={() => { setCurrentView('home'); setActiveCalculator(null); }} 
+                onBack={() => { navigateTo('/'); }} 
                 onNavigateToCalc={(slug) => handleNavigateToCalcBySlug(slug)}
               />
             </div>
@@ -679,7 +904,7 @@ export default function App() {
           {currentView === 'blog' && (
             <div className="animate-in fade-in duration-150">
               <GuidesView 
-                onBackToHome={() => { setCurrentView('home'); setSelectedGuideSlug(null); }} 
+                onBackToHome={() => { navigateTo('/'); }} 
                 onNavigateToCalcBySlug={handleNavigateToCalcBySlug}
                 initialSelectedGuideSlug={selectedGuideSlug}
               />
@@ -690,7 +915,7 @@ export default function App() {
           {currentView === 'news' && (
             <div className="animate-in fade-in duration-150">
               <NewsSection 
-                onBackToHome={() => { setCurrentView('home'); }} 
+                onBackToHome={() => { navigateTo('/'); }} 
                 onNavigateToCalcBySlug={handleNavigateToCalcBySlug}
               />
             </div>
@@ -717,7 +942,7 @@ export default function App() {
 
                 <div className="pt-4 flex flex-wrap gap-4">
                   <button
-                    onClick={() => { setCurrentView('home'); }}
+                    onClick={() => { navigateTo('/'); }}
                     className="px-6 py-2.5 bg-[#0F766E] text-white text-xs font-bold rounded-lg cursor-pointer hover:opacity-95 transition-all shadow-xs"
                   >
                     Regresar al portal principal

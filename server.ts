@@ -4,6 +4,8 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { readRatesCache, refreshOfficialRates } from "./src/lib/rates/rate-updater";
+import { CALCULATORS, PROGRAMMATIC_GUIDES } from "./src/data";
 
 dotenv.config();
 
@@ -63,7 +65,7 @@ app.post("/api/news/refresh", async (req, res) => {
       }
     });
 
-    const currentDateStr = "2026-05-30"; // Set as fixed current context
+    const currentDateStr = new Date().toISOString().split("T")[0]; // Dynamic system date instead of hardcoded
 
     // Prompt instructing Gemini to perform research using Google Search Grounding & return structured articles
     const prompt = `Investiga noticias financieras, fiscales y de leyes laborales reales y sumamente recientes en la República Dominicana correspondientes al año 2026 (considera que la fecha actual de hoy es ${currentDateStr}).
@@ -214,6 +216,204 @@ IMPORTANTE: El campo 'id' debe comenzar con el prefijo "dynamic-" para distingui
   }
 });
 
+// 3. GET /api/rates - Returns current official rates database, source links & metadata
+app.get("/api/rates", async (req, res) => {
+  try {
+    const data = await readRatesCache();
+    res.json({
+      success: true,
+      rates: data.rates,
+      lastCheckedAll: data.lastCheckedAll,
+      status: data.status || "synchronized"
+    });
+  } catch (err: any) {
+    console.error("Error reading rates cache in GET /api/rates:", err);
+    res.status(500).json({
+      success: false,
+      error: "Error al cargar la base de datos de tasas e impuestos nacionales."
+    });
+  }
+});
+
+// 4. POST /api/rates/refresh - Triggers automated scraping refresh of rates from DGII, TSS & SIPEN
+app.post("/api/rates/refresh", async (req, res) => {
+  try {
+    const result = await refreshOfficialRates();
+    res.json(result);
+  } catch (err: any) {
+    console.error("Error running rates refresh in POST /api/rates/refresh:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message || "Error interno al sincronizar las tasas de impuestos y topes TSS."
+    });
+  }
+});
+
+// Helper to pre-render HTML with unique meta tags, OpenGraph, dynamic canonicals & JSON-LD schemas
+function getPrerenderedHTML(html: string, originalUrl: string): string {
+  let title = "NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.";
+  let description = "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.";
+  const pathPart = originalUrl.split("?")[0];
+  let type: 'article' | 'website' = 'website';
+  let faqSchema = "";
+  let appSchema = "";
+
+  if (pathPart.startsWith("/herramientas/")) {
+    const slug = pathPart.replace("/herramientas/", "");
+    const calc = CALCULATORS.find(c => c.urlSlug === slug || c.id === slug);
+    if (calc) {
+      title = `${calc.seoTitle} | NegocioRD`;
+      description = calc.seoMetaDescription;
+      
+      // SoftwareApplication Schema
+      appSchema = `
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "${calc.name}",
+    "operatingSystem": "All",
+    "applicationCategory": "BusinessApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "DOP"
+    }
+  }
+  </script>`;
+
+      // Optional: Generate FAQPage Schema if it has standard questions
+      if (calc.category === 'impuestos') {
+        faqSchema = `
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Cómo se calcula el ITBIS en República Dominicana?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Se multiplica la base imponible por la tasa aplicable (18% general, 16% reducida)."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuáles son las fechas de declaración del ITBIS?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Se declara mensualmente a más tardar el día 20 de cada mes mediante el formulario IT-1."
+        }
+      }
+    ]
+  }
+  </script>`;
+      } else if (calc.category === 'laboral') {
+        faqSchema = `
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Qué es la cesantía y cuándo aplica en RD?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Es la compensación por despido injustificado o desahucio ejercido por el empleador, calculada según el tiempo de servicio continuo."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿El salario navideño o regalía sufre deducciones de ley?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No, el salario navideño (Regalía Pascual) está 100% exento por ley de deducciones de la seguridad social (TSS) o retención de ISR."
+        }
+      }
+    ]
+  }
+  </script>`;
+      }
+    }
+  } else if (pathPart.startsWith("/guia/")) {
+    const slug = pathPart.replace("/guia/", "");
+    const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === slug);
+    if (guide) {
+      title = `${guide.seoTitle} | NegocioRD`;
+      description = guide.seoMetaDescription;
+      type = "article";
+    }
+  } else if (pathPart === "/nosotros") {
+    title = "Sobre Nosotros | NegocioRD";
+    description = "Conoce al equipo de NegocioRD y nuestro compromiso con proveer herramientas financieras, fiscales y laborales de la más alta confiabilidad en la República Dominicana.";
+  } else if (pathPart === "/noticias") {
+    title = "Últimas Noticias Financieras y Fiscales de R.D. | NegocioRD";
+    description = "Mantente al día con investigaciones exclusivas usando IA sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.";
+  }
+
+  // Canonical link setup
+  const originUrl = "https://negociord.com";
+  const canonicalUrl = `${originUrl}${pathPart}`;
+
+  // Replace Title Tags
+  html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+  html = html.replace(/<meta name="title" content=".*?" \/>/, `<meta name="title" content="${title}" />`);
+  
+  // Replace Meta Descriptions
+  html = html.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${description}" />`);
+  
+  // Replace Open Graph / Facebook Properties
+  html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`);
+  html = html.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${description}" />`);
+  html = html.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${canonicalUrl}" />`);
+  html = html.replace(/<meta property="og:type" content=".*?" \/>/, `<meta property="og:type" content="${type}" />`);
+  
+  // Replace Twitter Card Properties
+  html = html.replace(/<meta property="twitter:title" content=".*?" \/>/g, `<meta name="twitter:title" content="${title}" />`);
+  html = html.replace(/<meta name="twitter:description" content=".*?" \/>/g, `<meta name="twitter:description" content="${description}" />`);
+
+  // Inject Canonical element if missing
+  if (html.includes('rel="canonical"')) {
+    html = html.replace(/<link rel="canonical" href=".*?" \/>/, `<link rel="canonical" href="${canonicalUrl}" />`);
+  } else {
+    html = html.replace('</head>', `  <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
+  }
+
+  // Inject Breadcrumb JSON-LD & components schemas before </head>
+  const breadcrumbSchema = `
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "${originUrl}"
+      }${pathPart !== '/' ? `,
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "${type === 'article' ? "Guías" : "Herramientas"}",
+        "item": "${originUrl}${pathPart.split('/').slice(0, -1).join('/')}"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "${title}",
+        "item": "${canonicalUrl}"
+      }` : ''}
+    ]
+  }
+  </script>`;
+
+  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${faqSchema}\n</head>`;
+  return html.replace('</head>', injectedElements);
+}
+
 // Setup Vite Development Server or Production Static file server
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
@@ -226,7 +426,20 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      try {
+        const filePath = path.join(distPath, "index.html");
+        if (fs.existsSync(filePath)) {
+          let html = fs.readFileSync(filePath, "utf-8");
+          // Dynamically hydrate unique SEO meta tags matching request path
+          html = getPrerenderedHTML(html, req.originalUrl);
+          res.send(html);
+        } else {
+          res.status(404).send("Index template not found");
+        }
+      } catch (err) {
+        console.error("[ServerError] Static server-side hydration error:", err);
+        res.sendFile(path.join(distPath, "index.html"));
+      }
     });
   }
 
