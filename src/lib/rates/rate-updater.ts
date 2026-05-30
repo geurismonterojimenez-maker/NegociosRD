@@ -66,6 +66,46 @@ const defaultRatesCache = {
     status: "current",
     notes: "Seguro Familiar de Salud laboral de 3.04%."
   },
+  afp_empleador: {
+    value: 0.0710,
+    label: "AFP Empleador",
+    sourceName: "Tesorería de la Seguridad Social (TSS)",
+    sourceUrl: "https://tss.gob.do",
+    effectiveDate: "2003-06-01",
+    lastChecked: "2026-05-30",
+    status: "current",
+    notes: "Contribución patronal al plan de pensiones ordinario (7.10%)."
+  },
+  sfs_empleador: {
+    value: 0.0709,
+    label: "SFS Empleador",
+    sourceName: "Tesorería de la Seguridad Social (TSS)",
+    sourceUrl: "https://tss.gob.do",
+    effectiveDate: "2007-09-01",
+    lastChecked: "2026-05-30",
+    status: "current",
+    notes: "Contribución patronal al seguro de salud familiar (7.09%)."
+  },
+  srl_base: {
+    value: 0.0120,
+    label: "SRL Seguro Riesgos Laborales Base",
+    sourceName: "Tesorería de la Seguridad Social (TSS)",
+    sourceUrl: "https://tss.gob.do",
+    effectiveDate: "2003-06-01",
+    lastChecked: "2026-05-30",
+    status: "current",
+    notes: "Aporte patronal de riesgos de accidentes laborales de promedio sectorial de 1.20%."
+  },
+  infotep: {
+    value: 0.0100,
+    label: "Aporte INFOTEP Patronal",
+    sourceName: "Instituto de Formación Técnica (INFOTEP)",
+    sourceUrl: "https://www.infotep.gob.do",
+    effectiveDate: "1980-01-16",
+    lastChecked: "2026-05-30",
+    status: "current",
+    notes: "Ley 116-80 sobre capacitación laboral de un 1.00% corporativo."
+  },
   salario_minimo_tss: {
     value: 23223.00,
     label: "Salario Mínimo Nacional TSS",
@@ -173,74 +213,71 @@ export async function refreshOfficialRates(): Promise<RefreshResult> {
     changesDetected = true;
   }
 
-  // Map results to standard structure
-  const updatedRates: Record<string, RateStatusUpdate> = {
-    itbis_general: {
-      key: "itbis_general",
-      previousValue: originalItbis,
-      newValue: itbisRes.value,
-      status: itbisRes.status,
-      sourceName: "Dirección General de Impuestos Internos (DGII)",
-      sourceUrl: itbisRes.sourceUrl,
-      lastChecked: itbisRes.lastChecked,
-      notes: itbisRes.notes
-    },
-    itbis_reducida: {
-      key: "itbis_reducida",
-      previousValue: currentRates.itbis_reducida?.value ?? 0.16,
-      newValue: currentRates.itbis_reducida?.value ?? 0.16,
-      status: currentRates.itbis_reducida?.status ?? "current",
-      sourceName: "Dirección General de Impuestos Internos (DGII)",
-      sourceUrl: "https://dgii.gov.do",
-      lastChecked: new Date().toISOString().split("T")[0],
-      notes: currentRates.itbis_reducida?.notes ?? "Tasa reducida aplicable."
-    },
-    afp_empleado: {
-      key: "afp_empleado",
-      previousValue: originalAfp,
-      newValue: afpRes.value,
-      status: afpRes.status,
-      sourceName: "Tesorería de la Seguridad Social (TSS)",
-      sourceUrl: afpRes.sourceUrl,
-      lastChecked: afpRes.lastChecked,
-      notes: afpRes.notes
-    },
-    sfs_empleado: {
-      key: "sfs_empleado",
-      previousValue: currentRates.sfs_empleado?.value ?? 0.0304,
-      newValue: currentRates.sfs_empleado?.value ?? 0.0304,
-      status: currentRates.sfs_empleado?.status ?? "current",
-      sourceName: "Tesorería de la Seguridad Social (TSS)",
-      sourceUrl: "https://tss.gob.do",
-      lastChecked: new Date().toISOString().split("T")[0],
-      notes: currentRates.sfs_empleado?.notes ?? "Seguro Familiar de Salud laboral."
-    },
-    salario_minimo_tss: {
-      key: "salario_minimo_tss",
-      previousValue: originalTss,
-      newValue: tssRes.value,
-      status: tssRes.status,
-      sourceName: "Consejo Nacional de la Seguridad Social (CNSS)",
-      sourceUrl: tssRes.sourceUrl,
-      lastChecked: tssRes.lastChecked,
-      notes: tssRes.notes
-    }
-  };
+  // 4. Update the disk cache structure safely, preserving everything else!
+  const fileRates = JSON.parse(JSON.stringify(currentRates));
 
-  // Compile final store state
+  if (fileRates.itbis_general) {
+    fileRates.itbis_general.value = itbisRes.value;
+    fileRates.itbis_general.status = itbisRes.status;
+    fileRates.itbis_general.lastChecked = itbisRes.lastChecked;
+    fileRates.itbis_general.sourceUrl = itbisRes.sourceUrl;
+    if (itbisRes.notes) fileRates.itbis_general.notes = itbisRes.notes;
+  }
+  
+  if (fileRates.salario_minimo_tss) {
+    fileRates.salario_minimo_tss.value = tssRes.value;
+    fileRates.salario_minimo_tss.status = tssRes.status;
+    fileRates.salario_minimo_tss.lastChecked = tssRes.lastChecked;
+    fileRates.salario_minimo_tss.sourceUrl = tssRes.sourceUrl;
+    if (tssRes.notes) fileRates.salario_minimo_tss.notes = tssRes.notes;
+  }
+
+  if (fileRates.afp_empleado) {
+    fileRates.afp_empleado.value = afpRes.value;
+    fileRates.afp_empleado.status = afpRes.status;
+    fileRates.afp_empleado.lastChecked = afpRes.lastChecked;
+    fileRates.afp_empleado.sourceUrl = afpRes.sourceUrl;
+    if (afpRes.notes) fileRates.afp_empleado.notes = afpRes.notes;
+  }
+
+  // Also verify other standard keys exist from fallbacks if we lost them earlier
+  const fallbackKeys = Object.keys(defaultRatesCache);
+  for (const fk of fallbackKeys) {
+    if (!fileRates[fk]) {
+      fileRates[fk] = JSON.parse(JSON.stringify((defaultRatesCache as any)[fk]));
+    }
+  }
+
+  // Compile final store state for disk writing
   const updatedStore = {
     lastCheckedAll: new Date().toISOString(),
     status: warnings.length === 0 ? "synchronized" : "partial_success",
-    rates: updatedRates
+    rates: fileRates
   };
 
-  // Persist back to the cache file
+  // Persist back to the cache file (Saves standard structure with "value" intact!)
   await writeRatesCache(updatedStore);
+
+  // Now build compliant RateStatusUpdate structures for the API return value
+  const updatedRatesResult: Record<string, RateStatusUpdate> = {};
+  for (const k of Object.keys(fileRates)) {
+    const originalRateVal = currentRates[k]?.value ?? fileRates[k].value;
+    updatedRatesResult[k] = {
+      key: k,
+      previousValue: originalRateVal,
+      newValue: fileRates[k].value,
+      status: fileRates[k].status,
+      sourceName: fileRates[k].sourceName,
+      sourceUrl: fileRates[k].sourceUrl,
+      lastChecked: fileRates[k].lastChecked,
+      notes: fileRates[k].notes
+    };
+  }
 
   return {
     success: true,
     timestamp: new Date().toISOString(),
-    rates: updatedRates,
+    rates: updatedRatesResult,
     warnings,
     changesDetected
   };

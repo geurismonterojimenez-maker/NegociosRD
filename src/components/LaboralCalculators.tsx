@@ -29,6 +29,7 @@ interface ActionFeedback {
 export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsProps) {
   const [feedback, setFeedback] = useState<ActionFeedback | null>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [printSize, setPrintSize] = useState<'letter' | 'legal'>('letter');
 
   // Show dynamic toast feedback
   const triggerFeedback = (type: 'copy' | 'save' | 'delete' | 'export', msg: string) => {
@@ -535,7 +536,16 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
 
         {/* Right Main Results Pane */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-[#FAFAFA] border border-gray-200 rounded-2xl p-6 md:p-8 space-y-6">
+          {/* Dynamic Print CSS for Letter / Legal paper support */}
+          <style dangerouslySetInnerHTML={{__html: `
+            @media print {
+              @page {
+                size: ${printSize === 'legal' ? 'legal' : 'letter'} portrait !important;
+                margin: 1.5cm !important;
+              }
+            }
+          `}} />
+          <div id="laboral-calculator-print-preview" className="bg-[#FAFAFA] border border-gray-200 rounded-2xl p-6 md:p-8 space-y-6">
             <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block flex items-center gap-1.5 border-b pb-2 mb-2 border-gray-200">
               <Sparkles size={13} className="text-teal-600 animate-pulse" />
               Resultado Oficial Estimado
@@ -665,11 +675,25 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
               </div>
             )}
 
-            {/* Document exporters buttons */}
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 print:hidden">
+            {/* Document exporters buttons with Paper Size option */}
+            <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-gray-100 print:hidden">
+              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-205 rounded-lg px-2.5 py-1">
+                <span className="text-[10px] font-bold text-gray-500 uppercase">Papel:</span>
+                <select
+                  value={printSize}
+                  onChange={(e) => setPrintSize(e.target.value as 'letter' | 'legal')}
+                  className="bg-transparent border-none text-xs font-semibold text-[#111827] outline-none cursor-pointer focus:ring-0 p-0"
+                  aria-label="Seleccionar tamaño de papel"
+                >
+                  <option value="letter">Carta (8.5" x 11")</option>
+                  <option value="legal">Oficio / Legal (8.5" x 14")</option>
+                </select>
+              </div>
+
               <button
                 onClick={handlePrint}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 hover:border-gray-300 text-xs text-[#111827] font-semibold transition-all cursor-pointer active:scale-95"
+                aria-label="Imprimir Reporte en PDF"
               >
                 <Printer size={13} />
                 Imprimir Reporte (PDF)
@@ -677,6 +701,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
               <button
                 onClick={handleExportCSV}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-250 rounded-lg bg-white hover:bg-gray-50 hover:border-gray-300 text-xs text-[#111827] font-semibold transition-all cursor-pointer active:scale-95"
+                aria-label="Exportar a formato CSV"
               >
                 <Download size={13} />
                 Exportar Excel (CSV)

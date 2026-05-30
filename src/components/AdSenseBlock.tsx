@@ -80,6 +80,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
             onClick={() => setShowCode(!showCode)} 
             className="hover:text-[#0F766E] transition-colors cursor-pointer"
             title="Ver código oficial de AdSense"
+            aria-label="Ver código oficial de AdSense Izquierdo"
           >
             {showCode ? <Eye size={12} /> : <Code size={12} />}
           </button>
@@ -134,6 +135,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
             onClick={() => setShowCode(!showCode)} 
             className="hover:text-[#0F766E] transition-colors cursor-pointer"
             title="Ver código oficial de AdSense"
+            aria-label="Ver código oficial de AdSense Derecho"
           >
             {showCode ? <Eye size={12} /> : <Code size={12} />}
           </button>
@@ -268,6 +270,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
           type="button"
           onClick={() => setShowCode(!showCode)} 
           className="hover:text-[#0F766E] transition-colors cursor-pointer"
+          aria-label="Ver código fiscal del anuncio"
         >
           {showCode ? <Eye size={12} /> : <Code size={12} />}
         </button>

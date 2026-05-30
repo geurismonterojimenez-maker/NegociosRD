@@ -41,6 +41,7 @@ export default function ProfessionalPortal({ isOpen, onClose }: ProfessionalPort
 
   const [activeTab, setActiveTab] = useState<'itbis-ncf' | 'contratos-trabajo' | 'exportacion-reportes' | 'retenciones-recargos'>('itbis-ncf');
   const [notification, setNotification] = useState<string | null>(null);
+  const [printSize, setPrintSize] = useState<'letter' | 'legal'>('letter');
 
   const showToast = (msg: string) => {
     setNotification(msg);
@@ -541,6 +542,145 @@ Sello de Recibido Empresa (Fecha y Hora):`;
   const [retGrossAmount, setRetGrossAmount] = useState<number>(100000);
   const [retOverdueDays, setRetOverdueDays] = useState<number>(0);
   const [retItbisRetainedRate, setRetItbisRetainedRate] = useState<'30' | '100'>('100');
+
+  // --- LOCAL STORAGE SYNCHRONIZATION FOR PROFESSIONAL PORTAL ---
+  useEffect(() => {
+    // 1. Invoices
+    const cachedInvoices = localStorage.getItem('negociord_pro_invoices');
+    if (cachedInvoices) {
+      try {
+        setInvoices(JSON.parse(cachedInvoices));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 2. Contract Metadata
+    const cachedContract = localStorage.getItem('negociord_pro_contract');
+    if (cachedContract) {
+      try {
+        const cObj = JSON.parse(cachedContract);
+        if (cObj.empresaNombre) setEmpresaNombre(cObj.empresaNombre);
+        if (cObj.empresaRNC) setEmpresaRNC(cObj.empresaRNC);
+        if (cObj.empresaRepresentante) setEmpresaRepresentante(cObj.empresaRepresentante);
+        if (cObj.repCedula) setRepCedula(cObj.repCedula);
+        if (cObj.empresaDireccion) setEmpresaDireccion(cObj.empresaDireccion);
+        if (cObj.trabajadorNombre) setTrabajadorNombre(cObj.trabajadorNombre);
+        if (cObj.trabajadorCedula) setTrabajadorCedula(cObj.trabajadorCedula);
+        if (cObj.trabajadorOcupacion) setTrabajadorOcupacion(cObj.trabajadorOcupacion);
+        if (cObj.trabajadorDireccion) setTrabajadorDireccion(cObj.trabajadorDireccion);
+        if (cObj.trabajadorEstadoCivil) setTrabajadorEstadoCivil(cObj.trabajadorEstadoCivil);
+        if (cObj.trabajadorNacionalidad) setTrabajadorNacionalidad(cObj.trabajadorNacionalidad);
+        if (cObj.laboralSalario) setLaboralSalario(Number(cObj.laboralSalario));
+        if (cObj.laboralFechaInicio) setLaboralFechaInicio(cObj.laboralFechaInicio);
+        if (cObj.contratoModalidad) setContratoModalidad(cObj.contratoModalidad);
+        if (cObj.laboralHoras) setLaboralHoras(cObj.laboralHoras);
+        if (cObj.clausePrueba !== undefined) setClausePrueba(Boolean(cObj.clausePrueba));
+        if (cObj.clauseConfidencialidad !== undefined) setClauseConfidencialidad(Boolean(cObj.clauseConfidencialidad));
+        if (cObj.clauseArbitraje !== undefined) setClauseArbitraje(Boolean(cObj.clauseArbitraje));
+        if (cObj.includeNotary !== undefined) setIncludeNotary(Boolean(cObj.includeNotary));
+        if (cObj.amonestacionMotivo) setAmonestacionMotivo(cObj.amonestacionMotivo);
+        if (cObj.amonestacionFecha) setAmonestacionFecha(cObj.amonestacionFecha);
+        if (cObj.tipoDespido) setTipoDespido(cObj.tipoDespido);
+        if (cObj.despidoArticulo) setDespidoArticulo(cObj.despidoArticulo);
+        if (cObj.dimisionDetalle) setDimisionDetalle(cObj.dimisionDetalle);
+        if (cObj.docType) setDocType(cObj.docType);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 3. Custom brand stamp metadata
+    const cachedStamp = localStorage.getItem('negociord_pro_stamp');
+    if (cachedStamp) {
+      try {
+        const sObj = JSON.parse(cachedStamp);
+        if (sObj.stampName) setStampName(sObj.stampName);
+        if (sObj.stampPhone) setStampPhone(sObj.stampPhone);
+        if (sObj.stampEmail) setStampEmail(sObj.stampEmail);
+        if (sObj.stampColor) setStampColor(sObj.stampColor);
+        if (sObj.reportType) setReportType(sObj.reportType);
+        
+        // Report sheet initial numeric values
+        if (sObj.repPreTrabajador) setRepPreTrabajador(sObj.repPreTrabajador);
+        if (sObj.repPreSalario !== undefined) setRepPreSalario(Number(sObj.repPreSalario));
+        if (sObj.repPrePreaviso !== undefined) setRepPrePreaviso(Number(sObj.repPrePreaviso));
+        if (sObj.repPreCesantia !== undefined) setRepPreCesantia(Number(sObj.repPreCesantia));
+        if (sObj.repPreVacaciones !== undefined) setRepPreVacaciones(Number(sObj.repPreVacaciones));
+        if (sObj.repPreNavidad !== undefined) setRepPreNavidad(Number(sObj.repPreNavidad));
+
+        if (sObj.repAmAmount !== undefined) setRepAmAmount(Number(sObj.repAmAmount));
+        if (sObj.repAmRate !== undefined) setRepAmRate(Number(sObj.repAmRate));
+        if (sObj.repAmTerm !== undefined) setRepAmTerm(Number(sObj.repAmTerm));
+
+        if (sObj.repItSales !== undefined) setRepItSales(Number(sObj.repItSales));
+        if (sObj.repItPurchases !== undefined) setRepItPurchases(Number(sObj.repItPurchases));
+        if (sObj.repItRetentions !== undefined) setRepItRetentions(Number(sObj.repItRetentions));
+        if (sObj.repItAdvances !== undefined) setRepItAdvances(Number(sObj.repItAdvances));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 4. Surcharges & Retention calculations
+    const cachedRetention = localStorage.getItem('negociord_pro_retention');
+    if (cachedRetention) {
+      try {
+        const rObj = JSON.parse(cachedRetention);
+        if (rObj.retConcept) setRetConcept(rObj.retConcept);
+        if (rObj.retProviderType) setRetProviderType(rObj.retProviderType);
+        if (rObj.retServiceType) setRetServiceType(rObj.retServiceType);
+        if (rObj.retGrossAmount !== undefined) setRetGrossAmount(Number(rObj.retGrossAmount));
+        if (rObj.retOverdueDays !== undefined) setRetOverdueDays(Number(rObj.retOverdueDays));
+        if (rObj.retItbisRetainedRate) setRetItbisRetainedRate(rObj.retItbisRetainedRate);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  // Write changes
+  useEffect(() => {
+    localStorage.setItem('negociord_pro_invoices', JSON.stringify(invoices));
+  }, [invoices]);
+
+  useEffect(() => {
+    localStorage.setItem('negociord_pro_contract', JSON.stringify({
+      empresaNombre, empresaRNC, empresaRepresentante, repCedula, empresaDireccion,
+      trabajadorNombre, trabajadorCedula, trabajadorOcupacion, trabajadorDireccion,
+      trabajadorEstadoCivil, trabajadorNacionalidad, laboralSalario, laboralFechaInicio,
+      contratoModalidad, laboralHoras, clausePrueba, clauseConfidencialidad, clauseArbitraje,
+      includeNotary, amonestacionMotivo, amonestacionFecha, tipoDespido, despidoArticulo,
+      dimisionDetalle, docType
+    }));
+  }, [
+    empresaNombre, empresaRNC, empresaRepresentante, repCedula, empresaDireccion,
+    trabajadorNombre, trabajadorCedula, trabajadorOcupacion, trabajadorDireccion,
+    trabajadorEstadoCivil, trabajadorNacionalidad, laboralSalario, laboralFechaInicio,
+    contratoModalidad, laboralHoras, clausePrueba, clauseConfidencialidad, clauseArbitraje,
+    includeNotary, amonestacionMotivo, amonestacionFecha, tipoDespido, despidoArticulo,
+    dimisionDetalle, docType
+  ]);
+
+  useEffect(() => {
+    localStorage.setItem('negociord_pro_stamp', JSON.stringify({
+      stampName, stampPhone, stampEmail, stampColor, reportType,
+      repPreTrabajador, repPreSalario, repPrePreaviso, repPreCesantia, repPreVacaciones, repPreNavidad,
+      repAmAmount, repAmRate, repAmTerm,
+      repItSales, repItPurchases, repItRetentions, repItAdvances
+    }));
+  }, [
+    stampName, stampPhone, stampEmail, stampColor, reportType,
+    repPreTrabajador, repPreSalario, repPrePreaviso, repPreCesantia, repPreVacaciones, repPreNavidad,
+    repAmAmount, repAmRate, repAmTerm,
+    repItSales, repItPurchases, repItRetentions, repItAdvances
+  ]);
+
+  useEffect(() => {
+    localStorage.setItem('negociord_pro_retention', JSON.stringify({
+      retConcept, retProviderType, retServiceType, retGrossAmount, retOverdueDays, retItbisRetainedRate
+    }));
+  }, [retConcept, retProviderType, retServiceType, retGrossAmount, retOverdueDays, retItbisRetainedRate]);
 
   const isrRate = retProviderType === 'fisica' 
     ? (retServiceType === 'honorarios' ? 0.10 : retServiceType === 'alquiler' ? 0.10 : retServiceType === 'tecnico' ? 0.02 : 0.10)
@@ -1318,6 +1458,14 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       className="bg-white w-full max-w-[550px] p-6 sm:p-8 text-[11px] leading-relaxed font-mono text-gray-800 shadow-2xl border border-gray-300 rounded-xs select-text whitespace-pre-wrap text-left relative"
                       id="labor-legal-compiled-sheet-preview"
                     >
+                      <style dangerouslySetInnerHTML={{__html: `
+                        @media print {
+                          @page {
+                            size: ${printSize === 'legal' ? 'legal' : 'letter'} portrait !important;
+                            margin: 1.5cm !important;
+                          }
+                        }
+                      `}} />
                       <div className="absolute top-2 right-2 flex gap-1 print:hidden select-none">
                         <span className="text-[9px] bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded border border-emerald-100">✔ DR LAB LEGAL</span>
                         <span className="text-[9px] bg-red-50 text-red-800 font-bold px-1.5 py-0.5 rounded border border-red-100">CÓDIGO 16-92</span>
@@ -1327,25 +1475,38 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                     </div>
                   </div>
 
-                  {/* Actions to handle doc text */}
-                  <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                  {/* Actions to handle doc text with Paper option */}
+                  <div className="flex flex-col sm:flex-row gap-2 justify-end items-center">
+                    <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 self-stretch sm:self-auto justify-between">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Papel:</span>
+                      <select
+                        value={printSize}
+                        onChange={(e) => setPrintSize(e.target.value as 'letter' | 'legal')}
+                        className="bg-transparent border-none text-xs font-semibold text-[#111827] outline-none cursor-pointer focus:ring-0 p-0"
+                        aria-label="Seleccionar tamaño de papel"
+                      >
+                        <option value="letter">Carta (8.5" x 11")</option>
+                        <option value="legal">Oficio / Legal (8.5" x 14")</option>
+                      </select>
+                    </div>
+
                     <button 
                       onClick={() => handleCopyDoc(compileDocumentText())}
-                      className="px-4 py-2 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
+                      className="w-full sm:w-auto px-4 py-2 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Copy size={14} />
                       Copiar Contenido Redactado
                     </button>
                     <button 
                       onClick={handleDownloadDoc}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
+                      className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Download size={14} />
                       Descargar Contrato (.txt)
                     </button>
                     <button 
                       onClick={triggerMockPrint}
-                      className="px-4 py-2 bg-[#0F766E] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
+                      className="w-full sm:w-auto px-4 py-2 bg-[#0F766E] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Printer size={14} />
                       Imprimir / Descargar PDF
@@ -1677,6 +1838,14 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       id="timbrada-report-print-preview"
                       className="bg-white w-full max-w-[580px] p-6 sm:p-8 border border-gray-200 text-gray-800 shadow-2xl rounded-xs text-xs relative select-text text-left"
                     >
+                      <style dangerouslySetInnerHTML={{__html: `
+                        @media print {
+                          @page {
+                            size: ${printSize === 'legal' ? 'legal' : 'letter'} portrait !important;
+                            margin: 1.5cm !important;
+                          }
+                        }
+                      `}} />
                       
                       {/* Banner Timbre Header */}
                       <div className="border-b-2 border-[#0F766E] pb-4 mb-6 flex justify-between items-start">
@@ -1855,18 +2024,31 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                     </div>
                   </div>
 
-                  {/* Operational sheet buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                  {/* Operational sheet buttons with Paper selection */}
+                  <div className="flex flex-col sm:flex-row gap-2 justify-end items-center">
+                    <div className="flex items-center gap-1.5 bg-gray-55 border border-gray-200 rounded-lg px-2.5 py-1.5 self-stretch sm:self-auto justify-between">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Papel:</span>
+                      <select
+                        value={printSize}
+                        onChange={(e) => setPrintSize(e.target.value as 'letter' | 'legal')}
+                        className="bg-transparent border-none text-xs font-semibold text-[#111827] outline-none cursor-pointer focus:ring-0 p-0"
+                        aria-label="Seleccionar tamaño de papel"
+                      >
+                        <option value="letter">Carta (8.5" x 11")</option>
+                        <option value="legal">Oficio / Legal (8.5" x 14")</option>
+                      </select>
+                    </div>
+
                     <button 
                       onClick={exportCurrentReportToCSV}
-                      className="px-4 py-2 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
+                      className="w-full sm:w-auto px-4 py-2 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Download size={14} className="text-[#0F766E]" />
                       Descargar Formato Excel (CSV)
                     </button>
                     <button 
                       onClick={triggerMockPrint}
-                      className="px-4 py-2 bg-[#0F766E] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
+                      className="w-full sm:w-auto px-4 py-2 bg-[#0F766E] hover:opacity-95 text-white font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Printer size={14} />
                       Imprimir / Descargar PDF de Hoja Timbrada

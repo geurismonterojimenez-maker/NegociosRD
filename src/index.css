@@ -28,13 +28,28 @@
   #labor-legal-compiled-sheet-preview,
   #labor-legal-compiled-sheet-preview *,
   #timbrada-report-print-preview,
-  #timbrada-report-print-preview * {
+  #timbrada-report-print-preview *,
+  #print-sheet-segment,
+  #print-sheet-segment *,
+  #payslip-print-block,
+  #payslip-print-block *,
+  #laboral-calculator-print-preview,
+  #laboral-calculator-print-preview *,
+  #finanzas-calculator-print-preview,
+  #finanzas-calculator-print-preview *,
+  #empresariales-math-print-preview,
+  #empresariales-math-print-preview * {
     visibility: visible !important;
   }
 
   /* Position sheets perfectly at absolute coordinates for high contrast printing */
   #labor-legal-compiled-sheet-preview,
-  #timbrada-report-print-preview {
+  #timbrada-report-print-preview,
+  #print-sheet-segment,
+  #payslip-print-block,
+  #laboral-calculator-print-preview,
+  #finanzas-calculator-print-preview,
+  #empresariales-math-print-preview {
     position: fixed !important;
     left: 0 !important;
     top: 0 !important;

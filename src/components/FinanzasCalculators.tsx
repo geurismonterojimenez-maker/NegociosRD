@@ -22,6 +22,7 @@ interface FinanzasCalculatorsProps {
 export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculatorsProps) {
   const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
+  const [printSize, setPrintSize] = useState<'letter' | 'legal'>('letter');
 
   // Input states
   const [principalInput, setPrincipalInput] = useState<number>(100000);
@@ -523,7 +524,16 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
 
         {/* Right Outputs block */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-5">
+          {/* Dynamic Print CSS for Letter / Legal paper support */}
+          <style dangerouslySetInnerHTML={{__html: `
+            @media print {
+              @page {
+                size: ${printSize === 'legal' ? 'legal' : 'letter'} portrait !important;
+                margin: 1.5cm !important;
+              }
+            }
+          `}} />
+          <div id="finanzas-calculator-print-preview" className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-5">
             <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block flex items-center gap-1 border-b pb-2">
               <Sparkles size={12} className="text-emerald-600 animate-pulse" />
               Resultado de la corrida financiera
@@ -644,11 +654,25 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
               </div>
             )}
 
-            {/* Document export triggers */}
-            <div className="flex gap-2 pt-2 border-t">
+            {/* Document export triggers with paper select option */}
+            <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t border-gray-100 print:hidden">
+              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-205 rounded-lg px-2.5 py-1">
+                <span className="text-[10px] font-bold text-gray-500 uppercase">Papel:</span>
+                <select
+                  value={printSize}
+                  onChange={(e) => setPrintSize(e.target.value as 'letter' | 'legal')}
+                  className="bg-transparent border-none text-xs font-semibold text-[#111827] outline-none cursor-pointer focus:ring-0 p-0"
+                  aria-label="Seleccionar tamaño de papel"
+                >
+                  <option value="letter">Carta (8.5" x 11")</option>
+                  <option value="legal">Oficio / Legal (8.5" x 14")</option>
+                </select>
+              </div>
+
               <button
                 onClick={() => window.print()}
                 className="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg bg-white hover:bg-gray-50 text-xs font-semibold cursor-pointer"
+                aria-label="Imprimir Informe de la corrida"
               >
                 <Printer size={12} />
                 Imprimir Informe
@@ -656,6 +680,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
               <button
                 onClick={handleExcelExport}
                 className="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg bg-white hover:bg-gray-50 text-xs font-semibold cursor-pointer"
+                aria-label="Descargar tabla de amortización en CSV"
               >
                 <Download size={12} />
                 Descargar Amortización (CSV)

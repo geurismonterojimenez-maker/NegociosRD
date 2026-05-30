@@ -31,6 +31,7 @@ interface InfluxRow {
 
 export default function EmpresarialesCalculators({ calc, onBack }: EmpresarialesCalculatorsProps) {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [printSize, setPrintSize] = useState<'letter' | 'legal'>('letter');
 
   // Form states for Generators (Cotización, Recibo, Proforma, Orden, Presupuesto)
   const [empresaNombre, setEmpresaNombre] = useState('Mi Empresa Dominicana SRL');
@@ -83,6 +84,65 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
     setFeedback(msg);
     setTimeout(() => setFeedback(null), 3000);
   };
+
+  // 1. Initial configuration load on mount
+  useEffect(() => {
+    const cachedMeta = localStorage.getItem(`emp_meta_${calc.id}`);
+    if (cachedMeta) {
+      try {
+        const meta = JSON.parse(cachedMeta);
+        if (meta.empresaNombre) setEmpresaNombre(meta.empresaNombre);
+        if (meta.empresaRnc) setEmpresaRnc(meta.empresaRnc);
+        if (meta.clienteNombre) setClienteNombre(meta.clienteNombre);
+        if (meta.ncfVence) setNcfVence(meta.ncfVence);
+        if (meta.documentNumber) setDocumentNumber(meta.documentNumber);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    const cachedItems = localStorage.getItem(`emp_items_${calc.id}`);
+    if (cachedItems) {
+      try {
+        setLineItems(JSON.parse(cachedItems));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    const cachedMath = localStorage.getItem(`emp_math_${calc.id}`);
+    if (cachedMath) {
+      try {
+        const mathObj = JSON.parse(cachedMath);
+        if (mathObj.revenue !== undefined) setRevenue(Number(mathObj.revenue));
+        if (mathObj.cogs !== undefined) setCogs(Number(mathObj.cogs));
+        if (mathObj.opex !== undefined) setOpex(Number(mathObj.opex));
+        if (mathObj.fixedCosts !== undefined) setFixedCosts(Number(mathObj.fixedCosts));
+        if (mathObj.unitPrice !== undefined) setUnitPrice(Number(mathObj.unitPrice));
+        if (mathObj.unitVariableCost !== undefined) setUnitVariableCost(Number(mathObj.unitVariableCost));
+        if (mathObj.netProfitInput !== undefined) setNetProfitInput(Number(mathObj.netProfitInput));
+        if (mathObj.investmentCostInput !== undefined) setInvestmentCostInput(Number(mathObj.investmentCostInput));
+        if (mathObj.initialCash !== undefined) setInitialCash(Number(mathObj.initialCash));
+        if (mathObj.inflows !== undefined) setInflows(mathObj.inflows);
+        if (mathObj.outflows !== undefined) setOutflows(mathObj.outflows);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [calc.id]);
+
+  // 2. Persist Metadata text and numeric input changes
+  useEffect(() => {
+    localStorage.setItem(`emp_meta_${calc.id}`, JSON.stringify({
+      empresaNombre, empresaRnc, clienteNombre, ncfVence, documentNumber
+    }));
+  }, [calc.id, empresaNombre, empresaRnc, clienteNombre, ncfVence, documentNumber]);
+
+  useEffect(() => {
+    localStorage.setItem(`emp_math_${calc.id}`, JSON.stringify({
+      revenue, cogs, opex, fixedCosts, unitPrice, unitVariableCost, netProfitInput, investmentCostInput, initialCash, inflows, outflows
+    }));
+  }, [calc.id, revenue, cogs, opex, fixedCosts, unitPrice, unitVariableCost, netProfitInput, investmentCostInput, initialCash, inflows, outflows]);
 
   // Line item modifiers
   const handleAddItem = (e: React.FormEvent) => {
@@ -452,6 +512,15 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
 
         {/* Right Output Sheet segment */}
         <div className="lg:col-span-7 space-y-6">
+          {/* Dynamic Print CSS for Letter / Legal paper support */}
+          <style dangerouslySetInnerHTML={{__html: `
+            @media print {
+              @page {
+                size: ${printSize === 'legal' ? 'legal' : 'letter'} portrait !important;
+                margin: 1.5cm !important;
+              }
+            }
+          `}} />
           
           {/* Main Visual document (Cotización/Proforma/Recibo sheet) */}
           {isDocGenerator ? (
@@ -542,25 +611,41 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
               {/* Footnote stamp */}
               <p className="text-[10px] text-gray-400 text-center italic mt-4 border-t pt-3">Este documento constituye una simulación corporativa emitida via NegocioRD. Libre de validez fiscal corporativa si no está debidamente sellado por la oficina del emisor.</p>
 
-              {/* Action indicators for sheets block */}
-              <div className="flex gap-2.5 pt-3 border-t print:hidden">
+              {/* Action indicators for sheets block with Paper Size option */}
+              <div className="flex flex-wrap items-center gap-3 pt-3 border-t print:hidden">
+                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-205 rounded-lg px-2.5 py-1">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase">Papel:</span>
+                  <select
+                    value={printSize}
+                    onChange={(e) => setPrintSize(e.target.value as 'letter' | 'legal')}
+                    className="bg-transparent border-none text-xs font-semibold text-[#111827] outline-none cursor-pointer focus:ring-0 p-0"
+                    aria-label="Seleccionar tamaño de papel"
+                  >
+                    <option value="letter">Carta (8.5" x 11")</option>
+                    <option value="legal">Oficio / Legal (8.5" x 14")</option>
+                  </select>
+                </div>
+
                 <button
                   onClick={() => window.print()}
-                  className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1 active:scale-95 transition-all"
+                  className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold text-gray-950 cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
+                  aria-label="Imprimir Comprobante corporativo"
                 >
                   <Printer size={13} />
                   Imprimir Comprobante
                 </button>
                 <button
                   onClick={handleExportCSV}
-                  className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1 active:scale-95 transition-all"
+                  className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold text-gray-950 cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
+                  aria-label="Exportar Comprobante a CSV"
                 >
                   <Download size={13} />
                   Exportar CSV
                 </button>
                 <button
                   onClick={handleCopy}
-                  className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1 active:scale-95 transition-all"
+                  className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold text-gray-950 cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
+                  aria-label="Copiar Estructura de Texto"
                 >
                   <Copy size={13} />
                   Copiar Estructura
@@ -570,7 +655,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
             </div>
           ) : (
             // Layout for Mathematical Margins/EvenBreak points calculators
-            <div className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-6">
+            <div id="empresariales-math-print-preview" className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-6">
               <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block flex items-center gap-1.5 border-b pb-2">
                 <Sparkles size={13} className="text-indigo-600 animate-pulse" />
                 Matriz de Resultado Operativo
@@ -676,9 +761,29 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
                 </div>
               )}
 
-              {/* Form document exporters */}
-              <div className="flex gap-2.5 pt-2 border-t print:hidden">
-                <button onClick={() => window.print()} className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold cursor-pointer">Imprimir Reporte</button>
+              {/* Form document exporters with Paper Size option */}
+              <div className="flex flex-wrap items-center gap-3 pt-2.5 border-t print:hidden">
+                <div className="flex items-center gap-1.5 bg-gray-55 border border-gray-205 rounded-lg px-2.5 py-1">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase">Papel:</span>
+                  <select
+                    value={printSize}
+                    onChange={(e) => setPrintSize(e.target.value as 'letter' | 'legal')}
+                    className="bg-transparent border-none text-xs font-semibold text-[#111827] outline-none cursor-pointer focus:ring-0 p-0"
+                    aria-label="Seleccionar tamaño de papel"
+                  >
+                    <option value="letter">Carta (8.5" x 11")</option>
+                    <option value="legal">Oficio / Legal (8.5" x 14")</option>
+                  </select>
+                </div>
+
+                <button 
+                  onClick={() => window.print()} 
+                  className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold cursor-pointer text-gray-950 inline-flex items-center gap-1"
+                  aria-label="Imprimir Reporte Corporativo"
+                >
+                  <Printer size={13} />
+                  Imprimir Reporte
+                </button>
               </div>
 
             </div>

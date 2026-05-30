@@ -692,7 +692,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                     <input 
                       type="number" 
                       value={loanPrincipal}
-                      onChange={(e) => setLoanPrincipal(Math.max(1000, parseFloat(e.target.value) || 0))}
+                      onChange={(e) => setLoanPrincipal(Math.max(0, parseFloat(e.target.value) || 0))}
                       className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
                     />
                   </div>

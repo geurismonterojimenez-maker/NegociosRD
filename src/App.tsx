@@ -403,7 +403,7 @@ export default function App() {
               Centro Financiero RD
             </button>
             <button 
-              onClick={() => { navigateTo('/guia-itbis'); /* Matches path directly */ navigateTo('/guia/guia-itbis'); }}
+              onClick={() => { navigateTo('/guia/como-calcular-itbis'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'blog' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -489,7 +489,7 @@ export default function App() {
                 Centro Financiero RD (Deudas)
               </button>
               <button 
-                onClick={() => { navigateTo('/guia-itbis'); navigateTo('/guia/guia-itbis'); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/guia/como-calcular-itbis'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'blog' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-blog"
               >
@@ -637,16 +637,6 @@ export default function App() {
         {/* WORKSPACE AREA - occupies col-span-9 on desktop, col-span-12 on smaller displays */}
         <div className="col-span-12 lg:col-span-9 p-4 md:p-8 flex flex-col bg-[#FAFAFA]" id="main-workspace-balance">
           
-          {/* Ad Slot 1: Billboard Superior (Horizontal) - Siempre visible y optimizado para SEO */}
-          <div className="mb-6 shrink-0" id="adsense-slot-1-billboard">
-            <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
-          </div>
-
-          {/* Ad Slot 2 (Contraparte Móvil): Visible en móviles/tablets para completar 4 anuncios de alto rendimiento */}
-          <div className="xl:hidden mb-6 shrink-0" id="adsense-slot-2-mobile-alternative">
-            <AdSenseBlock variant="mobile-infeed" className="shadow-xs border border-gray-150" />
-          </div>
-          
           {currentView === 'home' && (
             <div className="space-y-8 animate-in fade-in duration-150">
               
@@ -663,6 +653,15 @@ export default function App() {
                 <p className="text-[#6B7280] text-sm mt-1.5 leading-relaxed max-w-4xl">
                   Simule salarios ordinarios netos, prestaciones, liquidación ministerial, amortización francesa bancaria e ITBIS, parametrizado debidamente bajo la TSS, DGII y el Código Laboral de la República Dominicana.
                 </p>
+              </div>
+
+              {/* Ad Slot 1 & 2: Billboard Superior (Horizontal) - Rendered nicely after the Hero and optimized for SEO */}
+              <div className="my-2 shrink-0" id="adsense-slot-1-billboard">
+                <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
+              </div>
+
+              <div className="xl:hidden my-2 shrink-0" id="adsense-slot-2-mobile-alternative">
+                <AdSenseBlock variant="mobile-infeed" className="shadow-xs border border-gray-150" />
               </div>
 
               {/* SEARCH INPUT BAR inline */}
@@ -890,6 +889,14 @@ export default function App() {
                 <span className="text-gray-400 capitalize">{activeCalculator.category}</span>
                 <span>/</span>
                 <span className="text-gray-400">{activeCalculator.name}</span>
+              </div>
+              
+              {/* Ad Slots below header/breadcrumb */}
+              <div className="mb-6 shrink-0" id="adsense-slot-1-billboard-calc">
+                <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
+              </div>
+              <div className="xl:hidden mb-6 shrink-0" id="adsense-slot-2-mobile-alternative-calc">
+                <AdSenseBlock variant="mobile-infeed" className="shadow-xs border border-gray-150" />
               </div>
               
               <CalculatorForm 

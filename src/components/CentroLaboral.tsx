@@ -28,6 +28,7 @@ export default function CentroLaboral() {
   const [attendance, setAttendance] = useState<AttendanceLog[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('Todos');
+  const [printSize, setPrintSize] = useState<'letter' | 'legal'>('letter');
   
   // Form states
   const [isAdding, setIsAdding] = useState(false);
@@ -694,6 +695,14 @@ export default function CentroLaboral() {
               {/* Dynamic Action 1: Payslip display */}
               {showSlip && slipMath && (
                 <div className="bg-[#FAFAFA] border border-gray-200 rounded-lg p-4 font-mono text-[11px] text-gray-700 space-y-3 relative print:absolute print:inset-0 print:bg-white print:z-50" id="payslip-print-block">
+                  <style dangerouslySetInnerHTML={{__html: `
+                    @media print {
+                      @page {
+                        size: ${printSize === 'legal' ? 'legal' : 'letter'} portrait !important;
+                        margin: 1.5cm !important;
+                      }
+                    }
+                  `}} />
                   <div className="border-b border-dashed border-gray-300 pb-2 text-center">
                     <span className="font-bold text-xs uppercase tracking-widest block">NegocioRD</span>
                     <span className="text-[9px] text-gray-400 font-sans block">VOLANTE DE PAGO OFICIAL</span>
@@ -759,10 +768,24 @@ export default function CentroLaboral() {
                     </div>
                   </div>
 
-                  <div className="pt-2 text-center">
+                  <div className="pt-3.5 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                    <div className="flex items-center gap-1 bg-white border border-gray-205 rounded px-2 py-0.5">
+                      <span className="text-[9px] font-bold text-gray-500 uppercase">Papel:</span>
+                      <select
+                        value={printSize}
+                        onChange={(e) => setPrintSize(e.target.value as 'letter' | 'legal')}
+                        className="bg-transparent border-none text-[10px] font-semibold text-[#111827] outline-none cursor-pointer focus:ring-0 p-0"
+                        aria-label="Seleccionar tamaño de papel"
+                      >
+                        <option value="letter">Carta (8.5" x 11")</option>
+                        <option value="legal">Oficio / Legal (8.5" x 14")</option>
+                      </select>
+                    </div>
+
                     <button 
                       onClick={handlePrintSlip}
-                      className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded font-bold font-sans text-[10px] cursor-pointer inline-flex items-center gap-1.5"
+                      className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded font-bold font-sans text-[10px] cursor-pointer inline-flex items-center gap-1.5 active:scale-95 transition-all text-gray-950"
+                      aria-label="Imprimir Volante de Pago oficial"
                     >
                       <Printer size={12} />
                       Imprimir Volante de Pago
