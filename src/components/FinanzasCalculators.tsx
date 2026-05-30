@@ -1,0 +1,766 @@
+import React, { useState, useEffect } from 'react';
+import { CalculatorInfo } from '../types';
+import { 
+  DollarSign, TrendingUp, Sparkles, FileText, ShieldAlert, Download, Printer, Copy,
+  RefreshCw, ChevronRight, Calculator, Calendar, HelpCircle, Layers, Award
+} from 'lucide-react';
+import { 
+  calculateMetaAhorro, 
+  calculateSimpleInterest, 
+  calculateCompoundInterest, 
+  calculateFutureValue, 
+  calculatePresentValue, 
+  compareLoanScenarios, 
+  calculateRefinancingSavings 
+} from '../lib/calculations/all_new_calculations';
+
+interface FinanzasCalculatorsProps {
+  calc: CalculatorInfo;
+  onBack: () => void;
+}
+
+export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculatorsProps) {
+  const [copied, setCopied] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+
+  // Input states
+  const [principalInput, setPrincipalInput] = useState<number>(100000);
+  const [annualRate, setAnnualRate] = useState<number>(11.5);
+  const [termsInMonths, setTermsInMonths] = useState<number>(36);
+  const [monthlyContribution, setMonthlyContribution] = useState<number>(2000);
+  const [periodsInYears, setPeriodsInYears] = useState<number>(5);
+  const [targetAmountInput, setTargetAmountInput] = useState<number>(500000);
+  const [monthlyExpensesComp, setMonthlyExpensesComp] = useState<number>(25000);
+
+  // Scenario Comparison Inputs
+  const [montoS, setMontoS] = useState<number>(300000);
+  const [tasaA, setTasaA] = useState<number>(12);
+  const [plazoA, setPlazoA] = useState<number>(36);
+  const [tasaB, setTasaB] = useState<number>(14.5);
+  const [plazoB, setPlazoB] = useState<number>(48);
+
+  // Refinancing Inputs
+  const [deudaPendiente, setDeudaPendiente] = useState<number>(400000);
+  const [tasaRefActual, setTasaRefActual] = useState<number>(15.0);
+  const [mesesRefRestan, setMesesRefRestan] = useState<number>(24);
+  const [tasaRefNueva, setTasaRefNueva] = useState<number>(11.5);
+  const [refComisiones, setRefComisiones] = useState<number>(5000);
+
+  // Grace Period and extra amortizations for advanced loan calculations
+  const [plazoGracia, setPlazoGracia] = useState<number>(0);
+  const [seguroVidaAnual, setSeguroVidaAnual] = useState<number>(0.06); // % of loans
+  const [seguroPropiedadAnual, setSeguroPropiedadAnual] = useState<number>(0.12);
+
+  // Load history
+  useEffect(() => {
+    const saved = localStorage.getItem(`history-${calc.id}`);
+    if (saved) {
+      setHistory(JSON.parse(saved));
+    }
+  }, [calc.id]);
+
+  const triggerFeedback = (msg: string) => {
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveResult = (val: number, label: string) => {
+    const fresh = {
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString('es-DO', { hour: '2-digit', minute: '2-digit' }),
+      result: val,
+      detail: label,
+    };
+    const updated = [fresh, ...history.slice(0, 9)];
+    setHistory(updated);
+    localStorage.setItem(`history-${calc.id}`, JSON.stringify(updated));
+  };
+
+  const handleClearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem(`history-${calc.id}`);
+  };
+
+  // Run financial logic based on ID
+  const compute = () => {
+    switch (calc.id) {
+      case 'ahorro-plan':
+        return calculateMetaAhorro(targetAmountInput, termsInMonths, annualRate);
+      case 'interes-simple':
+        return calculateSimpleInterest(principalInput, annualRate, termsInMonths);
+      case 'interes-compuesto':
+        return calculateCompoundInterest(principalInput, annualRate, termsInMonths, 12, monthlyContribution);
+      case 'valor-futuro':
+        return calculateFutureValue(principalInput, annualRate, periodsInYears);
+      case 'valor-presente':
+        return calculatePresentValue(principalInput, annualRate, periodsInYears);
+      case 'inversion-render': {
+        // Compound plus future metrics
+        const res = calculateCompoundInterest(principalInput, annualRate, periodsInYears * 12, 12, monthlyContribution);
+        return {
+          ...res,
+          formula: "Rendimientos netos compounding mensuales",
+          legalSource: "Interés devengado por depósitos a plazo en el Mercado Financiero Dominicano"
+        };
+      }
+      case 'prestamo-avanzado': {
+        // Amortization incorporating life/property insurance and grace period
+        const r = (annualRate / 12) / 100;
+        const usefulMonths = Math.max(1, termsInMonths - plazoGracia);
+        
+        // Base Cuota Francés
+        const cuotaBase = r > 0 
+          ? (principalInput * (r * Math.pow(1 + r, usefulMonths))) / (Math.pow(1 + r, usefulMonths) - 1)
+          : principalInput / usefulMonths;
+
+        const svida = (principalInput * (seguroVidaAnual / 100)) / 12;
+        const sprop = (principalInput * (seguroPropiedadAnual / 100)) / 12;
+        const cuotaTotal = cuotaBase + svida + sprop;
+
+        const totalInteres = (cuotaBase * usefulMonths) - principalInput;
+        const totalPagado = cuotaTotal * termsInMonths;
+
+        return {
+          principal: principalInput,
+          rate: annualRate,
+          months: termsInMonths,
+          cuotaTotal,
+          cuotaBase,
+          svida,
+          sprop,
+          totalInteres,
+          totalPagado,
+          plazoGracia,
+          formula: "PMT_Total = PMT_Frances + Seguros. Se aplica periodo de gracia",
+          legalSource: "Normativa de Transparencia de la Superintendencia de Bancos de la Rep. Dom."
+        };
+      }
+      case 'comparador-prestamos':
+        return compareLoanScenarios(montoS, tasaA, plazoA, tasaB, plazoB);
+      case 'amortizacion-completa': {
+        // Amortization table logic (similar to loan but return structured periods)
+        const r = (annualRate / 12) / 100;
+        const pmt = r > 0 ? (principalInput * (r * Math.pow(1 + r, termsInMonths)) / (Math.pow(1 + r, termsInMonths) - 1)) : (principalInput / termsInMonths);
+        
+        let remPrincipal = principalInput;
+        const rows = [];
+        for (let i = 1; i <= Math.min(120, termsInMonths); i++) {
+          const interestShare = remPrincipal * r;
+          const principalShare = pmt - interestShare;
+          remPrincipal = Math.max(0, remPrincipal - principalShare);
+          rows.push({
+            period: i,
+            cuota: pmt,
+            interes: interestShare,
+            abono: principalShare,
+            restante: remPrincipal
+          });
+        }
+
+        return {
+          principal: principalInput,
+          rate: annualRate,
+          months: termsInMonths,
+          monthlyCuota: pmt,
+          totalInterest: pmt * termsInMonths - principalInput,
+          rows,
+          formula: "Amortización Francesa: Cuota Constante con amortización de capital creciente",
+          legalSource: "Reglamento Bancario Dominicano"
+        };
+      }
+      case 'refinanciamiento-analizador':
+        return calculateRefinancingSavings(deudaPendiente, tasaRefActual, mesesRefRestan, tasaRefNueva, refComisiones);
+      default:
+        return null;
+    }
+  };
+
+  const result = compute();
+
+  const handleCopy = () => {
+    if (!result) return;
+    let text = `Cálculo Financiero: ${calc.name}\n`;
+    if ('interestGained' in result) {
+      text += `Interés devengado: RD$ ${result.interestGained.toLocaleString('en-US')}\nSaldo Final: RD$ ${result.finalBalance.toLocaleString('en-US')}\n`;
+    } else if ('finalBalance' in result) {
+      text += `Saldo Final Acumulado: RD$ ${result.finalBalance.toLocaleString('en-US')}\n`;
+    } else if ('cuotaTotal' in result) {
+      text += `Cuota Mensual Estimada: RD$ ${result.cuotaTotal.toLocaleString('en-US')}\n`;
+    } else if ('ahorroTotalPosible' in result) {
+      text += `Ahorro de Préstamo Posible: RD$ ${result.ahorroTotalPosible.toLocaleString('en-US')}\nMejor opción: ${result.mejorOp}\n`;
+    } else if ('ahorroTotalInversion' in result) {
+      text += `Ahorro Total por Refinanciamiento: RD$ ${result.ahorroTotalInversion.toLocaleString('en-US')}\nEs rentable: ${result.esRentable ? 'SÍ' : 'NO'}\n`;
+    }
+    navigator.clipboard.writeText(text);
+    triggerFeedback('¡Copiado!');
+  };
+
+  const handleExcelExport = () => {
+    if (!result) return;
+    let csv = "data:text/csv;charset=utf-8,Clave,Valor\n";
+    Object.entries(result).forEach(([k, v]) => {
+      if (k !== 'rows' && typeof v !== 'object') {
+        csv += `"${k}","${v}"\n`;
+      }
+    });
+    if ('rows' in result && Array.isArray(result.rows)) {
+      csv += "\nTabla de Amortizacion\nMes,Cuota,Interes,Abono Principal,Balance Restante\n";
+      result.rows.forEach((r: any) => {
+        csv += `${r.period},${r.cuota.toFixed(2)},${r.interes.toFixed(2)},${r.abono.toFixed(2)},${r.restante.toFixed(2)}\n`;
+      });
+    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `NegocioRD_Finanzas_${calc.id}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const getToolMetadata = () => {
+    switch (calc.id) {
+      case 'ahorro-plan':
+        return {
+          legalSource: "Criterios del Sistema y Fondos de Inversión de Rentas Fijas en RD.",
+          formula: "Cuota Ahorro meta = Capital / Factor de Capitalización de anualidad vencida.",
+          example: "Para lograr un inicial de RD$ 500,000.00 en 36 meses con una tasa promedio del 8% anualizada, usted requerirá ahorrar RD$ 12,075.00 mensuales.",
+          faq: [
+            { q: "¿En qué instituciones rinden más los fondos de ahorro en RD?", a: "Los fondos mutuos de cooperativas de ahorros así como los puestos de bolsa regulados por la SIMV ofrecen rendimientos superiores a las cuentas corrientes tradicionales." }
+          ]
+        };
+      case 'interes-simple':
+        return {
+          legalSource: "Banco Central y Superintendencia de Bancos de la RD.",
+          formula: "I = P * i * t (Interés = Principal * tasa * tiempo anualizado).",
+          example: "RD$ 100,000.00 a una tasa nominal de 12% por 6 meses ganaría RD$ 6,000.00 de interés total neto.",
+          faq: [
+            { q: "¿Dónde se aplica típicamente el interés simple?", a: "Se aplica principalmente en la banca a préstamos personales de cortísimo plazo, penalidades de retraso y pagarés comerciales simples." }
+          ]
+        };
+      case 'interes-compuesto':
+        return {
+          legalSource: "Prácticas Generales de Ingeniería Económica Internacional y Banca de RD.",
+          formula: "Balances = P * (1 + i)^t con contribuciones adicionales capitalizadas.",
+          example: "Ahorrando RD$ 50,000.00 iniciales más RD$ 2,000.00 al mes por 3 años a una tasa de 10% anual, sumaría RD$ 143,450.00 al final.",
+          faq: [
+            { q: "¿Qué beneficios aporta el interés compuesto?", a: "Permite acelerar exponencialmente el crecimiento de su dinero dado que los intereses ganados en cada período son reinvertidos y generan nuevos rendimientos." }
+          ]
+        };
+      default:
+        return {
+          legalSource: "Superintendencia de Bancos de la República Dominicana (Leyes Financieras).",
+          formula: "PMT = (Principal * r) / (1 - (1+r)^-n).",
+          example: "Cálculo estándar bancario.",
+          faq: [
+            { q: "¿Cómo protegerse del incremento de tasas de préstamos?", a: "Al adquirir un préstamo, trate de negociar contratos comerciales de 'Tasa Fija' a largo plazo (e.g. 3 o 5 años) para evitar el riesgo de alzas de política monetaria." }
+          ]
+        };
+    }
+  };
+
+  const meta = getToolMetadata();
+
+  return (
+    <div className="bg-white border rounded-2xl p-6 md:p-8 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* Left Inputs block */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="flex items-center gap-2 pb-3 border-b">
+            <span className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+              <Calculator size={18} />
+            </span>
+            <div>
+              <h3 className="font-bold text-sm text-[#111827]">Datos Financieros</h3>
+              <p className="text-[10px] text-gray-400 uppercase font-semibold">Tensiones e inflación de RD</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            
+            {/* Conditional input renderers per financial calculator */}
+            {calc.id !== 'comparador-prestamos' && calc.id !== 'refinanciamiento-analizador' && (
+              <>
+                {calc.id === 'ahorro-plan' ? (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Meta de Ahorro Deseada (RD$)</label>
+                    <input
+                      type="number"
+                      value={targetAmountInput}
+                      onChange={(e) => setTargetAmountInput(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Capital Principal (RD$)</label>
+                    <input
+                      type="number"
+                      value={principalInput}
+                      onChange={(e) => setPrincipalInput(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Tasa de Interés Anual (%)</label>
+                  <input
+                    type="number"
+                    step="0.05"
+                    value={annualRate}
+                    onChange={(e) => setAnnualRate(Math.max(0, parseFloat(e.target.value) || 0))}
+                    className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+
+                {calc.id !== 'valor-futuro' && calc.id !== 'valor-presente' && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Plazo total (En Meses)</label>
+                    <input
+                      type="number"
+                      value={termsInMonths}
+                      onChange={(e) => setTermsInMonths(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
+                    />
+                  </div>
+                )}
+
+                {calc.id === 'interes-compuesto' && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Aporte Mensual Adicional (RD$)</label>
+                    <input
+                      type="number"
+                      value={monthlyContribution}
+                      onChange={(e) => setMonthlyContribution(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
+                    />
+                  </div>
+                )}
+
+                {(calc.id === 'valor-futuro' || calc.id === 'valor-presente') && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Plazo de la Inversión (En Años)</label>
+                    <input
+                      type="number"
+                      value={periodsInYears}
+                      onChange={(e) => setPeriodsInYears(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
+                    />
+                  </div>
+                )}
+
+                {calc.id === 'prestamo-avanzado' && (
+                  <div className="grid grid-cols-2 gap-3 pt-1 border-t">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase">Meses Gracia</label>
+                      <input
+                        type="number"
+                        value={plazoGracia}
+                        onChange={(e) => setPlazoGracia(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold text-center focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase">Seguro Vida (% Anual)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={seguroVidaAnual}
+                        onChange={(e) => setSeguroVidaAnual(Math.max(0, parseFloat(e.target.value) || 0))}
+                        className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold text-center focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Comparador de Préstamos renderers */}
+            {calc.id === 'comparador-prestamos' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Monto del Financiamiento (RD$)</label>
+                  <input
+                    type="number"
+                    value={montoS}
+                    onChange={(e) => setMontoS(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 border rounded-xl">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase block">Escenario A</span>
+                    <input
+                      type="number"
+                      placeholder="Tasa A (%)"
+                      value={tasaA}
+                      onChange={(e) => setTasaA(Math.max(0, parseFloat(e.target.value) || 0))}
+                      className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Plazo A (meses)"
+                      value={plazoA}
+                      onChange={(e) => setPlazoA(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase block">Escenario B</span>
+                    <input
+                      type="number"
+                      placeholder="Tasa B (%)"
+                      value={tasaB}
+                      onChange={(e) => setTasaB(Math.max(0, parseFloat(e.target.value) || 0))}
+                      className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Plazo B (meses)"
+                      value={plazoB}
+                      onChange={(e) => setPlazoB(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Refinanciamiento renderers */}
+            {calc.id === 'refinanciamiento-analizador' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Deuda Pendiente (RD$)</label>
+                  <input
+                    type="number"
+                    value={deudaPendiente}
+                    onChange={(e) => setDeudaPendiente(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full px-3 py-2 border rounded-xl text-xs font-semibold outline-none"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 border rounded-xl">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase">Tasa Actual (%)</label>
+                    <input
+                      type="number"
+                      value={tasaRefActual}
+                      onChange={(e) => setTasaRefActual(parseFloat(e.target.value) || 0)}
+                      className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase font-semibold">Tasa Nueva (%)</label>
+                    <input
+                      type="number"
+                      value={tasaRefNueva}
+                      onChange={(e) => setTasaRefNueva(parseFloat(e.target.value) || 0)}
+                      className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold text-emerald-600 font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase">Meses Restantes</label>
+                    <input
+                      type="number"
+                      value={mesesRefRestan}
+                      onChange={(e) => setMesesRefRestan(parseInt(e.target.value) || 0)}
+                      className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase">Gatos de Cierre (RD$)</label>
+                    <input
+                      type="number"
+                      value={refComisiones}
+                      onChange={(e) => setRefComisiones(parseInt(e.target.value) || 0)}
+                      className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          <div className="pt-2 flex gap-3">
+            <button
+              onClick={() => {
+                if (result) {
+                  let val = 0;
+                  let lab = "";
+                  if ('finalBalance' in result) {
+                    val = result.finalBalance;
+                    lab = `Rendimientos compounding (${termsInMonths} meses)`;
+                  } else if ('cuotaTotal' in result) {
+                    val = result.cuotaTotal;
+                    lab = `Cuota préstamo avanzado`;
+                  } else if ('ahorroTotalPosible' in result) {
+                    val = result.ahorroTotalPosible;
+                    lab = `Ahorro comparador de prestamos`;
+                  } else if ('ahorroTotalInversion' in result) {
+                    val = result.ahorroTotalInversion;
+                    lab = `Ahorro de refinanciamiento`;
+                  }
+                  handleSaveResult(val, lab);
+                  triggerFeedback('¡Guardado!');
+                }
+              }}
+              className="py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-800 cursor-pointer flex items-center gap-1 active:scale-95"
+            >
+              Guardar a mi Historial
+            </button>
+            <button
+              onClick={handleCopy}
+              className="py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-800 cursor-pointer flex items-center gap-1 active:scale-95"
+            >
+              <Copy size={12} />
+              {copied ? '¡Copiado!' : 'Copiar Reporte'}
+            </button>
+          </div>
+        </div>
+
+        {/* Right Outputs block */}
+        <div className="lg:col-span-7 space-y-6">
+          <div className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-5">
+            <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block flex items-center gap-1 border-b pb-2">
+              <Sparkles size={12} className="text-emerald-600 animate-pulse" />
+              Resultado de la corrida financiera
+            </span>
+
+            {/* Giant KPI metric */}
+            {result && (
+              <div className="py-2">
+                <span className="text-xs text-gray-500 font-semibold block">
+                  {calc.id === 'ahorro-plan' ? 'Ahorro Mensual Requerido' : 'Saldo o Beneficio Final Estimado'}
+                </span>
+                <div className="text-3xl md:text-4xl font-extrabold text-[#030712] mt-1 font-sans">
+                  RD${' '}
+                  {(() => {
+                    const r = result as any;
+                    if (!r) return "0.00";
+                    if ('monthlyInflowNeeded' in r) return Number(r.monthlyInflowNeeded).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    if ('interestGained' in r) return Number(r.interestGained).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    if ('finalBalance' in r) return Number(r.finalBalance).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    if ('futureValue' in r) return Number(r.futureValue).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    if ('presentValue' in r) return Number(r.presentValue).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    if ('cuotaTotal' in r) return Number(r.cuotaTotal).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    if ('ahorroTotalPosible' in r) return Number(r.ahorroTotalPosible).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    if ('ahorroTotalInversion' in r) return Number(r.ahorroTotalInversion).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    if ('monthlyCuota' in r) return Number(r.monthlyCuota).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    return "0.00";
+                  })()}
+                </div>
+
+                {/* Compare loan decision tags */}
+                {calc.id === 'comparador-prestamos' && result && 'mejorOp' in result && (
+                  <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl inline-block text-left">
+                    <p className="text-xs text-emerald-800 font-semibold">
+                      La mejor alternativa financiera es: <strong className="font-bold uppercase text-emerald-950 font-mono">{result.mejorOp}</strong>, 
+                      ahorrándole un aproximado de <strong className="font-bold">RD$ {result.ahorroTotalPosible.toLocaleString('en-US')}</strong> en intereses.
+                    </p>
+                  </div>
+                )}
+
+                {calc.id === 'refinanciamiento-analizador' && result && 'esRentable' in result && (
+                  <div className={`mt-3 p-3 rounded-xl inline-block text-left border ${result.esRentable ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}>
+                    <p className="text-xs font-semibold">
+                      {result.esRentable 
+                        ? `¡Sí es rentable! Al refinanciar su préstamo con estos parámetros se ahorrará RD$ ${result.ahorroTotalInversion.toLocaleString('en-US')} totales de intereses.`
+                        : `No es financieramente rentable refinanciar dado que los gatos de cierre absorben la caída de tasa impositiva.`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Structured details table */}
+            {result && (
+              <div className="border rounded-xl bg-white p-4.5 space-y-3 text-xs text-gray-650 font-medium">
+                <span className="font-bold text-gray-800 uppercase text-[10px] tracking-wider block border-b pb-1.5 mb-2 border-dashed">
+                  Metrícaje detallado de Amortización:
+                </span>
+
+                {calc.id === 'ahorro-plan' && 'totalInvestedSelf' in result && (
+                  <>
+                    <div className="flex justify-between"><span>Suma total de aportes propios:</span><span className="font-mono text-gray-900">RD$ {result.totalInvestedSelf.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Intereses ganados a favor:</span><span className="font-mono text-emerald-600 font-bold">RD$ {result.totalInterestEarned.toLocaleString('en-US')}</span></div>
+                  </>
+                )}
+
+                {calc.id === 'interes-compuesto' && 'totalContributed' in result && (
+                  <>
+                    <div className="flex justify-between"><span>Capital aportado base + mensual:</span><span className="font-mono text-gray-950">RD$ {result.totalContributed.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Suma acumulada de retornos compounding:</span><span className="font-mono text-emerald-600 font-bold">RD$ {result.interestEarned.toLocaleString('en-US')}</span></div>
+                  </>
+                )}
+
+                {calc.id === 'prestamo-avanzado' && 'cuotaBase' in result && (
+                  <>
+                    <div className="flex justify-between"><span>Cuota amortización base regular:</span><span className="font-mono">RD$ {result.cuotaBase.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Prima seguro de vida mensual:</span><span className="font-mono">RD$ {result.svida.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Prima seguro de daños mensual:</span><span className="font-mono">RD$ {result.sprop.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Suma intereses netos pagados por préstamo:</span><span className="font-mono text-rose-600 font-bold">RD$ {result.totalInteres.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Meses de Gracia concedido (0 pago):</span><span className="font-bold">{result.plazoGracia} Meses</span></div>
+                  </>
+                )}
+
+                {calc.id === 'comparador-prestamos' && 'escAl' in result && (
+                  <div className="grid grid-cols-2 gap-4 border-b pb-3 mb-2">
+                    <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                      <strong className="text-xs text-gray-900 block font-bold">Préstamo A</strong>
+                      <p className="text-[10px] text-gray-500">Cuota: RD$ {result.escAl.cuota.toLocaleString('en-US')}</p>
+                      <p className="text-[10px] text-gray-500">Total Interés: RD$ {result.escAl.totalInteres.toLocaleString('en-US')}</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                      <strong className="text-xs text-gray-900 block font-bold">Préstamo B</strong>
+                      <p className="text-[10px] text-gray-500">Cuota: RD$ {result.escB.cuota.toLocaleString('en-US')}</p>
+                      <p className="text-[10px] text-gray-500">Total Interés: RD$ {result.escB.totalInteres.toLocaleString('en-US')}</p>
+                    </div>
+                  </div>
+                )}
+
+                {calc.id === 'refinanciamiento-analizador' && 'cuotaActual' in result && (
+                  <>
+                    <div className="flex justify-between"><span>Mensualidad antes (Actual):</span><span className="font-mono">RD$ {result.cuotaActual.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Mensualidad recalculada:</span><span className="font-mono font-semibold text-emerald-600">RD$ {result.nuevaCuota.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Ahorro consolidado mensual:</span><span className="font-bold text-gray-900">RD$ {result.ahorroCuotaMensual.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Comisiones y gatos cierre:</span><span className="font-mono text-rose-500">RD$ {result.gastosCierreRefinanciados.toLocaleString('en-US')}</span></div>
+                  </>
+                )}
+
+                {/* Formula details */}
+                <div className="mt-4 pt-3 text-[11px] font-normal text-gray-500 flex items-start gap-1">
+                  <FileText size={12} className="text-gray-400 mt-0.5" />
+                  <p><strong>Ecuación de cálculo:</strong> {result.formula}</p>
+                </div>
+
+                {/* Legal Source details */}
+                <div className="text-[11px] font-normal text-gray-500 flex items-start gap-1">
+                  <ShieldAlert size={12} className="text-gray-400 mt-0.5" />
+                  <p><strong>Base Regulatoría:</strong> {(result as any).legalSource || meta.legalSource}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Document export triggers */}
+            <div className="flex gap-2 pt-2 border-t">
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg bg-white hover:bg-gray-50 text-xs font-semibold cursor-pointer"
+              >
+                <Printer size={12} />
+                Imprimir Informe
+              </button>
+              <button
+                onClick={handleExcelExport}
+                className="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg bg-white hover:bg-gray-50 text-xs font-semibold cursor-pointer"
+              >
+                <Download size={12} />
+                Descargar Amortización (CSV)
+              </button>
+            </div>
+
+          </div>
+
+          {/* Interactive example */}
+          <div className="bg-white border rounded-2xl p-6">
+            <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1">
+              <TrendingUp size={15} className="text-emerald-600" />
+              Caso Práctico Ilustrativo
+            </h4>
+            <p className="text-xs text-gray-600 leading-relaxed bg-[#FAFAFA] p-4.5 rounded-xl border mt-3">
+              {meta.example}
+            </p>
+          </div>
+
+          {/* Active Amortization Rows Table for complete breakdown */}
+          {calc.id === 'amortizacion-completa' && result && 'rows' in result && (
+            <div className="bg-white border rounded-2xl p-6 space-y-4">
+              <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1">
+                <Layers size={15} className="text-emerald-600" />
+                Tabla Mensual de Amortización (Método Francés)
+              </h4>
+              <div className="overflow-x-auto border rounded-xl divide-y">
+                <table className="w-full text-left text-xs text-gray-500">
+                  <thead className="bg-[#FAFAFA] text-gray-700 uppercase font-bold text-[10px] tracking-wider border-b">
+                    <tr>
+                      <th className="px-4 py-2 text-center">Mes</th>
+                      <th className="px-4 py-2">Cuota Fija</th>
+                      <th className="px-4 py-2">Interés</th>
+                      <th className="px-4 py-2">Abono Principal</th>
+                      <th className="px-4 py-2">Deuda Restante</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y font-medium text-gray-700">
+                    {result.rows.slice(0, 12).map((row: any) => (
+                      <tr key={row.period} className="hover:bg-gray-50">
+                        <td className="px-4 py-2.5 text-center font-bold text-gray-950 font-mono">{row.period}</td>
+                        <td className="px-4 py-2.5 font-mono text-gray-900">RD$ {row.cuota.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                        <td className="px-4 py-2.5 font-mono text-orange-600">RD$ {row.interes.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                        <td className="px-4 py-2.5 font-mono text-emerald-600">RD$ {row.abono.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                        <td className="px-4 py-2.5 font-mono text-gray-950">RD$ {row.restante.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {result.rows.length > 12 && (
+                <p className="text-[10px] text-gray-400 text-center italic">Mostrando los primeros 12 meses. Presione 'Descargar Amortización' para ver los {result.rows.length} periodos completos en Excel.</p>
+              )}
+            </div>
+          )}
+
+          {/* History log list */}
+          {history.length > 0 && (
+            <div className="bg-white border rounded-2xl p-6 space-y-3.5">
+              <div className="flex items-center justify-between border-b pb-2">
+                <span className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1">
+                  <Award size={13} className="text-emerald-500" />
+                  Historial de simulaciones en este equipo
+                </span>
+                <button
+                  onClick={handleClearHistory}
+                  className="text-[11px] text-rose-600 hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                >
+                  Limpiar registro
+                </button>
+              </div>
+              <div className="divide-y max-h-40 overflow-y-auto">
+                {history.map((h) => (
+                  <div key={h.id} className="py-2 flex justify-between text-xs font-medium text-gray-600">
+                    <div>
+                      <span>{h.detail}</span>
+                      <span className="block text-[10px] text-gray-400">{h.date}</span>
+                    </div>
+                    <strong className="text-emerald-600 font-mono">RD$ {h.result.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* FAQ Segment */}
+          <div className="bg-white border rounded-2xl p-6">
+            <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1.5 mb-4">
+              <HelpCircle size={15} className="text-emerald-600" />
+              Respuestas Financieras del Mercado Dominicano
+            </h4>
+            <div className="space-y-4 divide-y divide-gray-100">
+              {meta.faq.map((item, index) => (
+                <div key={index} className={`${index > 0 ? "pt-4.5" : ""} space-y-1`}>
+                  <strong className="block text-xs font-bold text-gray-900">¿{item.q}</strong>
+                  <p className="text-xs text-gray-600 leading-relaxed font-medium">{item.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}

@@ -7,6 +7,8 @@ import GuidesView from './components/GuidesView';
 import NewsSection from './components/NewsSection';
 import AdSenseBlock from './components/AdSenseBlock';
 import ProfessionalPortal from './components/ProfessionalPortal';
+import CentroLaboral from './components/CentroLaboral';
+import CentroFinanciero from './components/CentroFinanciero';
 import { 
   Search, 
   Sparkles, 
@@ -160,6 +162,22 @@ export default function App() {
               Herramientas
             </button>
             <button 
+              onClick={() => { setCurrentView('centro-laboral'); setActiveCalculator(null); setSelectedGuideSlug(null); }}
+              className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
+                currentView === 'centro-laboral' ? 'text-[#0F766E] font-semibold' : ''
+              }`}
+            >
+              Centro Laboral RD
+            </button>
+            <button 
+              onClick={() => { setCurrentView('centro-financiero'); setActiveCalculator(null); setSelectedGuideSlug(null); }}
+              className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
+                currentView === 'centro-financiero' ? 'text-[#0F766E] font-semibold' : ''
+              }`}
+            >
+              Centro Financiero RD
+            </button>
+            <button 
               onClick={() => { setSelectedGuideSlug(null); setCurrentView('blog'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'blog' ? 'text-[#0F766E] font-semibold' : ''
@@ -230,6 +248,20 @@ export default function App() {
                 id="mob-nav-home"
               >
                 Herramientas de Cálculos
+              </button>
+              <button 
+                onClick={() => { setCurrentView('centro-laboral'); setActiveCalculator(null); setSelectedGuideSlug(null); setMobileMenuOpen(false); }}
+                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'centro-laboral' ? 'text-[#0F766E]' : ''}`}
+                id="mob-nav-laboral"
+              >
+                Centro Laboral RD (RH)
+              </button>
+              <button 
+                onClick={() => { setCurrentView('centro-financiero'); setActiveCalculator(null); setSelectedGuideSlug(null); setMobileMenuOpen(false); }}
+                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'centro-financiero' ? 'text-[#0F766E]' : ''}`}
+                id="mob-nav-financiero"
+              >
+                Centro Financiero RD (Deudas)
               </button>
               <button 
                 onClick={() => { setSelectedGuideSlug(null); setCurrentView('blog'); setMobileMenuOpen(false); }}
@@ -380,6 +412,16 @@ export default function App() {
         {/* WORKSPACE AREA - occupies col-span-9 on desktop, col-span-12 on smaller displays */}
         <div className="col-span-12 lg:col-span-9 p-4 md:p-8 flex flex-col bg-[#FAFAFA]" id="main-workspace-balance">
           
+          {/* Ad Slot 1: Billboard Superior (Horizontal) - Siempre visible y optimizado para SEO */}
+          <div className="mb-6 shrink-0" id="adsense-slot-1-billboard">
+            <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
+          </div>
+
+          {/* Ad Slot 2 (Contraparte Móvil): Visible en móviles/tablets para completar 4 anuncios de alto rendimiento */}
+          <div className="xl:hidden mb-6 shrink-0" id="adsense-slot-2-mobile-alternative">
+            <AdSenseBlock variant="mobile-infeed" className="shadow-xs border border-gray-150" />
+          </div>
+          
           {currentView === 'home' && (
             <div className="space-y-8 animate-in fade-in duration-150">
               
@@ -414,9 +456,6 @@ export default function App() {
                   />
                 </div>
               </div>
-
-              {/* Mobile & Tablet-Optimized High-Impact In-Feed AdSense Banner (Renders automatically when side rails are hidden) */}
-              <AdSenseBlock variant="mobile-infeed" className="xl:hidden shadow-xs border border-gray-150" />
 
               {/* MAIN DYNAMIC DIRECTORY COMPONENT */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
@@ -602,6 +641,20 @@ export default function App() {
             </div>
           )}
 
+          {/* CENTRO LABORAL (RH) */}
+          {currentView === 'centro-laboral' && (
+            <div className="animate-in fade-in duration-150">
+              <CentroLaboral />
+            </div>
+          )}
+
+          {/* CENTRO FINANCIERO (DEUDAS/COMPARATIVAS) */}
+          {currentView === 'centro-financiero' && (
+            <div className="animate-in fade-in duration-150">
+              <CentroFinanciero />
+            </div>
+          )}
+
           {/* CALCULATOR VIEW */}
           {currentView === 'calculator' && activeCalculator && (
             <div className="animate-in fade-in duration-150">
@@ -673,6 +726,11 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {/* Ad Slot 3 (Contraparte Móvil): Visible en móviles/tablets para completar las 4 inserciones publicitarias con alta visibilidad */}
+          <div className="xl:hidden mt-6 shrink-0" id="adsense-slot-3-mobile-alternative">
+            <AdSenseBlock variant="results-inline" className="shadow-xs border border-gray-150" />
+          </div>
 
         </div>
       </div>

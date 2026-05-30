@@ -523,8 +523,16 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
               </div>
             )}
 
-            {/* AdSense In-Article Ad Representative Block */}
-            <AdSenseBlock variant="mobile-infeed" className="mt-8 text-left border border-gray-150" />
+            {/* Consejo de Facturación y NCF Dominicano */}
+            <div className="mt-8 p-4 bg-amber-50/40 border border-amber-100 rounded-xl flex items-start gap-3 text-left">
+              <span className="text-lg">📋</span>
+              <div>
+                <h5 className="text-xs font-bold text-amber-950 uppercase tracking-wider">Aviso Legal para Emprendedores — NegocioRD</h5>
+                <p className="text-[11px] text-amber-800 leading-normal mt-0.5">
+                  Recuerde que los retrasos en las declaraciones de ITBIS (día 20 de cada mes) conllevan recargos automáticos establecidos por la DGII de un 10% por el primer mes o fracción y un 4% por meses subsiguientes, más un 1.1% indemnizatorio.
+                </p>
+              </div>
+            </div>
 
             {/* CTA to actual application calculator tool */}
             {selectedArticle.relatedCalculatorSlug && (
@@ -872,8 +880,21 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                 )}
               </div>
 
-              {/* Sidebar AdSense banner space via AdSenseBlock */}
-              <AdSenseBlock variant="results-inline" className="my-2" />
+              {/* Consejo y Formatos Oficiales DGII para PYMEs */}
+              <div className="bg-gradient-to-br from-teal-50/50 to-emerald-50/30 border border-teal-100 rounded-2xl p-5 shadow-xs space-y-3">
+                <h4 className="text-xs font-bold text-teal-900 uppercase tracking-wider flex items-center gap-1.5 pb-1 border-b border-teal-100/50">
+                  <span>📂 Formularios Fundamentales</span>
+                </h4>
+                <div className="text-xs text-teal-950 space-y-2">
+                  <p className="leading-relaxed">Formularios clave que toda empresa en R.D. debe presentar mensualmente:</p>
+                  <ul className="space-y-1.5 list-disc pl-4 text-gray-700 font-medium">
+                    <li><strong className="text-teal-950">IT-1:</strong> Declaración Jurada de ITBIS</li>
+                    <li><strong className="text-teal-950">IR-17:</strong> Retenciones y Retribuciones Complementarias</li>
+                    <li><strong className="text-teal-950">606:</strong> Compras de Bienes y Servicios (NCF)</li>
+                    <li><strong className="text-teal-950">607:</strong> Ventas de Bienes y Servicios</li>
+                  </ul>
+                </div>
+              </div>
 
               {/* RECOMMENDED READINGS */}
               <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-3">
