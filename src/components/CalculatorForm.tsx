@@ -8,6 +8,7 @@ import { calculatePrestaciones } from '../lib/calculations/prestaciones';
 import { calculateAmortization } from '../lib/calculations/prestamos';
 import { calculateBusinessMargin, calculateDGIILateFees } from '../lib/calculations/negocios';
 import { ArrowLeft, Share2, Info, Check, Sparkles, TrendingUp, DollarSign, Calculator, HelpCircle, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import AdSenseBlock from './AdSenseBlock';
 
 interface CalculatorFormProps {
   calc: CalculatorInfo;
@@ -1293,12 +1294,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
           </div>
 
           {/* AdSense In-Calculator Results Ad Representative Block */}
-          <div className="p-3 bg-white border border-dashed border-gray-200 rounded-xl text-center">
-            <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Bloque Publicitario de Resultados (AdSense)</span>
-            <div className="h-16 bg-gray-50 border border-gray-100 flex justify-center items-center rounded-lg text-xs text-gray-400 font-mono">
-              Banner Adaptable Contextual (728 x 90) — Diseñado sin interferir con formularios
-            </div>
-          </div>
+          <AdSenseBlock variant="results-inline" className="my-4" />
 
           {/* Explanation step-by-step ("Explicación Humana") */}
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 shadow-sm">

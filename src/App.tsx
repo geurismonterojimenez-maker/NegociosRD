@@ -5,6 +5,8 @@ import CalculatorsList from './components/CalculatorsList';
 import CalculatorForm from './components/CalculatorForm';
 import GuidesView from './components/GuidesView';
 import NewsSection from './components/NewsSection';
+import AdSenseBlock from './components/AdSenseBlock';
+import ProfessionalPortal from './components/ProfessionalPortal';
 import { 
   Search, 
   Sparkles, 
@@ -21,13 +23,16 @@ import {
   User,
   ExternalLink,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Menu,
+  X
 } from 'lucide-react';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'news'>('home');
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Search state
   const [searchFilter, setSearchFilter] = useState('');
@@ -139,8 +144,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* Nav links */}
-          <nav className="flex items-center gap-6 text-sm font-medium text-[#6B7280]">
+          {/* Nav links - hidden on mobile/tablet screens (< lg) */}
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#6B7280]">
             <button 
               onClick={() => { setCurrentView('home'); setActiveCalculator(null); setSelectedGuideSlug(null); setSearchFilter(''); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
@@ -180,14 +185,94 @@ export default function App() {
               Acceso Profesional
             </button>
           </nav>
+
+          {/* Hamburger Menu Toggle Button for Tablet/Mobile - visible on (< lg) screens */}
+          <div className="lg:hidden flex items-center">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2.5 rounded-md text-gray-500 hover:text-[#0F766E] hover:bg-gray-100/50 transition-colors focus:outline-none cursor-pointer"
+              aria-label="Abrir menú"
+              id="mobile-menu-toggle-btn"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Main Area Offset and Layout Patterns (Grid 12-columns) */}
-      <div className="pt-16 flex-grow max-w-7xl mx-auto w-full grid grid-cols-12 min-h-[calc(100vh-4rem)] border-x border-gray-100 bg-white">
+      {/* Mobile & Tablet Dropdown Navigation Panel */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-x-0 top-16 bg-white border-b border-gray-200 z-40 lg:hidden shadow-lg animate-in slide-in-from-top-4 duration-250">
+          <div className="px-5 py-6 space-y-5">
+            {/* Native Inline Search field on phones */}
+            <div className="relative block sm:hidden">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <Search className="h-4 w-4" />
+              </div>
+              <input 
+                type="text" 
+                value={searchFilter}
+                onChange={(e) => handleGlobalSearchChange(e.target.value)}
+                className="block w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg bg-[#F3F4F6] text-sm text-[#111827] placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
+                placeholder="Buscar calculadora o guía..."
+              />
+            </div>
+
+            <div className="flex flex-col gap-1 font-medium text-gray-600">
+              <button 
+                onClick={() => { setCurrentView('home'); setActiveCalculator(null); setSelectedGuideSlug(null); setSearchFilter(''); setMobileMenuOpen(false); }}
+                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E]' : ''}`}
+                id="mob-nav-home"
+              >
+                Herramientas de Cálculos
+              </button>
+              <button 
+                onClick={() => { setSelectedGuideSlug(null); setCurrentView('blog'); setMobileMenuOpen(false); }}
+                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'blog' ? 'text-[#0F766E]' : ''}`}
+                id="mob-nav-blog"
+              >
+                Guías y Blog Fiscal/Laboral
+              </button>
+              <button 
+                onClick={() => { setSelectedGuideSlug(null); setCurrentView('news'); setMobileMenuOpen(false); }}
+                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'news' ? 'text-[#0F766E]' : ''}`}
+                id="mob-nav-news"
+              >
+                Noticias & Actualizaciones
+              </button>
+              <button 
+                onClick={() => { setCurrentView('nosotros'); setMobileMenuOpen(false); }}
+                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors font-semibold text-sm ${currentView === 'nosotros' ? 'text-[#0F766E]' : ''}`}
+                id="mob-nav-about"
+              >
+                Nosotros
+              </button>
+            </div>
+
+            <button 
+              onClick={() => { setShowPortalModal(true); setMobileMenuOpen(false); }}
+              className="w-full text-center py-2.5 bg-[#0F766E] text-white rounded-md text-sm font-semibold hover:opacity-95 transition-all cursor-pointer active:scale-95 shadow-xs"
+              id="mob-nav-expertBtn"
+            >
+              Acceso Profesional
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3-Column Responsive AdSense Layout Frame - flex column fallback on mobile and tablets */}
+      <div className="pt-16 flex-grow w-full max-w-[1700px] mx-auto flex flex-col xl:grid xl:grid-cols-12 min-h-[calc(100vh-4rem)] bg-[#FAFAFA]" id="outer-adsense-grid-wrapper">
         
-        {/* SIDEBAR NAVIGATION - Exact Match */}
-        <aside className="col-span-3 border-r border-gray-200 bg-white p-6 hidden lg:flex flex-col justify-between sticky top-16 h-[calc(100vh-4rem)] self-start z-10">
+        {/* LEFT AD BANNER (Vertical Skyscraper, visible only on XL widescreen displays) */}
+        <aside className="hidden xl:flex xl:col-span-2 border-r border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="left-adsense-skyscraper-column">
+          <AdSenseBlock variant="skyscraper-left" />
+        </aside>
+
+        {/* CENTRAL CORE CONTENT CONTAINER (takes all 12 columns by default; reduces to 8 on XL to fit lateral ad blocks gracefully) */}
+        <div className="col-span-12 xl:col-span-8 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white" id="center-content-ad-hybrid">
+          
+          {/* SIDEBAR NAVIGATION - Exact Match */}
+          <aside className="col-span-3 border-r border-gray-200 bg-white p-6 hidden lg:flex flex-col justify-between sticky top-16 h-[calc(100vh-4rem)] self-start z-10">
           <div>
             <h2 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-4">Herramientas Populares</h2>
             <ul className="space-y-1">
@@ -324,6 +409,9 @@ export default function App() {
                   />
                 </div>
               </div>
+
+              {/* Mobile & Tablet-Optimized High-Impact In-Feed AdSense Banner (Renders automatically when side rails are hidden) */}
+              <AdSenseBlock variant="mobile-infeed" className="xl:hidden shadow-xs border border-gray-150" />
 
               {/* MAIN DYNAMIC DIRECTORY COMPONENT */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
@@ -584,14 +672,16 @@ export default function App() {
         </div>
       </div>
 
+        {/* RIGHT AD BANNER (Vertical Skyscraper, visible only on XL widescreen displays) */}
+        <aside className="hidden xl:flex xl:col-span-2 border-l border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="right-adsense-skyscraper-column">
+          <AdSenseBlock variant="skyscraper-right" />
+        </aside>
+
+      </div>
+
       {/* 2. Publicidad Segura - Adsense horizontal placeholder */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-4 w-full">
-        <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-center">
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-2">Bloque Publicitario Horizontal Inferior (AdSense)</span>
-          <div className="h-20 bg-white border border-gray-100 flex justify-center items-center rounded-lg max-w-4xl mx-auto text-xs text-gray-400 font-mono">
-            Banner Adaptable (728 x 90 o 970 x 90) — Diseñado sin interferir con botones de cálculo
-          </div>
-        </div>
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-6 w-full" id="adsense-bottom-section">
+        <AdSenseBlock variant="horizontal-bottom" />
       </section>
 
       {/* 3. Footer styled neatly matching design */}
@@ -676,27 +766,11 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Beta Portal Dialogue Modal */}
-      {showPortalModal && (
-        <div className="fixed inset-0 bg-[#111827]/60 z-[100] flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-xl max-w-md w-full p-6 animate-in fade-in-50 zoom-in-95 duration-150 text-left">
-            <span className="text-2xl block mb-2">🏢</span>
-            <h3 className="text-lg font-bold text-[#111827] mb-2">Portal de Clientes Corporativos</h3>
-            <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
-              El Portal y Sistema de Nómina de <strong>NegocioRD</strong> se encuentra actualmente en fase de pruebas Beta cerrada con contadores corporativos y auditores autorizados (CPA). 
-            </p>
-            <div className="p-3 bg-teal-50 border border-teal-100 rounded-lg text-xs text-teal-900 mb-6 leading-relaxed">
-              Si desea formar parte del programa piloto y timbrar sus facturas con comprobantes fiscales de forma automatizada, por favor escríbanos a <strong>soporte@negociord.com</strong>.
-            </div>
-            <button 
-              onClick={() => setShowPortalModal(false)}
-              className="w-full py-2 bg-[#0F766E] hover:opacity-95 text-white text-xs font-bold rounded shadow-xs cursor-pointer transition-all active:scale-95"
-            >
-              Comprendido y Regresar
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Professional Portal Workspace (ITBIS NCF Desglose + Retenciones & Recargos DGII Calculators) */}
+      <ProfessionalPortal 
+        isOpen={showPortalModal} 
+        onClose={() => setShowPortalModal(false)} 
+      />
 
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import AdSenseBlock from './AdSenseBlock';
 import { 
   Search, 
   Calendar, 
@@ -442,12 +443,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
             </div>
 
             {/* AdSense In-Article Ad Representative Block */}
-            <div className="mt-8 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-center">
-              <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Anuncio de AdSense en el Artículo</span>
-              <div className="h-16 bg-white border border-gray-100 flex justify-center items-center rounded-lg text-[11px] text-gray-450 font-mono">
-                Publicidad Adaptable de Enlaces o Recomendada — Basada en Contexto Fiscal/Laboral
-              </div>
-            </div>
+            <AdSenseBlock variant="mobile-infeed" className="mt-8 text-left border border-gray-150" />
 
             {/* CTA to actual application calculator tool */}
             {selectedArticle.relatedCalculatorSlug && (
@@ -739,14 +735,8 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                 )}
               </div>
 
-              {/* Sidebar AdSense banner space */}
-              <div className="bg-white border border-gray-205 rounded-2xl p-4 shadow-xs text-center border-dashed">
-                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-1.5">Bloque Lateral AdSense (300 x 250)</span>
-                <div className="h-52 bg-gray-50 border border-gray-100 flex flex-col justify-center items-center rounded-lg text-xs text-gray-400 font-mono p-4">
-                  <span>Anuncio Patrocinado</span>
-                  <span className="text-[10px] text-gray-400 font-normal text-center mt-1">Anuncio tipo Rectángulo Mediano para rentabilizar visitas corporativas</span>
-                </div>
-              </div>
+              {/* Sidebar AdSense banner space via AdSenseBlock */}
+              <AdSenseBlock variant="results-inline" className="my-2" />
 
               {/* RECOMMENDED READINGS */}
               <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-3">

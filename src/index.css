@@ -5,3 +5,55 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
+
+/* HIGH-PRECISION CSS FOR BEAUTIFUL PDF DOWNLOAD & PRINT SHEET DESIGNS */
+@media print {
+  /* Hide the default browser page headers/footers */
+  @page {
+    margin: 1.5cm;
+    size: letter portrait;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Make everything else in the app completely invisible */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Force our specific printable preview sheets to be visible and take up full page */
+  #labor-legal-compiled-sheet-preview,
+  #labor-legal-compiled-sheet-preview *,
+  #timbrada-report-print-preview,
+  #timbrada-report-print-preview * {
+    visibility: visible !important;
+  }
+
+  /* Position sheets perfectly at absolute coordinates for high contrast printing */
+  #labor-legal-compiled-sheet-preview,
+  #timbrada-report-print-preview {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0.8in !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    z-index: 9999999 !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Optional: print-color-adjust preserves original accents, borders, and colors on paper */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
