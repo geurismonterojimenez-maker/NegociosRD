@@ -65,7 +65,12 @@ export default function App() {
 
   // Navigating by slug string
   const handleNavigateToCalcBySlug = (slug: string) => {
-    const calc = CALCULATORS.find(c => c.urlSlug === slug || c.id === slug);
+    const cleanSlug = slug.toLowerCase().replace('calculadora-', '').replace('-dgii', '');
+    const calc = CALCULATORS.find(c => {
+      const cId = c.id.toLowerCase().replace('calculadora-', '').replace('-dgii', '');
+      const cSlug = c.urlSlug.toLowerCase().replace('calculadora-', '').replace('-dgii', '');
+      return cId === cleanSlug || cSlug === cleanSlug || c.urlSlug === slug || c.id === slug;
+    });
     if (calc) {
       handleSelectCalculator(calc);
     }
@@ -330,7 +335,7 @@ export default function App() {
               </li>
               <li>
                 <button 
-                  onClick={() => handleNavigateToCalcBySlug('calculadora-retenciones-dgii')}
+                  onClick={() => handleNavigateToCalcBySlug('calculadora-retenciones')}
                   className={`w-full flex items-center gap-3 p-2.5 rounded-md text-left text-sm transition-all cursor-pointer ${
                     activeCalculator?.id === 'retenciones-dgii' && currentView === 'calculator'
                       ? 'bg-teal-50 text-[#0F766E] font-bold shadow-xs'
@@ -715,7 +720,7 @@ export default function App() {
               </li>
               <li>
                 <button onClick={() => handleSelectGuide('como-calcular-salario-neto')} className="hover:text-[#0F766E] transition-colors cursor-pointer text-left">
-                  Como calcular salario de red
+                  Cómo calcular salario neto
                 </button>
               </li>
               <li>

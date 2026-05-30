@@ -34,6 +34,7 @@ export interface NewsArticle {
   relatedCalculatorSlug?: string;
   relatedCalculatorName?: string;
   isFeatured?: boolean;
+  groundingSources?: { title: string; uri: string }[];
 }
 
 export const NEWS_ARTICLES: NewsArticle[] = [
@@ -150,8 +151,8 @@ Igualmente, la prima patronal aportada (SFS, AFP, SRL e INFOTEP) se expandirá p
     readTime: '4 min',
     author: 'Comité de Auditoría de Nóminas NegocioRD',
     tags: ['TSS', 'AFP', 'SFS', 'Nómina', 'Seguridad Social', 'Topes de Ley'],
-    relatedCalculatorSlug: 'calculadora-retenciones-dgii',
-    relatedCalculatorName: 'Calculadora de Retenciones',
+    relatedCalculatorSlug: 'calculadora-tss',
+    relatedCalculatorName: 'Calculadora de la TSS',
     isFeatured: false
   },
   {
@@ -178,8 +179,8 @@ Para comprobar de forma fidedigna y desglosada si su descuento nómina mensual s
     readTime: '5 min',
     author: 'Cátedra de Finanzas Corporativas NegocioRD',
     tags: ['ISR', 'DGII', 'Renta', 'Impuestos', 'Exenciones'],
-    relatedCalculatorSlug: 'calculadora-retenciones-dgii',
-    relatedCalculatorName: 'Simulador de Retenciones',
+    relatedCalculatorSlug: 'calculadora-isr',
+    relatedCalculatorName: 'Calculadora del ISR',
     isFeatured: false
   },
   {
@@ -220,6 +221,60 @@ interface NewsSectionProps {
 export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: NewsSectionProps) {
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
   
+  // Dynamic News States
+  const [articles, setArticles] = useState<NewsArticle[]>(NEWS_ARTICLES);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [refreshSuccess, setRefreshSuccess] = useState<boolean>(false);
+
+  // Fetch articles on mount
+  React.useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetch('/api/news')
+      .then(res => res.json())
+      .then(data => {
+        if (active && data?.success && data?.articles?.length) {
+          setArticles(data.articles);
+        }
+      })
+      .catch(err => console.error("Error fetching news from API:", err))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
+
+  const handleRefreshNews = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    setRefreshError(null);
+    setRefreshSuccess(false);
+
+    try {
+      const response = await fetch('/api/news/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (data.success && data.articles) {
+        setArticles(data.articles);
+        setRefreshSuccess(true);
+        setTimeout(() => setRefreshSuccess(false), 8000);
+      } else {
+        setRefreshError(data.error || "Ocurrió un error al actualizar.");
+      }
+    } catch (err: any) {
+      console.error("Error refreshing news:", err);
+      setRefreshError("Error de comunicación. Compruebe la conexión o configuración de los Secretos.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -261,7 +316,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
 
   // Filtered and searched articles
   const filteredArticles = useMemo(() => {
-    return NEWS_ARTICLES.filter(article => {
+    return articles.filter(article => {
       const matchesCategory = activeCategory === 'All' || article.category === activeCategory;
       
       const query = searchQuery.toLowerCase().trim();
@@ -274,16 +329,16 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
 
       return matchesCategory && matchesSearch;
     });
-  }, [searchQuery, activeCategory]);
+  }, [articles, searchQuery, activeCategory]);
 
   // Featured article (first featured article found or default to first from data matching selection if not searching)
   const featuredArticle = useMemo(() => {
     if (searchQuery !== '') return null; // No featured spotlight during search
     
     // Find featured article in active category
-    const list = NEWS_ARTICLES.filter(article => activeCategory === 'All' || article.category === activeCategory);
+    const list = articles.filter(article => activeCategory === 'All' || article.category === activeCategory);
     return list.find(a => a.isFeatured) || list[0] || null;
-  }, [activeCategory, searchQuery]);
+  }, [articles, activeCategory, searchQuery]);
 
   // Regular articles minus the featured spotlight
   const regularArticles = useMemo(() => {
@@ -442,6 +497,32 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
               ))}
             </div>
 
+            {/* Grounding Sources block for dynamic Gemini researched entries */}
+            {selectedArticle.groundingSources && selectedArticle.groundingSources.length > 0 && (
+              <div className="mt-8 p-5 bg-teal-50/30 border border-teal-150 rounded-xl">
+                <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block mb-2 flex items-center gap-1">
+                  <Compass size={12} className="text-[#0F766E]" />
+                  Fuentes de Investigación de Google Search Grounding
+                </span>
+                <ul className="space-y-2.5 pl-1 list-none">
+                  {selectedArticle.groundingSources.map((src, i) => (
+                    <li key={i} className="text-xs">
+                      <a
+                        href={src.uri}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#0F766E] hover:underline font-semibold inline-flex items-center gap-1.5 cursor-pointer group"
+                      >
+                        <span className="w-1.5 h-1.5 bg-[#0F766E] rounded-full"></span>
+                        <span>{src.title}</span>
+                        <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform text-gray-400" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* AdSense In-Article Ad Representative Block */}
             <AdSenseBlock variant="mobile-infeed" className="mt-8 text-left border border-gray-150" />
 
@@ -504,6 +585,62 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
               Monitoreo y reseñas exhaustivas sobre las modificaciones legales decretadas por la DGII, el Ministerio de Trabajo y la Tesorería de la Seguridad Social para mantener a su negocio en estricto cumplimiento normativo.
             </p>
           </div>
+
+          {/* Live AI Research Banner */}
+          <div className="bg-gradient-to-r from-teal-900 via-[#0F766E] to-teal-800 text-white p-5 rounded-2xl border border-teal-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-300">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-300"></span>
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-teal-200 flex items-center gap-1">
+                  <Sparkles size={11} className="text-teal-300 animate-pulse" />
+                  Investigación con IA y Google Search en Vivo
+                </span>
+              </div>
+              <h3 className="text-sm font-bold text-white">Monitoreo de Leyes y Boletines República Dominicana 2026</h3>
+              <p className="text-xs text-teal-100 max-w-2xl leading-relaxed">
+                Nuestra plataforma está conectada a la IA para realizar un escaneo autónomo de normativas en fuentes dominicanas oficiales de forma automática y bajo demanda.
+              </p>
+            </div>
+            <button
+              onClick={handleRefreshNews}
+              disabled={refreshing}
+              className="px-4.5 py-2.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 hover:scale-[1.01] text-xs font-bold font-sans flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-xs select-none active:scale-95"
+            >
+              <Sparkles size={13} className={`text-teal-300 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>{refreshing ? 'Buscando con Google Search...' : 'Actualizar Noticias con IA'}</span>
+            </button>
+          </div>
+
+          {/* Refresh feedback messaging */}
+          {refreshing && (
+            <div className="p-4 bg-teal-50/50 border border-teal-200 rounded-xl flex items-center gap-3 text-xs text-teal-900 animate-pulse">
+              <div className="w-5 h-5 border-2 border-teal-700 border-t-transparent rounded-full animate-spin"></div>
+              <span>Realizando rastreo legislativo autónomo en República Dominicana. Por favor espere unos segundos mientras Gemini compila, verifica y estructura la información verídica...</span>
+            </div>
+          )}
+
+          {refreshError && (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-800 animate-in slide-in-from-top-2">
+              <AlertCircle size={15} className="text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="block font-bold">Error de sincronización automática</strong>
+                {refreshError}
+              </div>
+            </div>
+          )}
+
+          {refreshSuccess && (
+            <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-2.5 text-xs text-teal-800 animate-in slide-in-from-top-2">
+              <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="block font-bold">¡Noticias actualizadas con éxito!</strong>
+                Hemos compilado y añadido los últimos boletines legislativos y normativas de República Dominicana correspondientes al año 2026.
+              </div>
+            </div>
+          )}
 
           {/* Search bar & categories filter inline */}
           <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between pb-2">
