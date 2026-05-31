@@ -66,6 +66,7 @@ const injectSchema = (schemaObj: any) => {
 };
 
 export const PUBLIC_SITE_URL = "https://negociord.com";
+const DEFAULT_SHARE_IMAGE = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop";
 
 const TRUST_PAGES = {
   contacto: {
@@ -83,9 +84,9 @@ const TRUST_PAGES = {
     bullets: ['No vendemos datos personales', 'Los calculos introducidos se tratan como informacion operativa del usuario', 'El acceso PRO se valida por estado de suscripcion y registro de cuenta'],
   },
   terminos: {
-    title: 'Terminos de Uso | NegocioRD',
-    description: 'Terminos de uso de las calculadoras fiscales, laborales y financieras de NegocioRD.',
-    heading: 'Terminos de uso',
+    title: 'Términos de Uso | NegocioRD',
+    description: 'Términos de uso de las calculadoras fiscales, laborales y financieras de NegocioRD.',
+    heading: 'Términos de uso',
     body: 'Las herramientas de NegocioRD son de apoyo informativo y no sustituyen asesoria contable, fiscal, financiera o legal individualizada. El usuario debe validar resultados criticos contra fuentes oficiales y documentacion propia.',
     bullets: ['Uso permitido para calculos internos y educativos', 'No garantizamos decision administrativa de DGII, TSS o Ministerio de Trabajo', 'El usuario es responsable de verificar datos antes de presentar declaraciones'],
   },
@@ -127,6 +128,11 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
   document.title = title;
 
   // 2. Update Meta Description
+  const metaTitle = document.querySelector('meta[name="title"]') || document.createElement('meta');
+  metaTitle.setAttribute('name', 'title');
+  metaTitle.setAttribute('content', title);
+  if (!metaTitle.parentNode) document.head.appendChild(metaTitle);
+
   const metaDesc = document.querySelector('meta[name="description"]') || document.createElement('meta');
   metaDesc.setAttribute('name', 'description');
   metaDesc.setAttribute('content', description);
@@ -165,6 +171,11 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
   ogType.setAttribute('content', type);
   if (!ogType.parentNode) document.head.appendChild(ogType);
 
+  const ogImage = document.querySelector('meta[property="og:image"]') || document.createElement('meta');
+  ogImage.setAttribute('property', 'og:image');
+  ogImage.setAttribute('content', DEFAULT_SHARE_IMAGE);
+  if (!ogImage.parentNode) document.head.appendChild(ogImage);
+
   // 5. Update Twitter Card Meta
   const twitterCard = document.querySelector('meta[name="twitter:card"]') || document.createElement('meta');
   twitterCard.setAttribute('name', 'twitter:card');
@@ -180,6 +191,11 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
   twitterDesc.setAttribute('name', 'twitter:description');
   twitterDesc.setAttribute('content', description);
   if (!twitterDesc.parentNode) document.head.appendChild(twitterDesc);
+
+  const twitterImage = document.querySelector('meta[name="twitter:image"]') || document.createElement('meta');
+  twitterImage.setAttribute('name', 'twitter:image');
+  twitterImage.setAttribute('content', DEFAULT_SHARE_IMAGE);
+  if (!twitterImage.parentNode) document.head.appendChild(twitterImage);
 
   // 6. Schemas Integration
   // Remove existing dynamic schemas
@@ -228,6 +244,36 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
       }
     };
     injectSchema(appSchema);
+  } else if (type === 'article') {
+    injectSchema({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": title,
+      "description": description,
+      "inLanguage": "es-DO",
+      "author": {
+        "@type": "Organization",
+        "name": "NegocioRD"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "NegocioRD"
+      },
+      "mainEntityOfPage": canonicalUrl
+    });
+  } else if (path === '/') {
+    injectSchema({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "NegocioRD",
+      "url": PUBLIC_SITE_URL,
+      "inLanguage": "es-DO",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": `${PUBLIC_SITE_URL}/?q={search_term_string}`,
+        "query-input": "required name=search_term_string"
+      }
+    });
   }
 
   // C. FAQPage Schema if FAQs are provided
@@ -2113,7 +2159,7 @@ export default function App() {
               <li><a href="https://ProUsuario.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">ProUsuario SB <ExternalLink size={10} /></a></li>
               <li><button onClick={() => navigateTo('/contacto')} className="hover:text-[#0F766E] transition-colors text-left">Contacto</button></li>
               <li><button onClick={() => navigateTo('/privacidad')} className="hover:text-[#0F766E] transition-colors text-left">Privacidad</button></li>
-              <li><button onClick={() => navigateTo('/terminos')} className="hover:text-[#0F766E] transition-colors text-left">Terminos</button></li>
+              <li><button onClick={() => navigateTo('/terminos')} className="hover:text-[#0F766E] transition-colors text-left">Términos</button></li>
               <li><button onClick={() => navigateTo('/reembolsos')} className="hover:text-[#0F766E] transition-colors text-left">Reembolsos</button></li>
             </ul>
           </div>

@@ -27,6 +27,18 @@ interface ActionFeedback {
   msg: string;
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsProps) {
   const [feedback, setFeedback] = useState<ActionFeedback | null>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -160,19 +172,15 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
 
   const handleExportCSV = () => {
     if (!result) return;
-    let csvContent = "data:text/csv;charset=utf-8,Concepto,Valor\n";
+    let csvContent = "Concepto,Valor\n";
+    csvContent += `"Herramienta","${calc.name.replace(/"/g, '""')}"\n`;
+    csvContent += `"Fecha de emision","${new Date().toLocaleDateString('es-DO')}"\n`;
     Object.entries(result).forEach(([key, val]) => {
       if (typeof val === 'number' || typeof val === 'string') {
         csvContent += `"${key}","${val.toString().replace(/"/g, '""')}"\n`;
       }
     });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Calculo_Laboral_${calc.id}_2026.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`Calculo_Laboral_${calc.id}_2026.csv`, csvContent);
     triggerFeedback('export', 'Archivo CSV descargado correctamente.');
     logUsage(calc.id, `Exportó resultados a CSV corporativo. Salario base: RD$ ${salaryInput.toLocaleString()}`);
   };
@@ -687,6 +695,11 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                   </div>
                 </div>
 
+                <div className="pt-3 border-t border-gray-150/70 text-[10px] text-gray-500 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 print-avoid-break">
+                  <span>Emitido por NegocioRD el {new Date().toLocaleDateString('es-DO')}</span>
+                  <span>Referencia: NRD-LAB-{calc.id.toUpperCase()}</span>
+                </div>
+
               </div>
             )}
 
@@ -719,7 +732,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                 aria-label="Exportar a formato CSV"
               >
                 <Download size={13} />
-                Exportar Excel (CSV)
+                Exportar CSV compatible con Excel
               </button>
             </div>
           </div>

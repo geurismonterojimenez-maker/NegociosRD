@@ -22,6 +22,18 @@ interface AttendanceLog {
   type: 'Entrada' | 'Salida';
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function CentroLaboral() {
   // Setup local states
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -284,15 +296,15 @@ export default function CentroLaboral() {
       e.hireDate,
       e.status
     ]);
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
-      + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "nomina_colaboradores_negociord.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const summaryRows = [
+      '',
+      'Resumen de nomina',
+      `Total colaboradores,${employees.length}`,
+      `Total bruto mensual,${totalPayroll}`,
+      `Salario promedio,${avgSalary.toFixed(2)}`,
+      `Fecha de emision,${new Date().toLocaleDateString('es-DO')}`,
+    ];
+    downloadCsvFile("nomina_colaboradores_negociord.csv", [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows].join('\n'));
   };
 
   return (
@@ -771,6 +783,16 @@ export default function CentroLaboral() {
                       <span>Costo Mensual Empresa:</span>
                       <span>RD$ {slipMath.companyCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8 pt-6 text-[10px] text-gray-500 font-sans print-avoid-break">
+                    <div className="text-center border-t border-gray-300 pt-1">Firma colaborador</div>
+                    <div className="text-center border-t border-gray-300 pt-1">Firma RRHH / Empresa</div>
+                  </div>
+
+                  <div className="text-[9px] text-gray-400 font-sans border-t border-dashed border-gray-200 pt-2 flex justify-between print-avoid-break">
+                    <span>Referencia: NRD-PAY-{activeEmployee.id.toUpperCase()}</span>
+                    <span>Emitido: {new Date().toLocaleDateString('es-DO')}</span>
                   </div>
 
                   <div className="pt-3.5 flex flex-col sm:flex-row items-center justify-center gap-2.5">

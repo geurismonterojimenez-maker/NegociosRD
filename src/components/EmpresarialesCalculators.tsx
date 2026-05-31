@@ -30,6 +30,18 @@ interface InfluxRow {
   m: number;
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function EmpresarialesCalculators({ calc, onBack }: EmpresarialesCalculatorsProps) {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [printSize, setPrintSize] = useState<'letter' | 'legal'>('letter');
@@ -228,18 +240,14 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
   };
 
   const handleExportCSV = () => {
-    let csv = "data:text/csv;charset=utf-8,Descripcion,Cantidad,Precio Unitario,Total Ordinario\n";
+    let csv = "Descripcion,Cantidad,Precio Unitario,Total Ordinario\n";
     lineItems.forEach(item => {
       csv += `"${item.desc.replace(/"/g, '""')}",${item.qty},${item.price.toFixed(2)},${(item.qty * item.price).toFixed(2)}\n`;
     });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `NegocioRD_Negocios_${calc.id}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    csv += `Subtotal,,,"${documentTotals.subtotal.toFixed(2)}"\n`;
+    csv += `ITBIS 18%,,,"${documentTotals.itbis.toFixed(2)}"\n`;
+    csv += `Total Documento,,,"${documentTotals.total.toFixed(2)}"\n`;
+    downloadCsvFile(`NegocioRD_Negocios_${calc.id}.csv`, csv);
     logUsage(calc.id, `Exportó líneas del documento corporativo a CSV. Empresa: ${empresaNombre}`);
   };
 
@@ -612,7 +620,16 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
               </div>
 
               {/* Footnote stamp */}
-              <p className="text-[10px] text-gray-400 text-center italic mt-4 border-t pt-3">Este documento constituye una simulación corporativa emitida via NegocioRD. Libre de validez fiscal corporativa si no está debidamente sellado por la oficina del emisor.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-8 text-[10px] text-gray-500 print-avoid-break">
+                <div className="text-center">
+                  <div className="border-t border-gray-300 pt-1 font-semibold text-gray-700">Firma y sello del emisor</div>
+                </div>
+                <div className="text-center">
+                  <div className="border-t border-gray-300 pt-1 font-semibold text-gray-700">Aceptación del cliente</div>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-gray-400 text-center italic mt-4 border-t pt-3">Documento emitido por NegocioRD el {new Date().toLocaleDateString('es-DO')}. Valide RNC, NCF y condiciones comerciales antes de usarlo como soporte definitivo.</p>
 
               {/* Action indicators for sheets block with Paper Size option */}
               <div className="flex flex-wrap items-center gap-3 pt-3 border-t print:hidden">

@@ -15,6 +15,23 @@ const PORT = 3000;
 
 const CACHE_FILE = path.join(process.cwd(), "news-cache.json");
 const CHECKOUT_PROVIDER = process.env.CHECKOUT_PROVIDER || "demo";
+const ORIGIN_URL = "https://negociord.com";
+const DEFAULT_SHARE_IMAGE = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop";
+
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function jsonLdScript(schema: Record<string, any>): string {
+  return `
+  <script type="application/ld+json" class="dynamic-schema">
+  ${JSON.stringify(schema)}
+  </script>`;
+}
 
 const PRO_PLANS = {
   mensual: {
@@ -417,7 +434,7 @@ Sitemap: https://negociord.com/sitemap.xml`;
 // Helper to pre-render HTML with unique meta tags, OpenGraph, dynamic canonicals & JSON-LD schemas
 function getPrerenderedHTML(html: string, originalUrl: string): string {
   let title = "NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.";
-  let description = "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.";
+  let description = "Calculadoras fiscales, laborales y financieras para República Dominicana: ITBIS, ISR, TSS, prestaciones, préstamos, retenciones y documentos PRO.";
   let robots = "index, follow";
   const pathPart = originalUrl.split("?")[0];
   let type: 'article' | 'website' = 'website';
@@ -522,8 +539,8 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     title = "Politica de Privacidad | NegocioRD";
     description = "Politica de privacidad de NegocioRD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.";
   } else if (pathPart === "/terminos") {
-    title = "Terminos de Uso | NegocioRD";
-    description = "Terminos de uso de las calculadoras fiscales, laborales y financieras de NegocioRD.";
+    title = "Términos de Uso | NegocioRD";
+    description = "Términos de uso de las calculadoras fiscales, laborales y financieras de NegocioRD.";
   } else if (pathPart === "/reembolsos") {
     title = "Politica de Reembolsos | NegocioRD";
     description = "Politica comercial de cancelaciones y reembolsos para planes PRO de NegocioRD.";
@@ -537,39 +554,54 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   }
 
   // Canonical link setup
-  const originUrl = "https://negociord.com";
+  const originUrl = ORIGIN_URL;
   const canonicalUrl = `${originUrl}${pathPart}`;
 
   if (pathPart === "/" || pathPart === "") {
-    homeSchema = `
-  <script type="application/ld+json" class="dynamic-schema">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "NegocioRD",
-    "url": "${originUrl}",
-    "description": "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII."
-  }
-  </script>`;
+    homeSchema = jsonLdScript({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "NegocioRD",
+      "url": originUrl,
+      "inLanguage": "es-DO",
+      "description": description,
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": `${originUrl}/?q={search_term_string}`,
+        "query-input": "required name=search_term_string"
+      }
+    }) + jsonLdScript({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "NegocioRD",
+      "url": originUrl,
+      "logo": DEFAULT_SHARE_IMAGE
+    });
   }
 
+  const safeTitle = escapeHtmlAttribute(title);
+  const safeDescription = escapeHtmlAttribute(description);
+
   // Replace Title Tags
-  html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-  html = html.replace(/<meta name="title" content=".*?" \/>/, `<meta name="title" content="${title}" />`);
+  html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle}</title>`);
+  html = html.replace(/<meta name="title" content=".*?" \/>/, `<meta name="title" content="${safeTitle}" />`);
   
   // Replace Meta Descriptions
-  html = html.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${description}" />`);
+  html = html.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${safeDescription}" />`);
   html = html.replace(/<meta name="robots" content=".*?" \/>/, `<meta name="robots" content="${robots}" />`);
   
   // Replace Open Graph / Facebook Properties
-  html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`);
-  html = html.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${description}" />`);
+  html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${safeTitle}" />`);
+  html = html.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${safeDescription}" />`);
   html = html.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${canonicalUrl}" />`);
   html = html.replace(/<meta property="og:type" content=".*?" \/>/, `<meta property="og:type" content="${type}" />`);
+  html = html.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${DEFAULT_SHARE_IMAGE}" />`);
   
   // Replace Twitter Card Properties
-  html = html.replace(/<meta property="twitter:title" content=".*?" \/>/g, `<meta name="twitter:title" content="${title}" />`);
-  html = html.replace(/<meta property="twitter:description" content=".*?" \/>/g, `<meta name="twitter:description" content="${description}" />`);
+  html = html.replace(/<meta (?:property|name)="twitter:card" content=".*?" \/>/g, `<meta name="twitter:card" content="summary_large_image" />`);
+  html = html.replace(/<meta (?:property|name)="twitter:title" content=".*?" \/>/g, `<meta name="twitter:title" content="${safeTitle}" />`);
+  html = html.replace(/<meta (?:property|name)="twitter:description" content=".*?" \/>/g, `<meta name="twitter:description" content="${safeDescription}" />`);
+  html = html.replace(/<meta (?:property|name)="twitter:image" content=".*?" \/>/g, `<meta name="twitter:image" content="${DEFAULT_SHARE_IMAGE}" />`);
 
   // Inject Canonical element if missing
   if (html.includes('rel="canonical"')) {
@@ -578,36 +610,52 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     html = html.replace('</head>', `  <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
   }
 
-  // Inject Breadcrumb JSON-LD & components schemas before </head>
-  const breadcrumbSchema = `
-  <script type="application/ld+json" class="dynamic-schema">
-  {
+  const breadcrumbItems: any[] = [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": originUrl
+    }
+  ];
+  if (pathPart !== "/") {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      "position": 2,
+      "name": type === "article" ? "Guías" : "Herramientas",
+      "item": `${originUrl}${pathPart.split('/').slice(0, -1).join('/') || '/'}`
+    });
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      "position": 3,
+      "name": title,
+      "item": canonicalUrl
+    });
+  }
+  const breadcrumbSchema = jsonLdScript({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Inicio",
-        "item": "${originUrl}"
-      }${pathPart !== '/' ? `,
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "${type === 'article' ? "Guías" : "Herramientas"}",
-        "item": "${originUrl}${pathPart.split('/').slice(0, -1).join('/')}"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "${title}",
-        "item": "${canonicalUrl}"
-      }` : ''}
-    ]
-  }
-  </script>`;
+    "itemListElement": breadcrumbItems
+  });
 
-  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${faqSchema}${homeSchema}\n</head>`;
+  const articleSchema = type === "article" ? jsonLdScript({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": title,
+    "description": description,
+    "inLanguage": "es-DO",
+    "author": {
+      "@type": "Organization",
+      "name": "NegocioRD"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "NegocioRD"
+    },
+    "mainEntityOfPage": canonicalUrl
+  }) : "";
+
+  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${faqSchema}${homeSchema}${articleSchema}\n</head>`;
   return html.replace('</head>', injectedElements);
 }
 

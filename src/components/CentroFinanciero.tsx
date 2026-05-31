@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   TrendingDown, TrendingUp, AlertTriangle, CheckCircle, Calculator, 
-  Trash2, Plus, Info, RefreshCw, BarChart, DollarSign, PieChart, ShieldAlert, Download, Zap
+  Trash2, Plus, Info, RefreshCw, BarChart, DollarSign, PieChart, ShieldAlert, Download, Printer, Zap
 } from 'lucide-react';
 
 interface Debt {
@@ -12,6 +12,18 @@ interface Debt {
   term: number;  // remaining months
   monthlyPayment: number;
 }
+
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 export default function CentroFinanciero() {
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -157,15 +169,19 @@ export default function CentroFinanciero() {
       d.term,
       d.monthlyPayment
     ]);
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
-      + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "mis_deudas_negociord.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const summaryRows = [
+      '',
+      'Resumen financiero',
+      `Ingreso mensual neto,${income}`,
+      `Saldo total,${totalBalance}`,
+      `Cuota mensual total,${totalMonthlyPayments}`,
+      `DTI,${dtiRatio.toFixed(2)}%`,
+      `Tasa ponderada,${averageRate.toFixed(2)}%`,
+      consolidationScenario ? `Cuota consolidada estimada,${consolidationScenario.newPayment}` : '',
+      consolidationScenario ? `Ahorro mensual estimado,${consolidationScenario.monthlySaving}` : '',
+    ].filter(Boolean);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows].join('\n');
+    downloadCsvFile("mis_deudas_negociord.csv", csvContent);
   };
 
   // Snowball vs Avalanche simulation engine
@@ -257,7 +273,7 @@ export default function CentroFinanciero() {
   })();
 
   return (
-    <div className="p-4 md:p-8 space-y-6" id="centro-financiero-root">
+    <div className="p-4 md:p-8 space-y-6" id="financial-center-print-preview">
       
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-5">
@@ -270,7 +286,7 @@ export default function CentroFinanciero() {
           <p className="text-gray-500 text-xs mt-1">Comparador avanzado de obligaciones de consumo e hipotecario, índice de endeudamiento DTI y simulador de unificación de deudas.</p>
         </div>
 
-        <div className="flex items-center gap-2 bg-gray-50 border p-2.5 rounded-lg text-xs" id="dti-income-box">
+        <div className="flex items-center gap-2 bg-gray-50 border p-2.5 rounded-lg text-xs print:hidden" id="dti-income-box">
           <label htmlFor="dti-income-input" className="font-semibold text-gray-500">Sus Ingresos Mensuales Netos:</label>
           <div className="flex items-center font-mono font-bold text-gray-900">
             <span className="text-[#0F766E]">RD$</span>
@@ -341,10 +357,20 @@ export default function CentroFinanciero() {
                 onClick={handleExportDebtsCSV}
                 disabled={debts.length === 0}
                 className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-[11px] font-bold text-gray-700 rounded flex items-center gap-1 cursor-pointer disabled:opacity-50 transition"
-                title="Exportar cartera a Excel/CSV"
+                title="Exportar cartera a CSV compatible con Excel"
               >
                 <Download size={12} className="text-[#0F766E]" />
                 <span>Exportar CSV</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                disabled={debts.length === 0}
+                className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-[11px] font-bold text-gray-700 rounded flex items-center gap-1 cursor-pointer disabled:opacity-50 transition"
+                title="Imprimir diagnostico financiero"
+              >
+                <Printer size={12} className="text-[#0F766E]" />
+                <span>Imprimir PDF</span>
               </button>
             </div>
 
@@ -692,7 +718,12 @@ export default function CentroFinanciero() {
           </div>
         </div>
 
+        <div className="hidden print:flex border-t border-gray-200 pt-3 text-[10px] text-gray-500 justify-between gap-4 print-avoid-break">
+        <span>Diagnostico financiero generado por NegocioRD</span>
+        <span>Emitido: {new Date().toLocaleDateString('es-DO')} | DTI: {dtiRatio.toFixed(1)}%</span>
       </div>
+
+    </div>
 
   );
 }

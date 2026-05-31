@@ -20,6 +20,18 @@ interface FinanzasCalculatorsProps {
   onBack: () => void;
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculatorsProps) {
   const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
@@ -201,7 +213,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
 
   const handleExcelExport = () => {
     if (!result) return;
-    let csv = "data:text/csv;charset=utf-8,Clave,Valor\n";
+    let csv = "Clave,Valor\n";
+    csv += `"Herramienta","${calc.name.replace(/"/g, '""')}"\n`;
+    csv += `"Fecha de emision","${new Date().toLocaleDateString('es-DO')}"\n`;
     Object.entries(result).forEach(([k, v]) => {
       if (k !== 'rows' && typeof v !== 'object') {
         csv += `"${k}","${v}"\n`;
@@ -213,14 +227,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
         csv += `${r.period},${r.cuota.toFixed(2)},${r.interes.toFixed(2)},${r.abono.toFixed(2)},${r.restante.toFixed(2)}\n`;
       });
     }
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `NegocioRD_Finanzas_${calc.id}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`NegocioRD_Finanzas_${calc.id}.csv`, csv);
     logUsage(calc.id, `Exportó resultados financieros a un archivo CSV. Principal: RD$ ${principalInput.toLocaleString()}`);
   };
 
@@ -600,7 +607,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <p className="text-xs font-semibold">
                       {result.esRentable 
                         ? `¡Sí es rentable! Al refinanciar su préstamo con estos parámetros se ahorrará RD$ ${result.ahorroTotalInversion.toLocaleString('en-US')} totales de intereses.`
-                        : `No es financieramente rentable refinanciar dado que los gatos de cierre absorben la caída de tasa impositiva.`}
+                        : `No es financieramente rentable refinanciar dado que los gastos de cierre absorben la caída de tasa impositiva.`}
                     </p>
                   </div>
                 )}
@@ -658,7 +665,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <div className="flex justify-between"><span>Mensualidad antes (Actual):</span><span className="font-mono">RD$ {result.cuotaActual.toLocaleString('en-US')}</span></div>
                     <div className="flex justify-between"><span>Mensualidad recalculada:</span><span className="font-mono font-semibold text-emerald-600">RD$ {result.nuevaCuota.toLocaleString('en-US')}</span></div>
                     <div className="flex justify-between"><span>Ahorro consolidado mensual:</span><span className="font-bold text-gray-900">RD$ {result.ahorroCuotaMensual.toLocaleString('en-US')}</span></div>
-                    <div className="flex justify-between"><span>Comisiones y gatos cierre:</span><span className="font-mono text-rose-500">RD$ {result.gastosCierreRefinanciados.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Comisiones y gastos de cierre:</span><span className="font-mono text-rose-500">RD$ {result.gastosCierreRefinanciados.toLocaleString('en-US')}</span></div>
                   </>
                 )}
 
@@ -672,6 +679,11 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                 <div className="text-[11px] font-normal text-gray-500 flex items-start gap-1">
                   <ShieldAlert size={12} className="text-gray-400 mt-0.5" />
                   <p><strong>Base Regulatoría:</strong> {(result as any).legalSource || meta.legalSource}</p>
+                </div>
+
+                <div className="pt-3 border-t border-gray-150/70 text-[10px] text-gray-500 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 print-avoid-break">
+                  <span>Emitido por NegocioRD el {new Date().toLocaleDateString('es-DO')}</span>
+                  <span>Referencia: NRD-FIN-{calc.id.toUpperCase()}</span>
                 </div>
               </div>
             )}

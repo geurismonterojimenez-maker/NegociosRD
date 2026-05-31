@@ -38,6 +38,18 @@ interface InvoiceRow {
   itbisRate: number; // 0.18, 0.16, 0.0
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE', onUpgrade }: ProfessionalPortalProps) {
   const [activeTab, setActiveTab] = useState<'itbis-ncf' | 'contratos-trabajo' | 'exportacion-reportes' | 'retenciones-recargos'>('itbis-ncf');
   const [notification, setNotification] = useState<string | null>(null);
@@ -147,15 +159,8 @@ export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE',
       return `"${inv.client.replace(/"/g, '""')}","${inv.ncfType}","${inv.ncfNumber}",${inv.baseAmount.toFixed(2)},${itbis.toFixed(2)},${total.toFixed(2)}`;
     }).join('\n');
 
-    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'anexo_607_dgii_simulado.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('Anexo 607 (Ventas) exportado en Excel/CSV.');
+    downloadCsvFile('anexo_607_dgii_simulado.csv', headers + rows);
+    showToast('Anexo 607 (Ventas) exportado como CSV compatible con Excel.');
   };
 
 
@@ -553,15 +558,8 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                    `Monto Final de Pago a DGII con Deducciones: RD$ ${it1FinalPaymentDGII}\n`;
     }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('Archivo Excel/CSV exportado con éxito.');
+    downloadCsvFile(filename, csvContent);
+    showToast('Archivo CSV compatible con Excel exportado con éxito.');
   };
 
 
@@ -1535,6 +1533,10 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       </div>
                       
                       {compileDocumentText()}
+
+                      <div className="hidden print:block mt-8 pt-3 border-t border-gray-300 text-[8.5pt] text-gray-600 font-sans print-avoid-break">
+                        Documento generado por NegocioRD el {new Date().toLocaleDateString('es-DO')}. Revise este borrador con su asesor legal antes de firmar o depositar.
+                      </div>
                     </div>
                   </div>
 
@@ -1565,7 +1567,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Download size={14} />
-                      Descargar Contrato (.txt)
+                      Descargar texto legal (.txt)
                     </button>
                     <button 
                       onClick={triggerMockPrint}
@@ -1995,7 +1997,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             </tbody>
                           </table>
 
-                          <div className="pt-8 flex justify-between gap-4 mt-4 text-[9px]">
+                          <div className="pt-8 flex justify-between gap-4 mt-4 text-[9px] print-avoid-break">
                             <div className="flex-1 text-center font-mono">
                               <div className="border-t mx-auto w-36 mb-1"></div>
                               <span>Sello de Oficina Asesora</span>
@@ -2097,6 +2099,11 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                         </div>
                       )}
 
+                      <div className="mt-8 pt-3 border-t border-gray-200 text-[9px] text-gray-500 font-mono flex flex-col sm:flex-row justify-between gap-1 print-avoid-break">
+                        <span>Referencia: NRD-{reportType.toUpperCase()}-{new Date().getFullYear()}</span>
+                        <span>Emitido: {new Date().toLocaleDateString('es-DO')}</span>
+                      </div>
+
                     </div>
                   </div>
 
@@ -2120,7 +2127,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       className="w-full sm:w-auto px-4 py-2 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Download size={14} className="text-[#0F766E]" />
-                      Descargar Formato Excel (CSV)
+                      Descargar CSV compatible con Excel
                     </button>
                     <button 
                       onClick={triggerMockPrint}
