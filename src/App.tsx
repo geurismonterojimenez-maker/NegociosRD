@@ -412,6 +412,7 @@ export default function App() {
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
   const [authReady, setAuthReady] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState<boolean>(false);
+  const [pendingCheckoutPlan, setPendingCheckoutPlan] = useState<Exclude<BillingCycle, 'trial'>>('mensual');
   const [subscriptionBusy, setSubscriptionBusy] = useState(false);
 
   useEffect(() => {
@@ -503,6 +504,11 @@ export default function App() {
 
   const activatePendingPayment = async (billingCycle: Exclude<BillingCycle, 'trial'> = 'mensual') => {
     await syncSubscriptionState(createPendingSubscriptionState(billingCycle), 'Pago pendiente confirmado por el usuario.');
+  };
+
+  const openProCheckout = (billingCycle: Exclude<BillingCycle, 'trial'> = 'mensual') => {
+    setPendingCheckoutPlan(billingCycle);
+    setShowAccountModal(true);
   };
 
   const resetSubscriptionToFree = async () => {
@@ -1608,7 +1614,7 @@ export default function App() {
                     </div>
 
                       <button 
-                        onClick={() => activateProPaid('mensual', 'Suscripción PRO mensual activada desde la página de precios.')}
+                        onClick={() => openProCheckout('mensual')}
                         className="w-full mt-8 py-3.5 bg-[#0F766E] hover:bg-opacity-95 text-white text-xs font-black rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-60"
                         disabled={subscriptionBusy}
                       >
@@ -1662,7 +1668,7 @@ export default function App() {
                     </div>
 
                     <button 
-                      onClick={() => activateProPaid('anual', 'Suscripción PRO anual activada desde la página de precios.')}
+                      onClick={() => openProCheckout('anual')}
                       className="w-full mt-8 py-3 bg-gray-900 hover:bg-stone-850 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-60"
                       disabled={subscriptionBusy}
                     >
@@ -2014,6 +2020,7 @@ export default function App() {
         onClose={() => setShowAccountModal(false)}
         userTier={userTier}
         subscriptionState={subscriptionState}
+        initialCheckoutPlan={pendingCheckoutPlan}
         onTierChange={(newTier) => {
           const nextState = newTier === 'PRO'
             ? createActiveSubscriptionState(subscriptionState.billingCycle === 'anual' ? 'anual' : 'mensual', subscriptionState.paymentMethod || 'demo-card')

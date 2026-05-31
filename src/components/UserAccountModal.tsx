@@ -28,6 +28,7 @@ import {
   logSubscription
 } from '../lib/firebase';
 import {
+  BillingCycle,
   SubscriptionState,
   createActiveSubscriptionState,
   createDefaultSubscriptionState,
@@ -71,6 +72,65 @@ interface UserAccountModalProps {
   onTierChange: (tier: 'FREE' | 'PRO') => void;
   subscriptionState?: SubscriptionState;
   onSubscriptionChange?: (state: SubscriptionState) => void;
+  initialCheckoutPlan?: Exclude<BillingCycle, 'trial'>;
+}
+
+const PRO_PLAN_PRICES: Record<Exclude<BillingCycle, 'trial'>, { label: string; amount: string; total: string; description: string }> = {
+  mensual: {
+    label: 'PRO mensual',
+    amount: 'RD$ 495',
+    total: 'RD$ 495 hoy',
+    description: 'Renovacion mensual. Cancela cuando quieras.',
+  },
+  anual: {
+    label: 'PRO anual',
+    amount: 'RD$ 3,950',
+    total: 'RD$ 3,950 hoy',
+    description: 'Equivale a RD$ 329 mensuales.',
+  },
+};
+
+const LOCAL_DEMO_UID = 'local-demo-user';
+const LOCAL_DEMO_EMAIL = ADMIN_EMAIL;
+const LOCAL_PAYMENT_METHODS_KEY = 'negociord_local_payment_methods';
+
+function isUnauthorizedDomainError(err: any): boolean {
+  const code = err?.code || err?.message || '';
+  return String(code).includes('auth/unauthorized-domain');
+}
+
+function isLocalRuntime(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
+
+function createLocalDemoUser() {
+  return {
+    uid: LOCAL_DEMO_UID,
+    email: LOCAL_DEMO_EMAIL,
+    displayName: 'NegocioRD Local',
+    photoURL: '',
+    isLocalDemo: true,
+  };
+}
+
+function isLocalDemoUser(user?: { uid?: string } | null): boolean {
+  return user?.uid === LOCAL_DEMO_UID;
+}
+
+function loadLocalPaymentMethods(): PaymentMethodItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LOCAL_PAYMENT_METHODS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalPaymentMethods(cards: PaymentMethodItem[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LOCAL_PAYMENT_METHODS_KEY, JSON.stringify(cards));
 }
 
 function getAuthErrorMessage(err: any): string {
@@ -132,13 +192,16 @@ export interface PaymentMethodItem {
   createdAt?: any;
 }
 
-export default function UserAccountModal({ isOpen, onClose, userTier, onTierChange, subscriptionState, onSubscriptionChange }: UserAccountModalProps) {
+export default function UserAccountModal({ isOpen, onClose, userTier, onTierChange, subscriptionState, onSubscriptionChange, initialCheckoutPlan = 'mensual' }: UserAccountModalProps) {
   const currentSubscription = normalizeSubscriptionState(subscriptionState || { role: userTier });
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [cards, setCards] = useState<PaymentMethodItem[]>([]);
   const [cardsLoading, setCardsLoading] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<Exclude<BillingCycle, 'trial'>>(initialCheckoutPlan);
+  const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [localMode, setLocalMode] = useState<boolean>(false);
 
   // Email / Password Form States
   const [authEmail, setAuthEmail] = useState<string>('');
@@ -173,11 +236,22 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isOpen) {
+      setCheckoutPlan(initialCheckoutPlan);
+    }
+  }, [initialCheckoutPlan, isOpen]);
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser && localMode) {
+        setLoading(false);
+        return;
+      }
       setUser(currentUser);
       setLoading(false);
       
       if (currentUser) {
+        setLocalMode(false);
         // Sync user profile state in Firestore as standard or PRO
         await syncUserProfile(currentUser);
         // Load saved payment methods
@@ -194,11 +268,33 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     });
 
     return () => unsubscribe();
-  }, [userTier]);
+  }, [userTier, localMode]);
+
+  useEffect(() => {
+    if (!selectedCardId && cards.length > 0) {
+      setSelectedCardId(cards[0].id);
+    }
+    if (selectedCardId && cards.length > 0 && !cards.some((card) => card.id === selectedCardId)) {
+      setSelectedCardId(cards[0].id);
+    }
+    if (cards.length === 0 && selectedCardId) {
+      setSelectedCardId('');
+    }
+  }, [cards, selectedCardId]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const activateLocalDemoAccount = () => {
+    const localUser = createLocalDemoUser();
+    setLocalMode(true);
+    setUser(localUser);
+    setLoading(false);
+    setCredentialsError(null);
+    fetchPaymentMethods(localUser.uid);
+    triggerToast('Modo local activo. Ya puedes completar la compra PRO.');
   };
 
   const addLog = (message: string) => {
@@ -208,6 +304,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
   // Sync profile document with Firestore
   const syncUserProfile = async (firebaseUser: FirebaseUser) => {
+    if (isLocalDemoUser(firebaseUser)) return;
     const userDocRef = doc(db, 'users', firebaseUser.uid);
     try {
       const docSnap = await getDoc(userDocRef);
@@ -251,6 +348,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     setCardsLoading(true);
     const colPath = `users/${uid}/paymentMethods`;
     try {
+      if (uid === LOCAL_DEMO_UID) {
+        setCards(loadLocalPaymentMethods());
+        return;
+      }
       const qSnap = await getDocs(collection(db, colPath));
       const fetchedCards: PaymentMethodItem[] = [];
       qSnap.forEach((doc) => {
@@ -365,6 +466,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       triggerToast(`¡Bienvenido, ${result.user.displayName || 'usuario'}!`);
     } catch (err) {
       console.error("Google Sign-In Error:", err);
+      if (isUnauthorizedDomainError(err) && isLocalRuntime()) {
+        activateLocalDemoAccount();
+        return;
+      }
       setCredentialsError(getAuthErrorMessage(err));
     } finally {
       setActionLoading(false);
@@ -426,6 +531,14 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   const handleSignOut = async () => {
     setActionLoading(true);
     try {
+      if (isLocalDemoUser(user)) {
+        setLocalMode(false);
+        setUser(null);
+        setCards([]);
+        triggerToast("Sesion local cerrada correctamente.");
+        onClose();
+        return;
+      }
       await signOut(auth);
       triggerToast("Sesión cerrada correctamente.");
       onClose();
@@ -437,22 +550,29 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   };
 
   // Upgrades role to PRO in Firestore
-  const handleUpgradeToPro = async (cardId: string) => {
+  const handleUpgradeToPro = async (cardId: string, billingCycle: Exclude<BillingCycle, 'trial'> = checkoutPlan) => {
     if (!user) return;
+    if (!cardId) {
+      setFormError('Selecciona o registra una tarjeta antes de completar la compra PRO.');
+      return;
+    }
+
     setActionLoading(true);
-    const userDocRef = doc(db, 'users', user.uid);
+    const plan = PRO_PLAN_PRICES[billingCycle];
     try {
-      const nextSubscription = createActiveSubscriptionState('mensual', cardId ? `card-${cardId}` : 'demo-card');
-      await updateDoc(userDocRef, {
-        ...subscriptionStateForFirestore(nextSubscription)
-      });
+      const nextSubscription = createActiveSubscriptionState(billingCycle, `card-${cardId}`);
+      await persistSubscriptionState(nextSubscription);
       onTierChange('PRO');
       onSubscriptionChange?.(nextSubscription);
-      triggerToast("¡Felicidades! Tu suscripción PRO quedó activa.");
-      await logSubscription('FREE', 'PRO', 'Activación PRO desde tarjeta o cuenta.', {
-        subscriptionStatus: nextSubscription.status,
-        billingCycle: nextSubscription.billingCycle,
-      });
+      triggerToast(`Compra completada: ${plan.label} activo.`);
+      if (!isLocalDemoUser(user)) {
+        await logSubscription(currentSubscription.plan, 'PRO', `Compra simulada completada: ${plan.label}.`, {
+          subscriptionStatus: nextSubscription.status,
+          billingCycle: nextSubscription.billingCycle,
+          paymentMethod: nextSubscription.paymentMethod,
+          checkoutTotal: plan.total,
+        });
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -460,24 +580,33 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     }
   };
 
+  const persistSubscriptionState = async (nextSubscription: SubscriptionState) => {
+    if (isLocalDemoUser(user)) {
+      localStorage.setItem('negociord_subscription_state', JSON.stringify(nextSubscription));
+      localStorage.setItem('negociord_user_tier', nextSubscription.plan);
+      return;
+    }
+
+    await updateDoc(doc(db, 'users', user.uid), subscriptionStateForFirestore(nextSubscription));
+  };
+
   // Cancel / revert subscription
   const handleCancelSubscription = async () => {
     if (!user) return;
     setActionLoading(true);
-    const userDocRef = doc(db, 'users', user.uid);
     try {
       const nextSubscription = currentSubscription.plan === 'PRO'
         ? cancelSubscriptionState(currentSubscription)
         : createDefaultSubscriptionState();
-      await updateDoc(userDocRef, {
-        ...subscriptionStateForFirestore(nextSubscription)
-      });
+      await persistSubscriptionState(nextSubscription);
       onTierChange('FREE');
       onSubscriptionChange?.(nextSubscription);
       triggerToast("Suscripción cambiada a versión gratuita exitosamente.");
-      await logSubscription('PRO', 'FREE', 'Remoción voluntaria o baja de suscripción solicitada.', {
-        subscriptionStatus: nextSubscription.status,
-      });
+      if (!isLocalDemoUser(user)) {
+        await logSubscription('PRO', 'FREE', 'Remoción voluntaria o baja de suscripción solicitada.', {
+          subscriptionStatus: nextSubscription.status,
+        });
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -490,14 +619,16 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     setActionLoading(true);
     const nextSubscription = createTrialSubscriptionState();
     try {
-      await updateDoc(doc(db, 'users', user.uid), subscriptionStateForFirestore(nextSubscription));
+      await persistSubscriptionState(nextSubscription);
       onTierChange('PRO');
       onSubscriptionChange?.(nextSubscription);
       triggerToast('Tu prueba PRO está activa por 7 días.');
-      await logSubscription('FREE', 'PRO', 'Prueba PRO iniciada por el usuario.', {
-        subscriptionStatus: nextSubscription.status,
-        trialEndsAt: nextSubscription.trialEndsAt,
-      });
+      if (!isLocalDemoUser(user)) {
+        await logSubscription('FREE', 'PRO', 'Prueba PRO iniciada por el usuario.', {
+          subscriptionStatus: nextSubscription.status,
+          trialEndsAt: nextSubscription.trialEndsAt,
+        });
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -510,14 +641,16 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     setActionLoading(true);
     const nextSubscription = createPendingSubscriptionState(currentSubscription.billingCycle === 'anual' ? 'anual' : 'mensual');
     try {
-      await updateDoc(doc(db, 'users', user.uid), subscriptionStateForFirestore(nextSubscription));
+      await persistSubscriptionState(nextSubscription);
       onTierChange('PRO');
       onSubscriptionChange?.(nextSubscription);
       triggerToast('Tu suscripción quedó pendiente de pago.');
-      await logSubscription('FREE', 'PRO', 'Suscripción marcada como pendiente de pago.', {
-        subscriptionStatus: nextSubscription.status,
-        billingCycle: nextSubscription.billingCycle,
-      });
+      if (!isLocalDemoUser(user)) {
+        await logSubscription('FREE', 'PRO', 'Suscripción marcada como pendiente de pago.', {
+          subscriptionStatus: nextSubscription.status,
+          billingCycle: nextSubscription.billingCycle,
+        });
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -530,14 +663,16 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     setActionLoading(true);
     const renewed = createActiveSubscriptionState(currentSubscription.billingCycle === 'anual' ? 'anual' : 'mensual', currentSubscription.paymentMethod || 'demo-card');
     try {
-      await updateDoc(doc(db, 'users', user.uid), subscriptionStateForFirestore(renewed));
+      await persistSubscriptionState(renewed);
       onTierChange('PRO');
       onSubscriptionChange?.(renewed);
       triggerToast('Tu suscripción PRO fue renovada.');
-      await logSubscription('PRO', 'PRO', 'Renovación de suscripción PRO.', {
-        subscriptionStatus: renewed.status,
-        billingCycle: renewed.billingCycle,
-      });
+      if (!isLocalDemoUser(user)) {
+        await logSubscription('PRO', 'PRO', 'Renovación de suscripción PRO.', {
+          subscriptionStatus: renewed.status,
+          billingCycle: renewed.billingCycle,
+        });
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -614,7 +749,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
     setActionLoading(true);
     try {
-      await setDoc(doc(db, `users/${user.uid}/paymentMethods`, cardId), newCardPayload);
+      if (isLocalDemoUser(user)) {
+        saveLocalPaymentMethods([...loadLocalPaymentMethods(), newCardPayload]);
+      } else {
+        await setDoc(doc(db, `users/${user.uid}/paymentMethods`, cardId), newCardPayload);
+      }
       triggerToast('Tarjeta de pago guardada de forma segura.');
       
       setCardNumber('');
@@ -622,6 +761,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       setCardExpiry('');
       setCardCvv('');
       setShowAddCard(false);
+      setSelectedCardId(cardId);
       
       await fetchPaymentMethods(user.uid);
     } catch (err) {
@@ -637,7 +777,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     setActionLoading(true);
     const methodPath = `users/${user.uid}/paymentMethods/${cardId}`;
     try {
-      await deleteDoc(doc(db, `users/${user.uid}/paymentMethods`, cardId));
+      if (isLocalDemoUser(user)) {
+        saveLocalPaymentMethods(loadLocalPaymentMethods().filter((card) => card.id !== cardId));
+      } else {
+        await deleteDoc(doc(db, `users/${user.uid}/paymentMethods`, cardId));
+      }
       triggerToast('Tarjeta eliminada correctamente.');
       await fetchPaymentMethods(user.uid);
     } catch (err) {
@@ -813,6 +957,17 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 />
                 <span>Entrar con Google</span>
               </button>
+
+              {isLocalRuntime() && (
+                <button
+                  type="button"
+                  onClick={activateLocalDemoAccount}
+                  disabled={actionLoading}
+                  className="w-full py-2.5 px-4 border border-[#0F766E]/30 bg-[#0F766E]/5 hover:bg-[#0F766E]/10 rounded-xl font-bold text-[11px] text-[#0F766E] transition-all disabled:opacity-50"
+                >
+                  Continuar modo local para comprar PRO
+                </button>
+              )}
 
               <div className="flex justify-center items-center gap-1.5 text-[9px] text-gray-400">
                 <ShieldCheck size={12} className="text-[#0F766E]" />
@@ -1225,6 +1380,110 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
               </div>
             ) : null}
 
+            {/* --- CHECKOUT SECTOR: COMPRA DE PLAN PRO --- */}
+            <div className="border border-[#0F766E]/20 rounded-2xl p-5 bg-[#F8FFFC] space-y-4">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 text-left">
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest font-black text-[#0F766E]">Checkout PRO</div>
+                  <h4 className="text-base font-extrabold text-gray-950 mt-1">Completar compra del plan profesional</h4>
+                  <p className="text-xs text-gray-500 mt-1 max-w-xl">
+                    Elige el ciclo, selecciona una tarjeta guardada y confirma la activacion. Este entorno registra una compra simulada en Firestore.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-right min-w-[150px]">
+                  <div className="text-[10px] text-gray-400 font-black uppercase">Total</div>
+                  <div className="text-lg font-black text-gray-950">{PRO_PLAN_PRICES[checkoutPlan].amount}</div>
+                  <div className="text-[10px] text-[#0F766E] font-bold">{PRO_PLAN_PRICES[checkoutPlan].label}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {(['mensual', 'anual'] as Exclude<BillingCycle, 'trial'>[]).map((planKey) => (
+                  <button
+                    key={planKey}
+                    type="button"
+                    onClick={() => setCheckoutPlan(planKey)}
+                    className={`text-left rounded-xl border p-4 transition-all ${
+                      checkoutPlan === planKey
+                        ? 'border-[#0F766E] bg-white shadow-sm ring-2 ring-[#0F766E]/10'
+                        : 'border-gray-200 bg-white/70 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-black text-gray-950">{PRO_PLAN_PRICES[planKey].label}</span>
+                      <span className="text-sm font-black text-[#0F766E]">{PRO_PLAN_PRICES[planKey].amount}</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-1">{PRO_PLAN_PRICES[planKey].description}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white p-4 text-left space-y-3">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-widest font-black text-gray-400">Metodo de pago</div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {cards.length > 0 ? 'Selecciona la tarjeta para completar la compra.' : 'Registra una tarjeta simulada para continuar.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCard(true)}
+                    className="px-3 py-2 rounded-lg bg-gray-900 text-white text-[10px] font-bold"
+                  >
+                    Agregar tarjeta
+                  </button>
+                </div>
+
+                {cards.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {cards.map((card) => (
+                      <label
+                        key={card.id}
+                        className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer ${
+                          selectedCardId === card.id ? 'border-[#0F766E] bg-emerald-50' : 'border-gray-200 bg-white'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="checkout-card"
+                          value={card.id}
+                          checked={selectedCardId === card.id}
+                          onChange={() => setSelectedCardId(card.id)}
+                          className="accent-[#0F766E]"
+                        />
+                        <span className="text-xs font-bold text-gray-800">
+                          {card.brand.toUpperCase()} terminada en {card.last4}
+                          <span className="block text-[10px] text-gray-400 font-medium">Expira {card.expiry}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                {formError && (
+                  <div className="bg-red-50 text-red-700 text-xs p-2.5 rounded-lg font-bold text-left">
+                    {formError}
+                  </div>
+                )}
+
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-3">
+                  <div className="text-xs text-gray-500">
+                    <span className="font-extrabold text-gray-900">{PRO_PLAN_PRICES[checkoutPlan].total}</span>
+                    <span className="block text-[10px]">La licencia queda activa inmediatamente al confirmar.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUpgradeToPro(selectedCardId, checkoutPlan)}
+                    disabled={actionLoading}
+                    className="px-5 py-3 rounded-xl bg-[#0F766E] text-white text-xs font-black shadow-sm disabled:opacity-50"
+                  >
+                    {actionLoading ? 'Procesando compra...' : currentSubscription.plan === 'PRO' ? 'Renovar compra PRO' : 'Completar compra PRO'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* --- COMPONENT SECTOR: WALLET (TARJETAS VINCULADAS) --- */}
             <div className="border border-gray-150 rounded-2xl p-5 bg-white space-y-4">
               <div className="flex items-center justify-between">
@@ -1469,7 +1728,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                       <div className="flex items-center gap-2 font-sans">
                         {currentSubscription.plan === 'FREE' && (
                           <button
-                            onClick={() => handleUpgradeToPro(card.id)}
+                            onClick={() => {
+                              setSelectedCardId(card.id);
+                              handleUpgradeToPro(card.id, checkoutPlan);
+                            }}
                             disabled={actionLoading}
                             className="bg-amber-500 hover:bg-amber-600 font-bold text-[9px] text-white px-2.5 py-1.5 rounded-lg transition-all active:scale-95 flex items-center gap-1 cursor-pointer disabled:opacity-40 shadow-xs"
                           >
