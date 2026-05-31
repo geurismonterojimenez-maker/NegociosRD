@@ -9,10 +9,12 @@ import CalculatorForm from './components/CalculatorForm';
 import GuidesView from './components/GuidesView';
 import NewsSection from './components/NewsSection';
 import AdSenseBlock from './components/AdSenseBlock';
+import AdminConsole from './components/AdminConsole';
 import ProfessionalPortal from './components/ProfessionalPortal';
 import UserAccountModal from './components/UserAccountModal';
 import CentroLaboral from './components/CentroLaboral';
 import CentroFinanciero from './components/CentroFinanciero';
+import { isAdminEmail } from './config/admin';
 import { 
   Search, 
   Sparkles, 
@@ -31,7 +33,9 @@ import {
   ChevronDown,
   ChevronUp,
   Menu,
-  X
+  X,
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 
 interface FaqSchemaItem {
@@ -50,7 +54,7 @@ const injectSchema = (schemaObj: any) => {
 
 export const PUBLIC_SITE_URL = "https://negociord.com";
 
-const updateMetaTags = (title: string, description: string, path: string, type: 'article' | 'website' = 'website', faqItems?: FaqSchemaItem[]) => {
+const updateMetaTags = (title: string, description: string, path: string, type: 'article' | 'website' = 'website', faqItems?: FaqSchemaItem[], robots: string = 'index, follow') => {
   if (typeof document === "undefined") return;
   
   // 1. Update Title
@@ -61,6 +65,11 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
   metaDesc.setAttribute('name', 'description');
   metaDesc.setAttribute('content', description);
   if (!metaDesc.parentNode) document.head.appendChild(metaDesc);
+
+  const metaRobots = document.querySelector('meta[name="robots"]') || document.createElement('meta');
+  metaRobots.setAttribute('name', 'robots');
+  metaRobots.setAttribute('content', robots);
+  if (!metaRobots.parentNode) document.head.appendChild(metaRobots);
 
   // 3. Update Canonical
   const canonicalUrl = `${PUBLIC_SITE_URL}${path}`;
@@ -363,7 +372,7 @@ function ProUpgradeModal({ isOpen, onClose, onUpgrade, featureName }: ProUpgrade
 }
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios' | 'admin' | '404'>('home');
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -382,11 +391,13 @@ export default function App() {
   });
 
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState<boolean>(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (current) => {
       setFirebaseUser(current);
+      setAuthReady(true);
       if (current) {
         // Sync user role with Firestore
         try {
@@ -503,6 +514,11 @@ export default function App() {
       setActiveCalculator(null);
       setSelectedGuideSlug(null);
       return;
+    } else if (path === '/admin') {
+      setCurrentView('admin');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
     } else if (path === '/') {
       setCurrentView('home');
       setActiveCalculator(null);
@@ -556,6 +572,8 @@ export default function App() {
       updateMetaTags("Centro Financiero RD - Amortizaciones & Tasas | NegocioRD", "Simuladores profesionales de créditos, amortizaciones francesas y divisores legales dominicanos.", "/centro-financiero", "website");
     } else if (currentView === 'precios') {
       updateMetaTags("Planes y Precios PRO | NegocioRD", "Membresía simple de NegocioRD: Navegación libre de publicidad, historial ampliado, exportación ilimitada y recursos exclusivos para contadores de RD.", "/precios", "website");
+    } else if (currentView === 'admin') {
+      updateMetaTags("Administración Privada | NegocioRD", "Consola interna privada para administración y backend de NegocioRD.", "/admin", "website", undefined, "noindex, nofollow");
     } else {
       updateMetaTags("NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.", "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.", "/", "website");
     }
@@ -627,6 +645,8 @@ export default function App() {
       setSelectedGuideSlug(null);
     }
   };
+
+  const isAdminUser = authReady && isAdminEmail(firebaseUser?.email);
 
   return (
     <div className="bg-[#FAFAFA] min-h-screen text-[#111827] font-sans antialiased flex flex-col justify-between selection:bg-teal-50 selection:text-[#0F766E]">
@@ -726,6 +746,16 @@ export default function App() {
             >
               Precios
             </button>
+            {isAdminUser && (
+              <button 
+                onClick={() => navigateTo('/admin')}
+                className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
+                  currentView === 'admin' ? 'text-[#0F766E] font-semibold' : ''
+                }`}
+              >
+                Administración
+              </button>
+            )}
             <button 
               onClick={() => setShowPortalModal(true)}
               className="px-4 py-1.5 bg-[#0F766E] text-white rounded-md text-xs font-semibold hover:opacity-95 transition-opacity hidden md:inline-block cursor-pointer active:scale-95"
@@ -874,6 +904,15 @@ export default function App() {
               >
                 Precios y Planes
               </button>
+              {isAdminUser && (
+                <button 
+                  onClick={() => { navigateTo('/admin'); setMobileMenuOpen(false); }}
+                  className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'admin' ? 'text-[#0F766E]' : ''}`}
+                  id="mob-nav-admin"
+                >
+                  Administración
+                </button>
+              )}
               <button 
                 onClick={() => { navigateTo('/nosotros'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors font-semibold text-sm ${currentView === 'nosotros' ? 'text-[#0F766E]' : ''}`}
@@ -1676,6 +1715,48 @@ export default function App() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ADMIN PRIVATE CONSOLE */}
+          {currentView === 'admin' && !authReady && (
+            <div className="animate-in fade-in duration-200 py-12 max-w-2xl mx-auto w-full px-4">
+              <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-sm text-center space-y-4">
+                <div className="w-14 h-14 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center mx-auto text-[#0F766E]">
+                  <ShieldCheck size={22} />
+                </div>
+                <h1 className="text-2xl font-black text-[#111827]">Verificando acceso privado</h1>
+                <p className="text-sm text-gray-500 max-w-md mx-auto">
+                  Estamos confirmando tu sesión antes de abrir la consola administrativa.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {currentView === 'admin' && authReady && isAdminUser && (
+            <AdminConsole
+              firebaseUser={firebaseUser}
+              onBack={() => navigateTo('/')}
+            />
+          )}
+
+          {currentView === 'admin' && authReady && !isAdminUser && (
+            <div className="animate-in fade-in duration-200 py-12 max-w-2xl mx-auto w-full px-4">
+              <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-sm text-center space-y-4">
+                <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-600">
+                  <Lock size={22} />
+                </div>
+                <h1 className="text-2xl font-black text-[#111827]">Acceso restringido</h1>
+                <p className="text-sm text-gray-500 max-w-md mx-auto">
+                  Esta área está reservada para la cuenta administradora autorizada.
+                </p>
+                <button
+                  onClick={() => navigateTo('/')}
+                  className="mt-2 px-5 py-2.5 bg-[#0F766E] text-white text-xs font-bold rounded-lg cursor-pointer hover:opacity-95 transition-all"
+                >
+                  Volver al inicio
+                </button>
               </div>
             </div>
           )}

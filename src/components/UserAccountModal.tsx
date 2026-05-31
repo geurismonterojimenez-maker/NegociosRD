@@ -27,6 +27,7 @@ import {
   logUsage,
   logSubscription
 } from '../lib/firebase';
+import { ADMIN_EMAIL, isAdminEmail } from '../config/admin';
 import { 
   X, 
   CreditCard, 
@@ -118,7 +119,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
         await fetchPaymentMethods(currentUser.uid);
 
         // If the user's email is the designated admin, bootstrap backend data
-        if (currentUser.email === 'jeuri905@gmail.com') {
+        if (isAdminEmail(currentUser.email)) {
           fetchAdminData();
         }
       } else {
@@ -157,7 +158,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
           email: firebaseUser.email || '',
           displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
           photoURL: firebaseUser.photoURL || '',
-          role: firebaseUser.email === 'jeuri905@gmail.com' ? 'PRO' : (userTier || 'FREE'),
+          role: isAdminEmail(firebaseUser.email) ? 'PRO' : (userTier || 'FREE'),
           updatedAt: new Date().toISOString()
         };
         await setDoc(userDocRef, newUserPayload);
@@ -191,7 +192,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
   // Fetch Admin user directory
   const fetchAdminData = async () => {
-    if (!auth.currentUser || auth.currentUser.email !== 'jeuri905@gmail.com') return;
+    if (!auth.currentUser || !isAdminEmail(auth.currentUser.email)) return;
     setUsersLoading(true);
     setAuditsLoading(true);
     addLog("Inicializando conexión con directorio administrativo de usuarios...");
@@ -318,7 +319,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
           email: credentials.user.email || '',
           displayName: authName,
           photoURL: '',
-          role: credentials.user.email === 'jeuri905@gmail.com' ? 'PRO' : 'FREE',
+          role: isAdminEmail(credentials.user.email) ? 'PRO' : 'FREE',
           updatedAt: new Date().toISOString()
         };
         await setDoc(doc(db, 'users', credentials.user.uid), newUserPayload);
@@ -514,7 +515,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
   if (!isOpen) return null;
 
-  const isAdminUser = user?.email === 'jeuri905@gmail.com';
+  const isAdminUser = isAdminEmail(user?.email);
 
   return (
     <div className="fixed inset-0 bg-[#0B0F19]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
@@ -641,7 +642,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
               <div className="bg-amber-50 text-amber-900 text-[10px] p-2.5 rounded-xl border border-amber-200 leading-normal flex gap-1.5 font-sans">
                 <span>🔐</span>
                 <span>
-                  <strong>Tip de Acceso:</strong> Si inicias sesión o te registras usando el correo <strong>jeuri905@gmail.com</strong> se habilitará al instante el panel de control administrativo y backend de la plataforma con herramientas interactivas.
+                  <strong>Tip de Acceso:</strong> Si inicias sesión con la cuenta administradora autorizada se habilitará al instante el panel de control administrativo y backend de la plataforma con herramientas interactivas.
                 </span>
               </div>
             </div>
@@ -926,7 +927,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                     <div className="flex justify-between items-center pb-2 border-b border-stone-800 text-[10px] text-stone-500">
                       <span className="flex items-center gap-1">
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-                        <span>Terminal Activa: jeuri905@gmail.com</span>
+                        <span>Terminal Activa: {ADMIN_EMAIL}</span>
                       </span>
                       <button 
                         onClick={() => { setAdminLogs([]); triggerToast("Consola Limpiada"); }}

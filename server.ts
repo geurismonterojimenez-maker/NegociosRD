@@ -333,6 +333,7 @@ ${guideUrls}
 app.get("/robots.txt", (req, res) => {
   const robots = `User-agent: *
 Allow: /
+Disallow: /admin
 Disallow: /api/
 Sitemap: https://negociord.com/sitemap.xml`;
 
@@ -344,6 +345,7 @@ Sitemap: https://negociord.com/sitemap.xml`;
 function getPrerenderedHTML(html: string, originalUrl: string): string {
   let title = "NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.";
   let description = "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.";
+  let robots = "index, follow";
   const pathPart = originalUrl.split("?")[0];
   let type: 'article' | 'website' = 'website';
   let faqSchema = "";
@@ -443,6 +445,10 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   } else if (pathPart === "/noticias") {
     title = "Últimas Noticias Financieras y Fiscales de R.D. | NegocioRD";
     description = "Mantente al día con investigaciones exclusivas usando IA sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.";
+  } else if (pathPart === "/admin") {
+    title = "Administración Privada | NegocioRD";
+    description = "Consola interna privada para administración, auditoría y control operativo de NegocioRD.";
+    robots = "noindex, nofollow, noarchive";
   }
 
   // Canonical link setup
@@ -468,6 +474,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   
   // Replace Meta Descriptions
   html = html.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${description}" />`);
+  html = html.replace(/<meta name="robots" content=".*?" \/>/, `<meta name="robots" content="${robots}" />`);
   
   // Replace Open Graph / Facebook Properties
   html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`);
@@ -529,7 +536,8 @@ function isValidRoute(originalUrl: string): boolean {
     "/nosotros",
     "/centro-laboral",
     "/centro-financiero",
-    "/precios"
+    "/precios",
+    "/admin"
   ];
   
   if (validStaticPaths.includes(pathPart)) {
