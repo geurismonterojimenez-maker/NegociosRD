@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { CALCULATORS, CATEGORIES } from '../data';
-import { CalculatorInfo, CalculatorCategory } from '../types';
+import { CalculatorInfo, CalculatorCategory, checkIsProCalculator } from '../types';
 import { Search, Sparkles, Receipt, Users, Landmark, Landmark as Piggy, TrendingUp, Info, HelpCircle } from 'lucide-react';
 
 interface CalculatorsListProps {
@@ -200,19 +200,11 @@ export default function CalculatorsList({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCalculators.map((calc) => {
-            const isProCalculator = calc.id === 'recargos-dgii' || calc.id === 'retenciones-dgii';
+            const isProCalculator = checkIsProCalculator(calc.id);
             const isLocked = isProCalculator && userTier === 'FREE';
 
             const handleClick = () => {
-              if (isLocked) {
-                if (onProRequired) {
-                  onProRequired(calc.name);
-                } else {
-                  alert(`La ${calc.name} es una función Premium PRO.`);
-                }
-              } else {
-                onSelectCalculator(calc);
-              }
+              onSelectCalculator(calc);
             };
 
             return (

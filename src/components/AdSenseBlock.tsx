@@ -15,23 +15,7 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
 
   if (isPro) {
-    if (variant === 'skyscraper-left' || variant === 'skyscraper-right') {
-      return (
-        <div className={`w-full h-full min-h-[350px] border border-teal-500/20 bg-teal-50/5 rounded-xl flex flex-col items-center justify-center p-4 text-center ${className}`}>
-          <div className="w-10 h-10 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center mb-3">
-            <span className="text-[16px]">💎</span>
-          </div>
-          <span className="text-xs font-bold text-[#0F766E]">Usuario PRO</span>
-          <span className="text-[9px] text-gray-400 mt-1 max-w-[120px] leading-normal">Espacio publicitario depurado en tu cuenta profesional.</span>
-        </div>
-      );
-    }
-    return (
-      <div className={`w-full py-2.5 px-4 rounded-xl bg-teal-50/25 border border-teal-100 flex items-center justify-center gap-2 text-xs font-semibold text-[#0F766E] my-1 tracking-tight ${className}`}>
-        <span>💎</span>
-        <span>Perfil PRO Activo — Navegación libre de interrupciones</span>
-      </div>
-    );
+    return null;
   }
 
   // Generate real, copyable AdSense responsive code templates based on the variant selected

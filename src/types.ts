@@ -1,5 +1,19 @@
 export type CalculatorCategory = 'impuestos' | 'laboral' | 'finanzas' | 'negocios';
 
+export const FREE_CALCULATORS_IDS = [
+  'itbis-calc',
+  'itbis-incluido',
+  'itbis-excluido',
+  'isr-asalariado',
+  'salario-neto',
+  'cuota-prestamo',
+  'precio-venta'
+];
+
+export function checkIsProCalculator(id: string): boolean {
+  return !FREE_CALCULATORS_IDS.includes(id);
+}
+
 export interface CalculatorInfo {
   id: string;
   name: string;

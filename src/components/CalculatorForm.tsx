@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CalculatorInfo, FaqItem } from '../types';
+import { CalculatorInfo, FaqItem, checkIsProCalculator } from '../types';
 import { TAX_RATES } from '../config/tax-rates';
 import { calculateItbisExcluido, calculateItbisIncluido } from '../lib/calculations/itbis';
 import { calculateIsrAsalariado } from '../lib/calculations/isr';
@@ -18,9 +18,70 @@ interface CalculatorFormProps {
   calc: CalculatorInfo;
   onBack: () => void;
   onNavigateToCalc: (slug: string) => void;
+  userTier?: 'FREE' | 'PRO';
+  onProRequired?: (featureName: string) => void;
 }
 
-export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: CalculatorFormProps) {
+export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTier = 'FREE', onProRequired }: CalculatorFormProps) {
+  const isProCalculator = checkIsProCalculator(calc.id);
+  const isLocked = isProCalculator && userTier === 'FREE';
+
+  if (isLocked) {
+    return (
+      <div className="bg-[#FAFBFB] rounded-2xl border border-gray-200 shadow-xs p-8 max-w-xl mx-auto my-6 animate-in fade-in duration-200 text-gray-750" id="calculator-paywall-screen">
+        <button 
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 mb-6 transition-colors"
+          aria-label="Volver al Directorio"
+        >
+          <ArrowLeft size={14} />
+          Volver al Directorio
+        </button>
+
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-teal-50 border border-teal-150 flex items-center justify-center mx-auto mb-5 text-3xl shadow-xs">
+            💎
+          </div>
+          <span className="px-3 py-1 bg-[#0F766E]/10 text-[#0F766E] text-[10px] font-extrabold rounded-full uppercase tracking-widest inline-block mb-3.5">
+            Módulo Exclusivo PRO
+          </span>
+          <h4 className="text-2xl font-extrabold text-gray-900 mb-2.5 tracking-tight">{calc.name}</h4>
+          <p className="text-xs text-gray-500 leading-relaxed max-w-sm mx-auto mb-6">
+            {calc.description || "Esta herramienta profesional avanzada está diseñada para contadores, consultores tributarios, asesores de negocios y dueños de empresas."}
+          </p>
+          
+          <div className="bg-white rounded-xl p-5 mb-8 text-left border border-gray-200/80 max-w-sm mx-auto space-y-3 shadow-xs">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block border-b pb-1.5">Ventajas Profesionales Activas</span>
+            <div className="flex gap-2.5 text-xs font-medium text-gray-600">
+              <span className="text-[#0f766e] font-extrabold text-lg leading-none">✓</span>
+              <span>Deducciones e informes con desglose completo de ley (SFS, AFP, ISR, SRL, etc.)</span>
+            </div>
+            <div className="flex gap-2.5 text-xs font-medium text-gray-600">
+              <span className="text-[#0f766e] font-extrabold text-lg leading-none">✓</span>
+              <span>Guardado ilimitado de escenarios y comparativas</span>
+            </div>
+            <div className="flex gap-2.5 text-xs font-medium text-gray-600">
+              <span className="text-[#0f766e] font-extrabold text-lg leading-none">✓</span>
+              <span>Exportaciones ejecutivas limpias a formatos PDF y hojas de cálculo (CSV)</span>
+            </div>
+            <div className="flex gap-2.5 text-xs font-medium text-gray-600">
+              <span className="text-[#0f766e] font-extrabold text-lg leading-none">✓</span>
+              <span>Navegación silenciosa y eficiente 100% libre de anuncios comerciales</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onProRequired && onProRequired(calc.name)}
+            className="w-full sm:w-auto px-6 py-3 bg-[#0F766E] hover:bg-[#0D645D] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all active:scale-97 cursor-pointer flex items-center justify-center gap-2 mx-auto"
+            aria-label={`Desbloquear ${calc.name}`}
+          >
+            <span>💎 Activar Licencia PRO Gratis (1-Clic)</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const isLaboralNew = [
     'decimo-tercer-salario', 'horas-extras', 'trabajo-nocturno', 
     'salario-por-hora', 'salario-quincenal', 'bonificaciones-ley', 

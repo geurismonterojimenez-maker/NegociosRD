@@ -1218,6 +1218,8 @@ export default function App() {
                 calc={activeCalculator} 
                 onBack={() => { navigateTo('/'); }} 
                 onNavigateToCalc={(slug) => handleNavigateToCalcBySlug(slug)}
+                userTier={userTier}
+                onProRequired={handleProRequired}
               />
             </div>
           )}

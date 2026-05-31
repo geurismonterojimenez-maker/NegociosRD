@@ -25,15 +25,7 @@ export default function AdSlot({ position, className = '', userTier }: AdSlotPro
 
   // Si el usuario es PRO, no cargamos comerciales de AdSense de forma alguna
   if (activeTier === 'PRO') {
-    return (
-      <div className={`w-full py-3 px-4 rounded-xl bg-teal-50/30 border border-teal-100 flex items-center justify-between gap-2 text-xs font-semibold text-[#0F766E] my-2 transition-all duration-300 ${className}`}>
-        <div className="flex items-center gap-2">
-          <span>💎</span>
-          <span>Navegación PRO — Espacio publicitario liberado de interrupciones</span>
-        </div>
-        <span className="text-[10px] font-mono font-bold bg-[#0F766E]/10 px-2 py-0.5 rounded-full text-[#0F766E]">PRO</span>
-      </div>
-    );
+    return null;
   }
 
   // Generación del código real de integración HTML/JS asíncrono para AdSense
