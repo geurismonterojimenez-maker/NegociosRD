@@ -48,8 +48,52 @@ export default function CalculatorsList({
     });
   }, [searchFilter, activeCategory]);
 
+  // Load recently viewed calculators from localStorage
+  const [recentCalcIds, setRecentCalcIds] = useState<string[]>([]);
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('recent_calculators_ids');
+      if (saved) {
+        setRecentCalcIds(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  }, []);
+
+  const recentCalcsOfUser = useMemo(() => {
+    return recentCalcIds
+      .map(id => CALCULATORS.find(c => c.id === id))
+      .filter((c): c is CalculatorInfo => !!c);
+  }, [recentCalcIds]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+      {/* Recent Calculators Row if present */}
+      {recentCalcsOfUser.length > 0 && (
+        <div className="mb-8 p-4 bg-[#F9FAFB] rounded-xl border border-gray-150 animate-in fade-in duration-200">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-[#0F766E] uppercase tracking-wider mb-2.5">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+            </span>
+            <span>Tus Cálculos Recientes</span>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
+            {recentCalcsOfUser.map((calc) => (
+              <button
+                key={calc.id}
+                onClick={() => onSelectCalculator(calc)}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-gray-200 bg-white hover:border-[#0F766E] hover:text-[#0F766E] text-xs font-semibold text-gray-755 transition-all shadow-xs shrink-0 cursor-pointer"
+              >
+                <span>⚡</span>
+                <span>{calc.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Category boxes or buttons - Bento style */}
       <h2 className="text-xl font-bold text-[#111827] mb-6 flex items-center gap-2">
         <Sparkles size={20} className="text-[#0F766E]" />

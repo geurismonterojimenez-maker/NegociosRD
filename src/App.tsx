@@ -491,6 +491,14 @@ export default function App() {
 
   // Switch to a calculator view
   const handleSelectCalculator = (calc: CalculatorInfo) => {
+    try {
+      const saved = localStorage.getItem('recent_calculators_ids');
+      const recentIds: string[] = saved ? JSON.parse(saved) : [];
+      const updated = [calc.id, ...recentIds.filter(id => id !== calc.id)].slice(0, 4);
+      localStorage.setItem('recent_calculators_ids', JSON.stringify(updated));
+    } catch (e) {
+      console.warn(e);
+    }
     navigateTo('/herramientas/' + calc.urlSlug);
   };
 
@@ -503,6 +511,14 @@ export default function App() {
       return cId === cleanSlug || cSlug === cleanSlug || c.urlSlug === slug || c.id === slug;
     });
     if (calc) {
+      try {
+        const saved = localStorage.getItem('recent_calculators_ids');
+        const recentIds: string[] = saved ? JSON.parse(saved) : [];
+        const updated = [calc.id, ...recentIds.filter(id => id !== calc.id)].slice(0, 4);
+        localStorage.setItem('recent_calculators_ids', JSON.stringify(updated));
+      } catch (e) {
+        console.warn(e);
+      }
       navigateTo('/herramientas/' + calc.urlSlug);
     }
   };
@@ -709,11 +725,13 @@ export default function App() {
           <div className="lg:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2.5 rounded-md text-gray-500 hover:text-[#0F766E] hover:bg-gray-100/50 transition-colors focus:outline-none cursor-pointer"
+              className="w-12 h-12 flex items-center justify-center rounded-md text-gray-500 hover:text-[#0F766E] hover:bg-gray-100/50 transition-colors focus:outline-none cursor-pointer"
               aria-label="Abrir menú"
               id="mobile-menu-toggle-btn"
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              <span className={`inline-flex items-center justify-center transition-transform duration-350 ease-in-out ${mobileMenuOpen ? 'rotate-180' : 'rotate-0'}`}>
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </span>
             </button>
           </div>
         </div>

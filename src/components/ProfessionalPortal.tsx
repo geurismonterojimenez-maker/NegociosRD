@@ -2145,7 +2145,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
             <div className="space-y-6">
 
               <div className="bg-[#FFFBEB] rounded-xl p-4 border border-amber-100 text-[#0F766E] text-xs leading-relaxed">
-                <span className="font-bold text-sm block mb-1 text-amber-950">Planificador de Retenciones e Infracciones Tributarias:</span>
+                <span className="font-bold text-sm block mb-1 text-amber-950">Calculadora de Retenciones DGII:</span>
                 Esta herramienta computa la sujeción de ITBIS (30%, 100%) e ISR (10% honorarios/alquileres, 2% técnicos) aplicable a proveedores externos según el Código Tributario dominicano. Adicionalmente, calcula el recargo por mora (10% + 4% mensual) y el interés indemnizatorio si el pago se efectúa fuera de fecha.
               </div>
 

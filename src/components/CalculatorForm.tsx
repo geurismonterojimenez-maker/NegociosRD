@@ -108,6 +108,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
   const [bizCost, setBizCost] = useState<number>(150);
   const [bizMarginDesired, setBizMarginDesired] = useState<number>(30); // 30%
 
+  // Progressive Disclosure UX States
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+  const [showDetailedBreakdown, setShowDetailedBreakdown] = useState<boolean>(false);
+
+  // Reset toggles when switching tools
+  React.useEffect(() => {
+    setShowAdvanced(false);
+    setShowDetailedBreakdown(false);
+  }, [calc.id]);
+
   // --- CALCULATION RESULTS EVALUATION ---
 
   const calculatedResults = useMemo(() => {
@@ -407,22 +417,24 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                       type="number" 
                       value={itbisAmountInput}
                       onChange={(e) => setItbisAmountInput(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa impositiva de ITBIS</label>
-                  <select 
-                    value={itbisRateInput}
-                    onChange={(e) => setItbisRateInput(parseFloat(e.target.value))}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
-                  >
-                    <option value={0.18}>18% (Tasa general)</option>
-                    <option value={0.16}>16% (Tasa reducida / Alimentos selectos)</option>
-                  </select>
-                </div>
+                {showAdvanced && (
+                  <div className="pt-2 animate-in slide-in-from-top-2 duration-150">
+                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa impositiva de ITBIS</label>
+                    <select 
+                      value={itbisRateInput}
+                      onChange={(e) => setItbisRateInput(parseFloat(e.target.value))}
+                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                    >
+                      <option value={0.18}>18% (Tasa general)</option>
+                      <option value={0.16}>16% (Tasa reducida / Alimentos selectos)</option>
+                    </select>
+                  </div>
+                )}
               </>
             )}
 
@@ -437,23 +449,25 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                       type="number" 
                       value={isrSalaryInput}
                       onChange={(e) => setIsrSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 py-2">
-                  <input 
-                    type="checkbox" 
-                    id="deductTss"
-                    checked={isrDeductTss}
-                    onChange={(e) => setIsrDeductTss(e.target.checked)}
-                    className="h-4 w-4 text-[#0F766E] focus:ring-[#0F766E] border-gray-300 rounded cursor-pointer"
-                  />
-                  <label htmlFor="deductTss" className="text-sm font-medium text-gray-700 cursor-pointer">
-                    Deducir aportes TSS antes del ISR (AFP y SFS)
-                  </label>
-                </div>
+                {showAdvanced && (
+                  <div className="flex items-center gap-3 py-2 pt-3 border-t border-gray-100 animate-in slide-in-from-top-2 duration-150">
+                    <input 
+                      type="checkbox" 
+                      id="deductTss"
+                      checked={isrDeductTss}
+                      onChange={(e) => setIsrDeductTss(e.target.checked)}
+                      className="h-4 w-4 text-[#0F766E] focus:ring-[#0F766E] border-gray-300 rounded cursor-pointer"
+                    />
+                    <label htmlFor="deductTss" className="text-sm font-semibold text-gray-600 cursor-pointer">
+                      Deducir aportes TSS antes del ISR (AFP y SFS)
+                    </label>
+                  </div>
+                )}
               </>
             )}
 
@@ -468,37 +482,41 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                       type="number" 
                       value={retencionInvoiceAmount}
                       onChange={(e) => setRetencionInvoiceAmount(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Tipo de Servicio Prestado (Tasa de ISR)</label>
-                  <select 
-                    value={retencionServiceType}
-                    onChange={(e) => setRetencionServiceType(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
-                  >
-                    <option value="honorarios">Honorarios Profesionales (10% ISR)</option>
-                    <option value="tecnicos">Servicios Técnicos / Plomería / Albañil (2% ISR)</option>
-                    <option value="alquiler">Alquiler de Bienes Muebles o Inmuebles (10% ISR)</option>
-                    <option value="seguridad">Servicios de Seguridad y Vigilancia (2% ISR)</option>
-                  </select>
-                </div>
+                {showAdvanced && (
+                  <div className="space-y-4 pt-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-150">
+                    <div>
+                      <label className="block text-sm font-medium text-[#111827] mb-1.5">Tipo de Servicio Prestado (Tasa de ISR)</label>
+                      <select 
+                        value={retencionServiceType}
+                        onChange={(e) => setRetencionServiceType(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      >
+                        <option value="honorarios">Honorarios Profesionales (10% ISR)</option>
+                        <option value="tecnicos">Servicios Técnicos / Plomería / Albañil (2% ISR)</option>
+                        <option value="alquiler">Alquiler de Bienes Muebles o Inmuebles (10% ISR)</option>
+                        <option value="seguridad">Servicios de Seguridad y Vigilancia (2% ISR)</option>
+                      </select>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Porcentaje de ITBIS a retener por el cliente corporativo</label>
-                  <select 
-                    value={retencionItbisOption}
-                    onChange={(e) => setRetencionItbisOption(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
-                  >
-                    <option value="100">100% de ITBIS (Normal para servicios profesionales)</option>
-                    <option value="30">30% de ITBIS (Norma 02-05 entre sociedades jurídicas)</option>
-                    <option value="0">0% (Ninguna retención de ITBIS)</option>
-                  </select>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#111827] mb-1.5">Porcentaje de ITBIS a retener por el cliente corporativo</label>
+                      <select 
+                        value={retencionItbisOption}
+                        onChange={(e) => setRetencionItbisOption(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      >
+                        <option value="100">100% de ITBIS (Normal para servicios profesionales)</option>
+                        <option value="30">30% de ITBIS (Norma 02-05 entre sociedades jurídicas)</option>
+                        <option value="0">0% (Ninguna retención de ITBIS)</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
@@ -508,27 +526,29 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                 <div>
                   <label className="block text-sm font-medium text-[#111827] mb-1.5">Monto de impuesto no pagado (RD$)</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium font-semibold">RD$</div>
                     <input 
                       type="number" 
                       value={recargosTaxBase}
                       onChange={(e) => setRecargosTaxBase(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Meses de atraso (desde el vencimiento)</label>
-                  <input 
-                    type="number" 
-                    min="1"
-                    max="120"
-                    value={recargosMonthsLate}
-                    onChange={(e) => setRecargosMonthsLate(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
-                  />
-                </div>
+                {showAdvanced && (
+                  <div className="pt-2 animate-in slide-in-from-top-2 duration-150">
+                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Meses de atraso (desde el vencimiento)</label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      max="120"
+                      value={recargosMonthsLate}
+                      onChange={(e) => setRecargosMonthsLate(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                    />
+                  </div>
+                )}
               </>
             )}
 
@@ -542,7 +562,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                     type="number" 
                     value={netSalaryInput}
                     onChange={(e) => setNetSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                    className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                   />
                 </div>
               </div>
@@ -558,7 +578,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                     type="number" 
                     value={tssSalaryInput}
                     onChange={(e) => setTssSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                    className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                   />
                 </div>
               </div>
@@ -575,27 +595,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                       type="number" 
                       value={prestacionesSalary}
                       onChange={(e) => setPrestacionesSalary(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
 
-                {calc.id === 'liquidacion-laboral' && (
-                  <div>
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Motivo del fin de contrato</label>
-                    <select 
-                      value={liquidacionMotivo}
-                      onChange={(e) => setLiquidacionMotivo(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
-                    >
-                      <option value="desahucio_patronal">Desahucio del Empleador (Le tocan prestaciones completas)</option>
-                      <option value="renuncia">Renuncia Voluntaria (Solo adquiere Vacaciones y Regalía)</option>
-                      <option value="despido_justificado">Despido Justificado con causa (Solo adquiere Vacaciones y Regalía)</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Date range inputs for preaviso, cesantia, liquidacion */}
+                {/* Date range inputs for preaviso, cesantia, liquidacion always visible */}
                 {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -604,7 +609,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                         type="date"
                         value={prestacionesIngreso}
                         onChange={(e) => setPrestacionesIngreso(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827]"
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
                       />
                     </div>
                     <div>
@@ -613,71 +618,90 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                         type="date"
                         value={prestacionesSalida}
                         onChange={(e) => setPrestacionesSalida(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827]"
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
                       />
                     </div>
                   </div>
                 )}
 
-                {(calc.id === 'prestaciones-laborales') && (
-                  <div className="space-y-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <input 
-                        type="checkbox" 
-                        id="preavisoOmitido"
-                        checked={prestacionesPreaviso}
-                        onChange={(e) => setPrestacionesPreaviso(e.target.checked)}
-                        className="h-4 w-4 text-[#0F766E] focus:ring-[#0F766E] border-gray-300 rounded cursor-pointer"
-                      />
-                      <label htmlFor="preavisoOmitido" className="text-sm font-medium text-gray-700 cursor-pointer">
-                        Omitió el preaviso (Pagar preaviso)
-                      </label>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <input 
-                        type="checkbox" 
-                        id="pagaCesantia"
-                        checked={prestacionesCesantia}
-                        onChange={(e) => setPrestacionesCesantia(e.target.checked)}
-                        className="h-4 w-4 text-[#0F766E] focus:ring-[#0F766E] border-gray-300 rounded cursor-pointer"
-                      />
-                      <label htmlFor="pagaCesantia" className="text-sm font-medium text-gray-700 cursor-pointer">
-                        Aplica auxilio de cesantía
-                      </label>
-                    </div>
-                  </div>
-                )}
+                {showAdvanced && (
+                  <div className="space-y-4 pt-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-150">
+                    {calc.id === 'liquidacion-laboral' && (
+                      <div>
+                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Motivo del fin de contrato</label>
+                        <select 
+                          value={liquidacionMotivo}
+                          onChange={(e) => setLiquidacionMotivo(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                        >
+                          <option value="desahucio_patronal">Desahucio del Empleador (Le tocan prestaciones completas)</option>
+                          <option value="renuncia">Renuncia Voluntaria (Solo adquiere Vacaciones y Regalía)</option>
+                          <option value="despido_justificado">Despido Justificado con causa (Solo adquiere Vacaciones y Regalía)</option>
+                        </select>
+                      </div>
+                    )}
 
-                {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral') && (
-                  <div>
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Vacaciones del último año laborado</label>
-                    <select 
-                      value={prestacionesVacaciones}
-                      onChange={(e) => setPrestacionesVacaciones(e.target.value as any)}
-                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
-                    >
-                      <option value="pendientes_completas">No tomadas (Pagar completas/proporcional)</option>
-                      <option value="ninguna">Ya fueron tomadas o disfrutadas por completo</option>
-                    </select>
-                  </div>
-                )}
+                    {calc.id === 'prestaciones-laborales' && (
+                      <div className="space-y-3 py-2">
+                        <div className="flex items-center gap-3">
+                          <input 
+                            type="checkbox" 
+                            id="preavisoOmitido"
+                            checked={prestacionesPreaviso}
+                            onChange={(e) => setPrestacionesPreaviso(e.target.checked)}
+                            className="h-4 w-4 text-[#0F766E] focus:ring-[#0F766E] border-gray-300 rounded cursor-pointer"
+                          />
+                          <label htmlFor="preavisoOmitido" className="text-sm font-semibold text-gray-750 cursor-pointer">
+                            Omitió el preaviso (Pagar preaviso)
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <input 
+                            type="checkbox" 
+                            id="pagaCesantia"
+                            checked={prestacionesCesantia}
+                            onChange={(e) => setPrestacionesCesantia(e.target.checked)}
+                            className="h-4 w-4 text-[#0F766E] focus:ring-[#0F766E] border-gray-300 rounded cursor-pointer"
+                          />
+                          <label htmlFor="pagaCesantia" className="text-sm font-semibold text-gray-750 cursor-pointer">
+                            Aplica auxilio de cesantía
+                          </label>
+                        </div>
+                      </div>
+                    )}
 
-                {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'regalia-pascual') && (
-                  <div>
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Meses trabajados en el año actual (para Navidad / Regalía)</label>
-                    <input 
-                      type="range"
-                      min="1"
-                      max="12"
-                      value={prestacionesRegaliaMeses}
-                      onChange={(e) => setPrestacionesRegaliaMeses(parseInt(e.target.value))}
-                      className="w-full accent-[#0F766E]"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 font-medium mt-1">
-                      <span>1 mes</span>
-                      <span className="font-bold text-[#0F766E]">{prestacionesRegaliaMeses} mes(es)</span>
-                      <span>12 meses</span>
-                    </div>
+                    {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral') && (
+                      <div>
+                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Vacaciones del último año laborado</label>
+                        <select 
+                          value={prestacionesVacaciones}
+                          onChange={(e) => setPrestacionesVacaciones(e.target.value as any)}
+                          className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                        >
+                          <option value="pendientes_completas">No tomadas (Pagar completas/proporcional)</option>
+                          <option value="ninguna">Ya fueron tomadas o disfrutadas por completo</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'regalia-pascual') && (
+                      <div>
+                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Meses trabajados en el año actual (para Navidad / Regalía)</label>
+                        <input 
+                          type="range"
+                          min="1"
+                          max="12"
+                          value={prestacionesRegaliaMeses}
+                          onChange={(e) => setPrestacionesRegaliaMeses(parseInt(e.target.value))}
+                          className="w-full accent-[#0F766E]"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 font-medium mt-1">
+                          <span>1 mes</span>
+                          <span className="font-bold text-[#0F766E]">{prestacionesRegaliaMeses} mes(es)</span>
+                          <span>12 meses</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </>
@@ -694,43 +718,47 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                       type="number" 
                       value={loanPrincipal}
                       onChange={(e) => setLoanPrincipal(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa de interés (%)</label>
-                    <input 
-                      type="number" 
-                      step="0.01"
-                      value={loanInterest}
-                      onChange={(e) => setLoanInterest(Math.max(0.1, parseFloat(e.target.value) || 0))}
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Plazo (meses)</label>
-                    <input 
-                      type="number" 
-                      value={loanPlazo}
-                      onChange={(e) => setLoanPlazo(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827]"
-                    />
-                  </div>
-                </div>
+                {showAdvanced && (
+                  <div className="space-y-4 pt-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-150">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa de interés (%)</label>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          value={loanInterest}
+                          onChange={(e) => setLoanInterest(Math.max(0.1, parseFloat(e.target.value) || 0))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Plazo (meses)</label>
+                        <input 
+                          type="number" 
+                          value={loanPlazo}
+                          onChange={(e) => setLoanPlazo(Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
+                        />
+                      </div>
+                    </div>
 
-                {calc.id === 'cuota-prestamo' && (
-                  <div>
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa a comparar (%)</label>
-                    <input 
-                      type="number" 
-                      step="0.01"
-                      value={loanInterestCompare}
-                      onChange={(e) => setLoanInterestCompare(Math.max(0.1, parseFloat(e.target.value) || 0))}
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827]"
-                    />
+                    {calc.id === 'cuota-prestamo' && (
+                      <div>
+                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa a comparar (%)</label>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          value={loanInterestCompare}
+                          onChange={(e) => setLoanInterestCompare(Math.max(0.1, parseFloat(e.target.value) || 0))}
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </>
@@ -740,31 +768,45 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {calc.id === 'precio-venta' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Costo por unidad del producto/servicio (RD$)</label>
+                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Costo por unidad del producto (RD$)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
                       type="number" 
                       value={bizCost}
                       onChange={(e) => setBizCost(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Margen de ganancia bruto pretendido (%)</label>
-                  <input 
-                    type="number" 
-                    min="1"
-                    max="99"
-                    value={bizMarginDesired}
-                    onChange={(e) => setBizMarginDesired(Math.max(1, Math.min(99.9, parseFloat(e.target.value) || 1)))}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
-                  />
-                  <span className="text-xs text-gray-400 mt-1 block">Margen comercial de utilidad sobre precio de venta, no simple margen markup sobre costo.</span>
-                </div>
+                {showAdvanced && (
+                  <div className="pt-2 animate-in slide-in-from-top-2 duration-150">
+                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Margen de ganancia bruto pretendido (%)</label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      max="99"
+                      value={bizMarginDesired}
+                      onChange={(e) => setBizMarginDesired(Math.max(1, Math.min(99.9, parseFloat(e.target.value) || 1)))}
+                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                    />
+                    <span className="text-xs text-gray-400 mt-1 block">Margen de utilidad sobre precio de venta, no simple markup.</span>
+                  </div>
+                )}
               </>
+            )}
+
+            {/* Collapsible toggle trigger button for advanced parameters */}
+            {['itbis-calc', 'itbis-excluido', 'itbis-incluido', 'isr-asalariado', 'retenciones-dgii', 'recargos-dgii', 'prestaciones-laborales', 'liquidacion-laboral', 'prestamo-personal', 'cuota-prestamo', 'prestamo-hipotecario', 'precio-venta'].includes(calc.id) && (
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="w-full mt-2 flex items-center justify-between px-3.5 py-2.5 border border-gray-200 hover:border-[#0F766E] rounded-xl text-xs font-bold text-gray-500 hover:text-[#0F766E] uppercase tracking-wider bg-[#F9FAFB] transition-all cursor-pointer shadow-xs active:scale-98"
+              >
+                <span>{showAdvanced ? '▲ Ocultar opciones avanzadas' : '⚙️ Ver opciones de ley avanzadas'}</span>
+                <span className="text-[10px]">{showAdvanced ? 'Muestra menos campos' : 'Tasa, periodos, preaviso...'}</span>
+              </button>
             )}
           </div>
         </div>
@@ -1340,60 +1382,81 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
           </div>
 
           {/* Explanation step-by-step ("Explicación Humana") */}
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 shadow-sm">
-            <h3 className="text-sm font-bold uppercase text-[#111827] tracking-wider mb-3 flex items-center gap-1.5">
-              <Info size={16} className="text-[#0F766E]" />
-              Explicación técnica paso a paso
-            </h3>
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 shadow-sm transition-all">
+            <button
+              onClick={() => setShowDetailedBreakdown(!showDetailedBreakdown)}
+              className="w-full flex items-center justify-between text-[#111827] text-sm font-bold uppercase tracking-wider cursor-pointer focus:outline-none"
+            >
+              <span className="flex items-center gap-1.5 text-left text-gray-950 font-bold text-xs uppercase tracking-wider">
+                <Info size={16} className="text-[#0F766E]" />
+                Ver explicación detallada y base legal
+              </span>
+              <span className="text-xs text-gray-500 font-bold uppercase flex items-center gap-1.5">
+                <span>{showDetailedBreakdown ? 'Ocultar' : 'Mostrar'}</span>
+                <span>{showDetailedBreakdown ? '▲' : '▼'}</span>
+              </span>
+            </button>
             
-            {/* Conditional explanations */}
-            <div className="text-sm text-gray-600 space-y-2 leading-relaxed font-sans">
-              {/* ITBIS explanation */}
-              {calculatedResults && ('explanation' in calculatedResults) && (
-                <p>{(calculatedResults as any).explanation}</p>
-              )}
+            {showDetailedBreakdown && (
+              <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600 space-y-3.5 leading-relaxed font-sans animate-in slide-in-from-top-2 duration-150">
+                {/* ITBIS explanation */}
+                {calculatedResults && ('explanation' in calculatedResults) && (
+                  <p className="font-semibold text-gray-700">{(calculatedResults as any).explanation}</p>
+                )}
 
-              {/* ISR steps list */}
-              {calc.id === 'isr-asalariado' && calculatedResults && ('calculationSteps' in calculatedResults) && (
-                <ul className="space-y-1.5 list-disc pl-4 text-xs font-mono">
-                  {(calculatedResults as any).calculationSteps.map((step: string, sIdx: number) => (
-                    <li key={sIdx}>{step}</li>
-                  ))}
-                </ul>
-              )}
+                {/* ISR steps list */}
+                {calc.id === 'isr-asalariado' && calculatedResults && ('calculationSteps' in calculatedResults) && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <span className="text-xs font-bold text-gray-900 uppercase block mb-2 tracking-wider">Pasos de cálculo (DGII):</span>
+                    <ul className="space-y-2.5 list-none">
+                      {(calculatedResults as any).calculationSteps.map((step: string, sIdx: number) => (
+                        <li key={sIdx} className="text-xs font-mono text-gray-700 bg-white p-2.5 border border-gray-200 rounded shadow-xs">{step}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-              {/* Salario Neto steps list */}
-              {calc.id === 'salario-neto' && (
-                <p>
-                  Para calcular su sueldo neto, restamos del sueldo bruto (RD$ {netSalaryInput.toLocaleString()}) su aporte de 2.87% para pensión de retiro (AFP) y el 3.04% para seguro de salud obligatorio (SFS). El salario imponible resultante está protegido de impuestos hasta los RD$ 34,685.00 mensuales; a partir de allí, se aplica la escala impositiva de ISR anual (15%, 20% o 25%) regulada por la DGII.
-                </p>
-              )}
+                {/* Salario Neto steps list */}
+                {calc.id === 'salario-neto' && (
+                  <p>
+                    Para calcular su sueldo neto, restamos del sueldo bruto (RD$ {netSalaryInput.toLocaleString()}) su aporte de 2.87% para pensión de retiro (AFP) y el 3.04% para seguro de salud obligatorio (SFS). El salario imponible resultante está protegido de impuestos hasta los RD$ 34,685.00 mensuales; a partir de allí, se aplica la escala impositiva de ISR anual (15%, 20% o 25%) regulada por la DGII.
+                  </p>
+                )}
 
-              {/* Prestaciones / Liquidación steps list */}
-              {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && calculatedResults && ('desgloseExplicativo' in calculatedResults) && (
-                <ul className="space-y-2 text-xs font-sans list-none border-l-2 border-teal-50 pl-3">
-                  {(calculatedResults as any).desgloseExplicativo.map((step: string, sIdx: number) => (
-                    <li key={sIdx} className="relative before:absolute before:left-[-17px] before:top-[6px] before:w-1.5 before:h-1.5 before:bg-teal-600 before:rounded-full">
-                      {step}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                {/* Prestaciones / Liquidación steps list */}
+                {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && calculatedResults && ('desgloseExplicativo' in calculatedResults) && (
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <span className="text-xs font-bold text-gray-900 uppercase block mb-2 tracking-wider">Desglose de cálculo de ley:</span>
+                    <ul className="space-y-2 text-xs font-sans list-none">
+                      {(calculatedResults as any).desgloseExplicativo.map((step: string, sIdx: number) => (
+                        <li key={sIdx} className="relative pl-4 before:absolute before:left-0 before:top-[6px] before:w-1.5 before:h-1.5 before:bg-teal-600 before:rounded-full text-gray-700">
+                          {step}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-              {/* Préstamo steps list */}
-              {(calc.id === 'prestamo-personal' || calc.id === 'prestamo-hipotecario') && (
-                <p>
-                  Este plan de pago se calcula bajo el modelo de amortización francés. Mantiene una cuota fija uniforme a lo largo del tiempo, donde cada abono mensual cubre primero los intereses calculados sobre el saldo que aún debe, y el remanente amortiza directamente la deuda principal.
-                </p>
-              )}
+                {/* Préstamo steps list */}
+                {(calc.id === 'prestamo-personal' || calc.id === 'prestamo-hipotecario') && (
+                  <p>
+                    Este plan de pago se calcula bajo el modelo de amortización francés. Mantiene una cuota fija uniforme a lo largo del tiempo, donde cada abono mensual cubre primero los intereses calculados sobre el saldo que aún debe, y el remanente amortiza directamente la deuda principal.
+                  </p>
+                )}
 
-              {/* Default fallback */}
-              {(!('explanation' in (calculatedResults || {})) && !('calculationSteps' in (calculatedResults || {})) && !('desgloseExplicativo' in (calculatedResults || {}))) && (
-                <p>
-                  Cálculo realizado de conformidad con los coeficientes exactos declarados periódicamente por las entidades oficiales supervisoras dominicanas (DGII, TSS y Ministerio de Trabajo).
-                </p>
-              )}
-            </div>
+                {/* Default fallback */}
+                {(!('explanation' in (calculatedResults || {})) && !('calculationSteps' in (calculatedResults || {})) && !('desgloseExplicativo' in (calculatedResults || {}))) && (
+                  <p>
+                    Cálculo realizado de conformidad con los coeficientes exactos declarados periódicamente por las entidades oficiales supervisoras dominicanas (DGII, TSS y Ministerio de Trabajo).
+                  </p>
+                )}
+                
+                <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 text-xs text-amber-900 leading-relaxed font-sans mt-3">
+                  <span className="font-bold flex items-center gap-1 uppercase tracking-wider mb-1">⚖️ Certificación legal & Base impositiva</span>
+                  De acuerdo con el Código Tributario de la República Dominicana (Ley 11-92) y el Código de Trabajo de la RD (Ley 16-92), estos cálculos representan estimaciones técnicas de precisión comercial confiable para el año fiscal {new Date().getFullYear()}.
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

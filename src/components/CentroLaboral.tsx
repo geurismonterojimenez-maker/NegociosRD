@@ -957,7 +957,7 @@ export default function CentroLaboral() {
             return (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-150">
                 <div className="space-y-4">
-                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Variables de Entrada (Cálculo de Jornada)</span>
+                  <span className="text-[10px] uppercase font-bold text-[#0F766E] tracking-wider block">Datos para calcular sueldo y horas</span>
                   
                   <div className="space-y-3 text-xs">
                     <div>
