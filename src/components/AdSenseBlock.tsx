@@ -12,7 +12,7 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
 
   // Check if PRO is active based on props or localStorage
   const isPro = userTier === 'PRO' || (typeof window !== 'undefined' && localStorage.getItem('negociord_user_tier') === 'PRO');
-  const isDev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV === true;
+  const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
 
   if (isPro) {
     if (variant === 'skyscraper-left' || variant === 'skyscraper-right') {

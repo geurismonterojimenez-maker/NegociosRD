@@ -94,23 +94,25 @@ export default function CalculatorsList({
         </div>
       )}
 
-      {/* Category boxes or buttons - Bento style */}
-      <h2 className="text-xl font-bold text-[#111827] mb-6 flex items-center gap-2">
-        <Sparkles size={20} className="text-[#0F766E]" />
-        Explorar herramientas por categoría
+      {/* Category boxes or buttons - Sleek and Compact Bento style */}
+      <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+        <Sparkles size={14} className="text-[#0F766E]" />
+        <span>Filtrar por Categoría</span>
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
         <button
           onClick={() => setActiveCategory(null)}
-          className={`flex flex-col items-start p-5 rounded-xl border text-left transition-all cursor-pointer ${
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all cursor-pointer ${
             activeCategory === null
-              ? 'border-[#0F766E] bg-teal-50/25 ring-1 ring-[#0F766E]'
-              : 'border-[#E5E7EB] bg-white hover:border-[#bdc9c6]'
+              ? 'border-[#0F766E] bg-teal-50/20 text-[#0F766E] font-bold'
+              : 'border-[#E5E7EB] bg-white hover:border-[#bdc9c6] text-gray-700 font-medium'
           }`}
         >
-          <span className="text-2xl mb-3">🌟</span>
-          <span className="font-bold text-sm text-[#111827]">Todas</span>
-          <span className="text-xs text-[#6B7280] mt-1">20 herramientas iniciales</span>
+          <span className="text-lg">🌟</span>
+          <div>
+            <div className="text-xs">Todas</div>
+            <p className="text-[10px] text-gray-400 font-normal">20 calculadoras</p>
+          </div>
         </button>
 
         {CATEGORIES.map((cat) => {
@@ -119,20 +121,22 @@ export default function CalculatorsList({
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex flex-col items-start p-5 rounded-xl border text-left transition-all cursor-pointer ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all cursor-pointer ${
                 isSelected
-                  ? 'border-[#0F766E] bg-teal-50/25 ring-1 ring-[#0F766E]'
-                  : 'border-[#E5E7EB] bg-white hover:border-[#bdc9c6]'
+                  ? 'border-[#0F766E] bg-teal-50/20 text-[#0F766E] font-bold'
+                  : 'border-[#E5E7EB] bg-white hover:border-[#bdc9c6] text-gray-700 font-medium'
               }`}
             >
-              <span className={`p-2 rounded-lg ${cat.color} text-sm mb-3 font-bold`}>
+              <span className="text-lg">
                 {cat.id === 'impuestos' && '🏛️'}
                 {cat.id === 'laboral' && '💼'}
                 {cat.id === 'finanzas' && '📈'}
                 {cat.id === 'negocios' && '🏬'}
               </span>
-              <span className="font-bold text-sm text-[#111827]">{cat.name}</span>
-              <span className="text-xs text-[#6B7280] mt-1">{cat.descdgii}</span>
+              <div>
+                <div className="text-xs">{cat.name}</div>
+                <p className="text-[10px] text-gray-400 font-normal truncate max-w-[120px]">{cat.id === 'impuestos' ? 'DGII' : cat.id === 'laboral' ? 'TSS' : 'Plan'}</p>
+              </div>
             </button>
           );
         })}
@@ -215,57 +219,48 @@ export default function CalculatorsList({
               <div 
                 key={calc.id}
                 onClick={handleClick}
-                className={`bg-white border rounded-xl p-5 hover:shadow-md cursor-pointer transition-all flex flex-col justify-between min-h-[250px] h-auto group ${
+                className={`bg-white border rounded-xl p-5 hover:shadow-xs cursor-pointer transition-all flex flex-col justify-between min-h-[190px] h-auto group ${
                   isLocked 
-                    ? 'border-amber-200 bg-amber-50/5 hover:border-amber-500' 
-                    : 'border-[#E5E7EB] hover:border-[#0F766E]'
+                    ? 'border-amber-200 bg-[#FFFDF9] hover:border-amber-400' 
+                    : 'border-gray-200 hover:border-[#0F766E]'
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-3 text-xs">
-                    <div className="flex gap-1.5 items-center">
-                      <span className={`px-2.5 py-1 font-bold rounded-full text-[10px] uppercase tracking-wider ${
-                        calc.category === 'impuestos' ? 'text-teal-700 bg-teal-50' :
-                        calc.category === 'laboral' ? 'text-amber-700 bg-amber-50' :
-                        calc.category === 'finanzas' ? 'text-blue-700 bg-blue-50' :
-                        'text-indigo-700 bg-indigo-50'
-                      }`}>
-                        {calc.category}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`px-2 py-0.5 font-bold rounded text-[9px] uppercase tracking-wider ${
+                      calc.category === 'impuestos' ? 'text-teal-700 bg-teal-50' :
+                      calc.category === 'laboral' ? 'text-amber-700 bg-amber-50' :
+                      calc.category === 'finanzas' ? 'text-blue-700 bg-blue-50' :
+                      'text-indigo-700 bg-indigo-50'
+                    }`}>
+                      {calc.category}
+                    </span>
+                    {isLocked && (
+                      <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[8px] font-bold rounded-md uppercase tracking-tight">
+                        🔒 PRO
                       </span>
-                      {isProCalculator && (
-                        <span className="px-2 py-0.5 bg-amber-500 text-white text-[8px] font-black rounded-md uppercase tracking-tight flex items-center gap-0.5">
-                          👑 PRO
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className={`text-xs font-semibold ${isLocked ? 'text-amber-600' : 'text-[#0F766E]'}`}>
-                        {isLocked ? 'Desbloquear PRO 🔒' : 'Abrir Calculadora →'}
-                      </span>
-                    </div>
+                    )}
                   </div>
-                  <h3 className="font-bold text-base text-[#111827] group-hover:text-[#0F766E] transition-colors mb-2 flex items-center gap-1">
+                  <h3 className="font-bold text-sm text-[#111827] group-hover:text-[#0F766E] transition-colors mb-1.5">
                     {calc.name}
                   </h3>
-                  <p className="text-xs text-[#6B7280] line-clamp-3 leading-relaxed">
+                  <p className="text-xs text-[#6B7280] line-clamp-2 leading-relaxed">
                     {calc.description}
                   </p>
                 </div>
 
                 {/* Tags panel */}
-                <div className="flex flex-wrap gap-1.5 pt-3 border-t border-gray-50 items-center justify-between">
+                <div className="flex flex-wrap gap-1 pt-2 items-center justify-between text-[11px] font-semibold text-[#0F766E]">
                   <div className="flex flex-wrap gap-1">
-                    {calc.tags.map((tag, tIdx) => (
-                      <span key={tIdx} className="text-[10px] font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
+                    {calc.tags.slice(0, 2).map((tag, tIdx) => (
+                      <span key={tIdx} className="text-[9px] font-medium text-gray-400">
                         #{tag}
                       </span>
                     ))}
                   </div>
-                  {isLocked && (
-                    <span className="text-[10px] font-bold text-amber-600 flex items-center gap-0.5 bg-amber-55 px-1.5 py-0.5 rounded uppercase">
-                      Premium
-                    </span>
-                  )}
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold">
+                    {isLocked ? 'Desbloquear 🔒' : 'Calcular →'}
+                  </span>
                 </div>
               </div>
             );

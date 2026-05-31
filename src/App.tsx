@@ -1002,52 +1002,47 @@ export default function App() {
         <div className="col-span-12 lg:col-span-9 p-4 md:p-8 flex flex-col bg-[#FAFAFA]" id="main-workspace-balance">
           
           {currentView === 'home' && (
-            <div className="space-y-8 animate-in fade-in duration-150">
+            <div className="space-y-6 animate-in fade-in duration-150">
               
-              {/* PAGE TITLE & HEADER INFO */}
-              <div className="flex flex-col border-b border-gray-200 pb-6">
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#0F766E] mb-1.5 capitalize tracking-widest">
-                  <span>República Dominicana</span>
-                  <span>/</span>
-                  <span className="text-[#6B7280]">Portal de Cálculos Generales</span>
+              {/* COMPACT & elegant HERO WITH INTEGRATED SEARCH */}
+              <div className="bg-[#115E59]/5 border border-[#115E59]/10 rounded-2xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden">
+                <div className="max-w-2xl">
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-[#0F766E] uppercase tracking-wider mb-2">
+                    <span>Oficial RD</span>
+                    <span>•</span>
+                    <span className="text-[#6B7280]">Actualizado 2026</span>
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#111827] mb-2 leading-tight">
+                    Calculadoras de República Dominicana
+                  </h1>
+                  <p className="text-gray-550 text-xs md:text-sm leading-relaxed mb-6">
+                    Estime sueldos netos, deducciones TSS (AFP/SFS), prestaciones laborales, ITBIS y préstamos bancarios de forma exacta bajo la normativa oficial vigente.
+                  </p>
                 </div>
-                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#111827]">
-                  Calculadoras Tributarias y Laborales 2026
-                </h1>
-                <p className="text-[#6B7280] text-sm mt-1.5 leading-relaxed max-w-4xl">
-                  Simule salarios ordinarios netos, prestaciones, liquidación ministerial, amortización francesa bancaria e ITBIS, parametrizado debidamente bajo la TSS, DGII y el Código Laboral de la República Dominicana.
-                </p>
-              </div>
 
-              {/* Ad Slot 1 & 2: Billboard Superior (Horizontal) - Rendered nicely after the Hero and optimized for SEO */}
-              <div className="my-2 shrink-0" id="adsense-slot-1-billboard">
-                <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
-              </div>
-
-              <div className="xl:hidden my-2 shrink-0" id="adsense-slot-2-mobile-alternative">
-                <AdSenseBlock variant="mobile-infeed" className="shadow-xs border border-gray-150" />
-              </div>
-
-              {/* SEARCH INPUT BAR inline */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs">
-                <label htmlFor="search-input-header" className="text-xs font-bold text-[#0F766E] uppercase tracking-wider mb-2.5 block cursor-pointer">Buscar herramienta en tiempo real</label>
-                <div className="relative group">
+                {/* INLINE CORE ACTION SEARCH BAR */}
+                <div className="relative group max-w-xl w-full">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
-                    <Search size={18} />
+                    <Search size={16} />
                   </div>
                   <input 
                     id="search-input-header"
                     type="text" 
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
-                    placeholder="Escriba aquí para filtrar de inmediato... (e.g. ITBIS, Comisión, Liquidación, Préstamo)"
-                    className="w-full h-12 pl-12 pr-4 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all text-sm outline-none text-[#111827]"
+                    placeholder="Buscar entre las 20 herramientas de cálculo (ej. ITBIS, Liquidación, ISR)..."
+                    className="w-full h-11 pl-11 pr-4 bg-white border border-gray-250 rounded-xl focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] outline-none text-xs text-[#111827] shadow-xs"
                   />
                 </div>
               </div>
 
+              {/* Ad Slot 1: Billboard Superior (Horizontal) - Blends elegantly in-page without intrusive frames */}
+              <div className="shrink-0" id="adsense-slot-1-billboard">
+                <AdSenseBlock variant="results-inline" className="border border-gray-200 bg-gray-50/20" />
+              </div>
+
               {/* MAIN DYNAMIC DIRECTORY COMPONENT */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+              <div className="bg-white rounded-2xl border border-gray-250/80 shadow-xs overflow-hidden">
                 <CalculatorsList 
                   onSelectCalculator={handleSelectCalculator}
                   searchFilter={searchFilter}
@@ -1059,169 +1054,92 @@ export default function App() {
                 />
               </div>
 
-              {/* FEATURED TOOLS GRID */}
-              <section className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-xs">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-3">
-                  <div>
-                    <span className="text-xs font-bold text-[#0F766E] uppercase tracking-widest block mb-1">Finanzas y Normas</span>
-                    <h2 className="text-xl md:text-2xl font-extrabold text-[#111827]">Herramientas Destacadas</h2>
-                    <p className="text-[#6B7280] text-xs mt-0.5">Fórmulas predilectas de contadores, empresarios y asalariados dominicanos.</p>
-                  </div>
-                  <button 
-                    onClick={() => { setSearchFilter(''); setActiveCategory(null); }}
-                    className="text-xs font-bold text-[#0F766E] hover:underline inline-flex items-center gap-1 cursor-pointer transition-all"
-                  >
-                    Ver todas las herramientas
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {featuredTools.map((tool) => (
-                    <div 
-                      key={tool.id}
-                      onClick={() => handleSelectCalculator(tool)}
-                      className="bg-[#FAFAFA] rounded-xl border border-gray-200 p-4 hover:border-[#0F766E] hover:bg-white transition-all cursor-pointer flex flex-col justify-between h-44 group"
-                    >
-                      <div>
-                        <span className="px-2 py-0.5 bg-teal-50 text-[#0F766E] text-[9px] font-bold rounded uppercase tracking-wider block w-max mb-2">
-                          {tool.category}
-                        </span>
-                        <h3 className="font-bold text-sm text-[#111827] mb-1 group-hover:text-[#0F766E] transition-colors">{tool.name}</h3>
-                        <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">{tool.shortDescription}</p>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] font-bold text-[#0F766E] border-t border-gray-100 pt-2.5">
-                        <span>Iniciar simulador</span>
-                        <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* SIMULADOR FISCAL EXPRESS (CONTABILIDAD GRATIS BLOCK) */}
-              <section className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-xs">
-                <div className="flex flex-col lg:flex-row gap-8 items-center justify-between">
-                  <div className="flex-1">
-                    <span className="text-xs font-bold text-[#0F766E] uppercase tracking-widest block mb-1">Estimación Rápida</span>
-                    <h2 className="text-2xl font-bold tracking-tight text-[#111827] mb-3">
-                      Simulador Fiscal Express (Ventas y Gastos)
+              {/* SIMULADOR FISCAL EXPRESS (COMPRESSED WIDGET DESIGN) */}
+              <section className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 shadow-xs">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                  <div className="lg:col-span-7">
+                    <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block mb-1">Estimador de Impuestos</span>
+                    <h2 className="text-base font-extrabold text-[#111827] mb-2">
+                      Simulador Fiscal Express (ITBIS del Mes)
                     </h2>
-                    <p className="text-gray-500 text-sm leading-relaxed mb-4">
-                      Estime en un instante un balance aproximado de ITBIS neto a transferir a final de período ingresando sus ventas brutas mensuales desglosadas facturadas y deducciones de gastos válidos corporativos con NCF con tasas vigentes de impuestos de República Dominicana.
+                    <p className="text-gray-500 text-xs leading-relaxed max-w-xl">
+                      ¿Necesitas un estimado súper rápido? Introduzca sus ventas y gastos brutos mensuales para obtener un cálculo estimado del ITBIS (18%) a pagar a final de mes.
                     </p>
-                    <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
-                      <div className="flex items-center gap-1.5 text-xs text-gray-650 font-medium">
-                        <CheckCircle size={14} className="text-[#0F766E]" />
-                        <span>Tasa legal 18%</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-650 font-medium">
-                        <CheckCircle size={14} className="text-[#0F766E]" />
-                        <span>Deducción de Crédito</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-650 font-medium">
-                        <CheckCircle size={14} className="text-[#0F766E]" />
-                        <span>Fórmula de Referencia Oficial</span>
-                      </div>
-                    </div>
                   </div>
 
-                  <div className="w-full lg:max-w-sm bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-xs">
-                    <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-3">
-                      <span className="text-[11px] font-bold text-[#0F766E] uppercase tracking-wider flex items-center gap-1">
-                        <TrendingUp size={12} />
-                        Simulador Express ITBIS
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-mono font-medium">RD$ DOP</span>
-                    </div>
-
-                    <form onSubmit={handleCtaCalcular} className="space-y-3 mb-4">
+                  <div className="lg:col-span-5 bg-[#FAFAFA] border border-gray-200 rounded-xl p-4">
+                    <form onSubmit={handleCtaCalcular} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label htmlFor="sim-cta-ventas-mes" className="text-[10px] uppercase font-bold text-gray-500 block mb-1 cursor-pointer">Monto Ventas (RD$)</label>
+                          <label htmlFor="sim-cta-ventas-mes" className="text-[9px] uppercase font-bold text-gray-400 block mb-1">Ventas Brutas ($)</label>
                           <input 
                             id="sim-cta-ventas-mes"
                             type="number"
                             value={ctaVentasMes}
                             onChange={(e) => setCtaVentasMes(Math.max(0, parseInt(e.target.value) || 0))}
-                            className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none font-medium"
+                            className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded text-xs outline-none focus:border-[#0F766E]"
                           />
                         </div>
                         <div>
-                          <label htmlFor="sim-cta-gastos-mes" className="text-[10px] uppercase font-bold text-gray-500 block mb-1 cursor-pointer">Monto Gastos (RD$)</label>
+                          <label htmlFor="sim-cta-gastos-mes" className="text-[9px] uppercase font-bold text-gray-400 block mb-1">Gastos con NCF ($)</label>
                           <input 
                             id="sim-cta-gastos-mes"
                             type="number"
                             value={ctaGastosMes}
                             onChange={(e) => setCtaGastosMes(Math.max(0, parseInt(e.target.value) || 0))}
-                            className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none font-medium"
+                            className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded text-xs outline-none focus:border-[#0F766E]"
                           />
                         </div>
                       </div>
-                      <button 
-                        type="submit"
-                        className="w-full py-1.5 bg-[#0F766E] text-white text-xs font-bold rounded cursor-pointer hover:opacity-95 shadow-xs transition-all active:scale-95"
-                      >
-                        Estimar Balance de Impuesto
-                      </button>
+                      <div className="flex gap-2.5 items-center justify-between pt-2 border-t border-gray-200 border-dashed">
+                        <div>
+                          <div className="text-[10px] text-gray-400">ITBIS Mensual Aproximado</div>
+                          <div className="text-sm font-bold font-mono text-[#0F766E]">RD$ {ctaItbisCalculado.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                        </div>
+                        <button 
+                          type="submit"
+                          className="px-4 py-2 bg-[#0F766E] text-white text-xs font-semibold rounded-lg hover:opacity-95 shadow-xs transition-all cursor-pointer active:scale-95"
+                        >
+                          Calcular
+                        </button>
+                      </div>
                     </form>
-
-                    <div className="p-3 bg-white border border-gray-200 rounded-lg space-y-1.5">
-                      <div className="flex justify-between text-[11px] text-gray-500">
-                        <span>ITBIS Ventas (18%):</span>
-                        <span className="font-mono text-gray-900 font-semibold">RD$ {(ctaVentasMes * 0.18).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between text-[11px] text-gray-500">
-                        <span>ITBIS Gastos deducible:</span>
-                        <span className="font-mono text-gray-900 font-semibold">RD$ {(ctaGastosMes * 0.18).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between border-t border-dashed border-gray-200 pt-1.5 font-bold text-xs text-[#0F766E]">
-                        <span>ITBIS aproximado a Pagar:</span>
-                        <span className="font-mono">RD$ {ctaItbisCalculado.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </section>
 
               {/* CITACIONES DE INSTITUCIONES OFICIALES */}
-              <section className="bg-white rounded-2xl border border-gray-200 p-6 text-center shadow-xs">
-                <span className="text-[10px] uppercase font-semibold text-gray-400 tracking-widest block mb-4">Cálculos amparados legalmente en las mejores fuentes</span>
-                <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-4 text-xs font-bold text-gray-400">
-                  <span className="hover:text-[#0F766E] transition-colors cursor-default">DGII Dominicana</span>
-                  <span className="hover:text-[#0F766E] transition-colors cursor-default">Ministerio de Trabajo</span>
-                  <span className="hover:text-[#0F766E] transition-colors cursor-default">TSS (Retenciones)</span>
-                  <span className="hover:text-[#0F766E] transition-colors cursor-default">APAP (Financiera)</span>
-                  <span className="hover:text-[#0F766E] transition-colors cursor-default">ProUsuario RD</span>
-                </div>
-              </section>
+              <div className="text-center py-2">
+                <span className="text-[9px] uppercase font-semibold text-gray-450 tracking-wider">
+                  Cálculos formulados de acuerdo con: DGII Dominicana • Ministerio de Trabajo • TSS (Ley de Seguridad Social)
+                </span>
+              </div>
 
-              {/* FAQ ACCORDION SECTION */}
-              <section className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-xs">
-                <h2 className="text-xl font-bold text-[#111827] mb-6 flex items-center justify-center gap-2">
-                  <HelpCircle size={20} className="text-[#0F766E]" />
-                  Preguntas Frecuentes sobre Negocios y Nómina en RD
+              {/* COMPACT COLLAPSIBLE FAQ SECTION */}
+              <section className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 shadow-xs">
+                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center justify-center gap-1.5">
+                  <HelpCircle size={14} className="text-[#0F766E]" />
+                  <span>Preguntas Frecuentes</span>
                 </h2>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {HOME_FAQS.map((faq, idx) => {
                     const isOpen = openFaqIndices.includes(idx);
                     return (
                       <div 
                         key={idx} 
-                        className="border border-gray-200 rounded-lg overflow-hidden transition-all bg-[#FAFAFA]"
+                        className="border border-gray-200 rounded-xl overflow-hidden transition-all bg-[#FAFAFA]"
                       >
                         <button 
                           onClick={() => toggleFaq(idx)}
-                          className="w-full text-left py-3 px-4 font-semibold text-[#111827] hover:text-[#0F766E] flex justify-between items-center transition-colors outline-none cursor-pointer"
+                          className="w-full text-left py-2.5 px-4 font-semibold text-[#111827] hover:text-[#0F766E] flex justify-between items-center transition-colors outline-none cursor-pointer"
                         >
-                          <span className="text-sm">¿{faq.question}</span>
-                          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          <span className="text-xs">¿{faq.question}</span>
+                          {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
                         
                         {isOpen && (
-                          <div className="px-4 pb-4 pt-1.5 text-xs text-[#6B7280] font-normal leading-relaxed border-t border-gray-100 bg-white">
+                          <div className="px-4 pb-3 pt-1 text-[11px] text-[#6B7280] font-normal leading-relaxed border-t border-gray-150 bg-white">
                             {faq.answer}
                           </div>
                         )}
