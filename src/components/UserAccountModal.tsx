@@ -73,6 +73,56 @@ interface UserAccountModalProps {
   onSubscriptionChange?: (state: SubscriptionState) => void;
 }
 
+function getAuthErrorMessage(err: any): string {
+  const code = err?.code || err?.message || '';
+
+  if (
+    code.includes('auth/operation-not-allowed') ||
+    code.includes('PASSWORD_LOGIN_DISABLED')
+  ) {
+    return `El acceso con correo y contrasena no esta habilitado en Firebase. Usa "Entrar con Google" con ${ADMIN_EMAIL}, o activa Email/Password en Firebase Auth.`;
+  }
+
+  if (
+    code.includes('auth/wrong-password') ||
+    code.includes('auth/user-not-found') ||
+    code.includes('auth/invalid-credential') ||
+    code.includes('INVALID_LOGIN_CREDENTIALS')
+  ) {
+    return 'Credenciales incorrectas. Verifica el correo y la contrasena, o entra con Google si esa cuenta fue creada con Google.';
+  }
+
+  if (code.includes('auth/email-already-in-use')) {
+    return 'Este correo electronico ya se encuentra registrado. Cambia a modo ingreso o entra con Google.';
+  }
+
+  if (code.includes('auth/weak-password')) {
+    return 'La contrasena provista debe contener al menos 6 caracteres.';
+  }
+
+  if (code.includes('auth/invalid-email')) {
+    return 'Escribe un correo electronico que tenga formato valido.';
+  }
+
+  if (code.includes('auth/popup-blocked')) {
+    return 'El navegador bloqueo la ventana de Google. Permite popups para este sitio e intenta de nuevo.';
+  }
+
+  if (code.includes('auth/popup-closed-by-user')) {
+    return 'Se cerro la ventana de Google antes de completar el acceso.';
+  }
+
+  if (code.includes('auth/unauthorized-domain')) {
+    return 'Este dominio no esta autorizado en Firebase Auth. Agregalo en Authentication > Settings > Authorized domains.';
+  }
+
+  if (code.includes('auth/too-many-requests')) {
+    return 'Firebase bloqueo temporalmente los intentos por seguridad. Espera unos minutos e intenta de nuevo.';
+  }
+
+  return err?.message || 'Error al autenticar con el servidor de seguridad.';
+}
+
 export interface PaymentMethodItem {
   id: string;
   cardholderName: string;
@@ -315,7 +365,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       triggerToast(`¡Bienvenido, ${result.user.displayName || 'usuario'}!`);
     } catch (err) {
       console.error("Google Sign-In Error:", err);
-      setCredentialsError("Surgió un error con el inicio de sesión con Google. Inténtalo de nuevo.");
+      setCredentialsError(getAuthErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -325,7 +375,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   const handleEmailAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setCredentialsError(null);
-    if (!authEmail.trim() || !authPassword.trim()) {
+    const email = authEmail.trim().toLowerCase();
+    const password = authPassword.trim();
+
+    if (!email || !password) {
       setCredentialsError("Por favor, llena todos los campos solicitados.");
       return;
     }
@@ -338,7 +391,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     try {
       if (isRegisterMode) {
         // Register flow
-        const credentials = await createUserWithEmailAndPassword(auth, authEmail, authPassword);
+        const credentials = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(credentials.user, {
           displayName: authName
         });
@@ -358,22 +411,12 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
         setIsRegisterMode(false);
       } else {
         // Login flow
-        const credentials = await signInWithEmailAndPassword(auth, authEmail, authPassword);
+        const credentials = await signInWithEmailAndPassword(auth, email, password);
         triggerToast(`Sesión iniciada como: ${credentials.user.displayName || credentials.user.email}`);
       }
     } catch (err: any) {
       console.error("Authorization Error:", err);
-      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-        setCredentialsError("Credenciales incorrectas. Verifica el correo e inténtalo de nuevo.");
-      } else if (err.code === 'auth/email-already-in-use') {
-        setCredentialsError("Este correo electrónico ya se encuentra registrado.");
-      } else if (err.code === 'auth/weak-password') {
-        setCredentialsError("La contraseña provista debe contener al menos 6 caracteres.");
-      } else if (err.code === 'auth/invalid-email') {
-        setCredentialsError("Escribe un correo electrónico que tenga formato válido.");
-      } else {
-        setCredentialsError(err.message || "Error al autenticar con el servidor de seguridad.");
-      }
+      setCredentialsError(getAuthErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
