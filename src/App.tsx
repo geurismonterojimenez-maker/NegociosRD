@@ -1,9 +1,26 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
 import { CALCULATORS, CATEGORIES, HOME_FAQS, PROGRAMMATIC_GUIDES } from './data';
 import { CalculatorInfo } from './types';
+import {
+  BillingCycle,
+  SubscriptionState,
+  cancelSubscriptionState,
+  createActiveSubscriptionState,
+  createDefaultSubscriptionState,
+  createPendingSubscriptionState,
+  createTrialSubscriptionState,
+  expireSubscriptionState,
+  getTierFromSubscription,
+  isSubscriptionActive,
+  normalizeSubscriptionState,
+  parseStoredSubscriptionState,
+  serializeSubscriptionState,
+  subscriptionNeedsRefresh,
+  subscriptionStateForFirestore,
+} from './config/subscription';
 import CalculatorsList from './components/CalculatorsList';
 import CalculatorForm from './components/CalculatorForm';
 import GuidesView from './components/GuidesView';
@@ -15,6 +32,7 @@ import UserAccountModal from './components/UserAccountModal';
 import CentroLaboral from './components/CentroLaboral';
 import CentroFinanciero from './components/CentroFinanciero';
 import { isAdminEmail } from './config/admin';
+import { logSubscription } from './lib/firebase';
 import { 
   Search, 
   Sparkles, 
@@ -271,7 +289,7 @@ function PremiumFeaturePaywall({ title, description, benefits, onUpgrade }: Payw
             onClick={onUpgrade}
             className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 bg-[length:200%_auto] hover:bg-right transition-all duration-300 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-1 cursor-pointer uppercase tracking-wider"
           >
-            <span>💎 Activar Prueba Gratis PRO en 1-Clic</span>
+            <span>💎 Activar prueba PRO en 1 clic</span>
           </button>
           
           <p className="text-[10px] text-gray-400 leading-normal">
@@ -352,7 +370,7 @@ function ProUpgradeModal({ isOpen, onClose, onUpgrade, featureName }: ProUpgrade
               onClick={onUpgrade}
               className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
             >
-              🚀 Activar Cuenta Demo PRO Gratis (1-Clic)
+              🚀 Activar prueba PRO gratis
             </button>
             <button
               onClick={onClose}
@@ -383,36 +401,56 @@ export default function App() {
   const [roiTarifaHora, setRoiTarifaHora] = useState<number>(800);
 
   // Subscription tier state
-  const [userTier, setUserTier] = useState<'FREE' | 'PRO'>(() => {
+  const [subscriptionState, setSubscriptionState] = useState<SubscriptionState>(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem('negociord_user_tier') as 'FREE' | 'PRO') || 'FREE';
+      return parseStoredSubscriptionState(localStorage.getItem('negociord_subscription_state'));
     }
-    return 'FREE';
+    return createDefaultSubscriptionState();
   });
+  const userTier = getTierFromSubscription(subscriptionState.status);
 
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
   const [authReady, setAuthReady] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState<boolean>(false);
+  const [subscriptionBusy, setSubscriptionBusy] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (current) => {
       setFirebaseUser(current);
       setAuthReady(true);
       if (current) {
-        // Sync user role with Firestore
+        // Sync user subscription state with Firestore
         try {
           const userDocRef = doc(db, 'users', current.uid);
           const docSnap = await getDoc(userDocRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.role) {
-              setUserTier(data.role as 'FREE' | 'PRO');
-              localStorage.setItem('negociord_user_tier', data.role);
+            const normalized = normalizeSubscriptionState({
+              ...data,
+              role: data.role,
+            });
+            const refreshed = subscriptionNeedsRefresh(normalized)
+              ? expireSubscriptionState(normalized)
+              : normalized;
+            setSubscriptionState(refreshed);
+            localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(refreshed));
+            localStorage.setItem('negociord_user_tier', refreshed.plan);
+
+            if (
+              refreshed.status !== data.subscriptionStatus ||
+              refreshed.plan !== data.role ||
+              refreshed.endsAt !== data.subscriptionEndsAt ||
+              refreshed.trialEndsAt !== data.subscriptionTrialEndsAt
+            ) {
+              await setDoc(userDocRef, subscriptionStateForFirestore(refreshed), { merge: true });
             }
           }
         } catch (err) {
           console.error("Error reading synced tier from Firestore:", err);
         }
+      } else {
+        const fallback = parseStoredSubscriptionState(localStorage.getItem('negociord_subscription_state'));
+        setSubscriptionState(fallback);
       }
     });
     return () => unsubscribe();
@@ -421,21 +459,67 @@ export default function App() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [targetedProFeature, setTargetedProFeature] = useState<string>('');
 
-  const activateProDemo = () => {
-    setUserTier('PRO');
-    localStorage.setItem('negociord_user_tier', 'PRO');
-    setShowUpgradeModal(false);
+  const syncSubscriptionState = async (nextState: SubscriptionState, reason: string) => {
+    const safeState = normalizeSubscriptionState(nextState);
+    const previousTier = getTierFromSubscription(subscriptionState.status);
+    setSubscriptionBusy(true);
+    try {
+      setSubscriptionState(safeState);
+      localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(safeState));
+      localStorage.setItem('negociord_user_tier', safeState.plan);
+
+      if (firebaseUser?.uid) {
+        await setDoc(doc(db, 'users', firebaseUser.uid), subscriptionStateForFirestore(safeState), { merge: true });
+      }
+      if (firebaseUser) {
+        await logSubscription(
+          previousTier,
+          safeState.plan,
+          reason,
+          {
+            previousStatus: subscriptionState.status,
+            newStatus: safeState.status,
+            billingCycle: safeState.billingCycle,
+            startsAt: safeState.startedAt,
+            endsAt: safeState.endsAt,
+            trialEndsAt: safeState.trialEndsAt,
+            paymentMethod: safeState.paymentMethod,
+          }
+        );
+      }
+      setShowUpgradeModal(false);
+    } finally {
+      setSubscriptionBusy(false);
+    }
   };
 
-  const deactivateProDemo = () => {
-    setUserTier('FREE');
-    localStorage.setItem('negociord_user_tier', 'FREE');
+  const activateProTrial = async (reason = 'Prueba PRO solicitada desde paywall o modal de cuenta.') => {
+    await syncSubscriptionState(createTrialSubscriptionState(), reason);
+  };
+
+  const activateProPaid = async (billingCycle: Exclude<BillingCycle, 'trial'> = 'mensual', reason = 'Suscripción PRO activada desde el flujo de precios o cuenta.') => {
+    await syncSubscriptionState(createActiveSubscriptionState(billingCycle, billingCycle === 'anual' ? 'annual-demo-card' : 'demo-card'), reason);
+  };
+
+  const activatePendingPayment = async (billingCycle: Exclude<BillingCycle, 'trial'> = 'mensual') => {
+    await syncSubscriptionState(createPendingSubscriptionState(billingCycle), 'Pago pendiente confirmado por el usuario.');
+  };
+
+  const resetSubscriptionToFree = async () => {
+    await syncSubscriptionState(createDefaultSubscriptionState(), 'Suscripción cancelada o revertida a plan FREE.');
+  };
+
+  const renewSubscription = async (billingCycle: Exclude<BillingCycle, 'trial'> = subscriptionState.billingCycle === 'anual' ? 'anual' : 'mensual') => {
+    await syncSubscriptionState(createActiveSubscriptionState(billingCycle, subscriptionState.paymentMethod || 'demo-card'), 'Renovación de suscripción PRO.');
   };
 
   const handleProRequired = (featureName: string) => {
     setTargetedProFeature(featureName);
     setShowUpgradeModal(true);
   };
+
+  const activateProDemo = () => activateProTrial('Prueba PRO activada desde la vista interactiva.');
+  const deactivateProDemo = () => resetSubscriptionToFree();
 
   // Search state
   const [searchFilter, setSearchFilter] = useState('');
@@ -806,7 +890,7 @@ export default function App() {
                   title="Cambia a perfil PRO para probar libre de anuncios y con recursos Premium"
                 >
                   <span>Plan: Gratis ✦</span>
-                  <span className="bg-white/20 text-[9px] px-1.5 py-0.5 rounded-full font-extrabold uppercase">Demo PRO</span>
+                  <span className="bg-white/20 text-[9px] px-1.5 py-0.5 rounded-full font-extrabold uppercase">Prueba PRO</span>
                 </button>
               ) : (
                 <button
@@ -818,7 +902,7 @@ export default function App() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  <span className="text-amber-400 font-extrabold">Plan: PRO 💎</span>
+                  <span className="text-amber-400 font-extrabold">Plan: PRO activa 💎</span>
                   <span className="text-[10px] text-gray-400 hover:text-white underline">Free</span>
                 </button>
               )}
@@ -1523,12 +1607,13 @@ export default function App() {
                       </ul>
                     </div>
 
-                    <button 
-                      onClick={() => setShowAccountModal(true)}
-                      className="w-full mt-8 py-3.5 bg-[#0F766E] hover:bg-opacity-95 text-white text-xs font-black rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center justify-center gap-1.5"
-                    >
-                      <span>💎 {userTier === 'PRO' ? 'Mi Suscripción PRO está Activa' : 'Activar Prueba PRO Gratis'}</span>
-                    </button>
+                      <button 
+                        onClick={() => activateProPaid('mensual', 'Suscripción PRO mensual activada desde la página de precios.')}
+                        className="w-full mt-8 py-3.5 bg-[#0F766E] hover:bg-opacity-95 text-white text-xs font-black rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-60"
+                        disabled={subscriptionBusy}
+                      >
+                        <span>💎 {userTier === 'PRO' ? 'Plan PRO activo' : 'Activar PRO mensual'}</span>
+                      </button>
                   </div>
 
                   {/* Plan 3: Pro Anual */}
@@ -1577,10 +1662,11 @@ export default function App() {
                     </div>
 
                     <button 
-                      onClick={() => setShowAccountModal(true)}
-                      className="w-full mt-8 py-3 bg-gray-900 hover:bg-stone-850 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+                      onClick={() => activateProPaid('anual', 'Suscripción PRO anual activada desde la página de precios.')}
+                      className="w-full mt-8 py-3 bg-gray-900 hover:bg-stone-850 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 disabled:opacity-60"
+                      disabled={subscriptionBusy}
                     >
-                      {userTier === 'PRO' ? 'Mi Licencia Anual' : 'Instaurar Membresía Anual'}
+                      {userTier === 'PRO' ? 'Renovar licencia anual' : 'Activar PRO anual'}
                     </button>
                   </div>
                 </div>
@@ -1927,9 +2013,19 @@ export default function App() {
         isOpen={showAccountModal}
         onClose={() => setShowAccountModal(false)}
         userTier={userTier}
+        subscriptionState={subscriptionState}
         onTierChange={(newTier) => {
-          setUserTier(newTier);
+          const nextState = newTier === 'PRO'
+            ? createActiveSubscriptionState(subscriptionState.billingCycle === 'anual' ? 'anual' : 'mensual', subscriptionState.paymentMethod || 'demo-card')
+            : createDefaultSubscriptionState();
+          setSubscriptionState(nextState);
+          localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
           localStorage.setItem('negociord_user_tier', newTier);
+        }}
+        onSubscriptionChange={(nextState) => {
+          setSubscriptionState(nextState);
+          localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
+          localStorage.setItem('negociord_user_tier', nextState.plan);
         }}
       />
 

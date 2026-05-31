@@ -27,6 +27,18 @@ import {
   logUsage,
   logSubscription
 } from '../lib/firebase';
+import {
+  SubscriptionState,
+  createActiveSubscriptionState,
+  createDefaultSubscriptionState,
+  createPendingSubscriptionState,
+  createTrialSubscriptionState,
+  cancelSubscriptionState,
+  normalizeSubscriptionState,
+  subscriptionStateForFirestore,
+  SUBSCRIPTION_STATUS_LABELS,
+  getTierFromSubscription
+} from '../config/subscription';
 import { ADMIN_EMAIL, isAdminEmail } from '../config/admin';
 import { 
   X, 
@@ -57,6 +69,8 @@ interface UserAccountModalProps {
   onClose: () => void;
   userTier: 'FREE' | 'PRO';
   onTierChange: (tier: 'FREE' | 'PRO') => void;
+  subscriptionState?: SubscriptionState;
+  onSubscriptionChange?: (state: SubscriptionState) => void;
 }
 
 export interface PaymentMethodItem {
@@ -68,7 +82,8 @@ export interface PaymentMethodItem {
   createdAt?: any;
 }
 
-export default function UserAccountModal({ isOpen, onClose, userTier, onTierChange }: UserAccountModalProps) {
+export default function UserAccountModal({ isOpen, onClose, userTier, onTierChange, subscriptionState, onSubscriptionChange }: UserAccountModalProps) {
+  const currentSubscription = normalizeSubscriptionState(subscriptionState || { role: userTier });
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [cards, setCards] = useState<PaymentMethodItem[]>([]);
@@ -148,21 +163,33 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.role) {
-          onTierChange(data.role as 'FREE' | 'PRO');
+        const normalized = normalizeSubscriptionState({
+          ...data,
+          role: data.role,
+        });
+        onTierChange(normalized.plan);
+        onSubscriptionChange?.(normalized);
+        if (
+          normalized.status !== data.subscriptionStatus ||
+          normalized.plan !== data.subscriptionPlan ||
+          normalized.endsAt !== data.subscriptionEndsAt ||
+          normalized.trialEndsAt !== data.subscriptionTrialEndsAt
+        ) {
+          await updateDoc(userDocRef, subscriptionStateForFirestore(normalized));
         }
       } else {
         // Create user record in Firestore
+        const defaultSubscription = normalizeSubscriptionState({ role: isAdminEmail(firebaseUser.email) ? 'PRO' : userTier });
         const newUserPayload = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
           displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
           photoURL: firebaseUser.photoURL || '',
-          role: isAdminEmail(firebaseUser.email) ? 'PRO' : (userTier || 'FREE'),
-          updatedAt: new Date().toISOString()
+          ...subscriptionStateForFirestore(defaultSubscription),
         };
         await setDoc(userDocRef, newUserPayload);
-        onTierChange(newUserPayload.role as 'FREE' | 'PRO');
+        onTierChange(defaultSubscription.plan);
+        onSubscriptionChange?.(defaultSubscription);
       }
     } catch (err) {
       console.error("Error fetching or syncing user details in Firestore:", err);
@@ -256,9 +283,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     
     try {
       const userDocRef = doc(db, 'users', targetUid);
+      const nextSubscription = nextRole === 'PRO'
+        ? createActiveSubscriptionState('mensual', 'admin-manual')
+        : createDefaultSubscriptionState();
       await updateDoc(userDocRef, {
-        role: nextRole,
-        updatedAt: new Date().toISOString()
+        ...subscriptionStateForFirestore(nextSubscription)
       });
       addLog(`Confirmado: Mutación aplicada en Firestore para ${targetUid}.`);
       triggerToast(`Rol actualizado a ${nextRole} exitosamente.`);
@@ -267,6 +296,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       // If updating our self, trigger local state mutation
       if (targetUid === user?.uid) {
         onTierChange(nextRole);
+        onSubscriptionChange?.(nextSubscription);
       }
     } catch (err) {
       addLog(`Error de escritura Firestore en actualización de rol: ${err instanceof Error ? err.message : String(err)}`);
@@ -369,13 +399,17 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     setActionLoading(true);
     const userDocRef = doc(db, 'users', user.uid);
     try {
+      const nextSubscription = createActiveSubscriptionState('mensual', cardId ? `card-${cardId}` : 'demo-card');
       await updateDoc(userDocRef, {
-        role: 'PRO',
-        updatedAt: new Date().toISOString()
+        ...subscriptionStateForFirestore(nextSubscription)
       });
       onTierChange('PRO');
-      triggerToast("¡Felicidades! Tu Licencia PRO de NegocioRD ha sido activada.");
-      await logSubscription('FREE', 'PRO', 'Actualización de licencia mediante simulación de datos de tarjeta.');
+      onSubscriptionChange?.(nextSubscription);
+      triggerToast("¡Felicidades! Tu suscripción PRO quedó activa.");
+      await logSubscription('FREE', 'PRO', 'Activación PRO desde tarjeta o cuenta.', {
+        subscriptionStatus: nextSubscription.status,
+        billingCycle: nextSubscription.billingCycle,
+      });
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -383,19 +417,84 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     }
   };
 
-  // Cancel / revert subscription demo
+  // Cancel / revert subscription
   const handleCancelSubscription = async () => {
     if (!user) return;
     setActionLoading(true);
     const userDocRef = doc(db, 'users', user.uid);
     try {
+      const nextSubscription = currentSubscription.plan === 'PRO'
+        ? cancelSubscriptionState(currentSubscription)
+        : createDefaultSubscriptionState();
       await updateDoc(userDocRef, {
-        role: 'FREE',
-        updatedAt: new Date().toISOString()
+        ...subscriptionStateForFirestore(nextSubscription)
       });
       onTierChange('FREE');
-      triggerToast("Suscripción cambiada a versión Gratuita (Free) exitosamente.");
-      await logSubscription('PRO', 'FREE', 'Remoción voluntaria o baja de suscripción solicitada.');
+      onSubscriptionChange?.(nextSubscription);
+      triggerToast("Suscripción cambiada a versión gratuita exitosamente.");
+      await logSubscription('PRO', 'FREE', 'Remoción voluntaria o baja de suscripción solicitada.', {
+        subscriptionStatus: nextSubscription.status,
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleStartTrial = async () => {
+    if (!user) return;
+    setActionLoading(true);
+    const nextSubscription = createTrialSubscriptionState();
+    try {
+      await updateDoc(doc(db, 'users', user.uid), subscriptionStateForFirestore(nextSubscription));
+      onTierChange('PRO');
+      onSubscriptionChange?.(nextSubscription);
+      triggerToast('Tu prueba PRO está activa por 7 días.');
+      await logSubscription('FREE', 'PRO', 'Prueba PRO iniciada por el usuario.', {
+        subscriptionStatus: nextSubscription.status,
+        trialEndsAt: nextSubscription.trialEndsAt,
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleMarkPending = async () => {
+    if (!user) return;
+    setActionLoading(true);
+    const nextSubscription = createPendingSubscriptionState(currentSubscription.billingCycle === 'anual' ? 'anual' : 'mensual');
+    try {
+      await updateDoc(doc(db, 'users', user.uid), subscriptionStateForFirestore(nextSubscription));
+      onTierChange('PRO');
+      onSubscriptionChange?.(nextSubscription);
+      triggerToast('Tu suscripción quedó pendiente de pago.');
+      await logSubscription('FREE', 'PRO', 'Suscripción marcada como pendiente de pago.', {
+        subscriptionStatus: nextSubscription.status,
+        billingCycle: nextSubscription.billingCycle,
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRenewSubscription = async () => {
+    if (!user) return;
+    setActionLoading(true);
+    const renewed = createActiveSubscriptionState(currentSubscription.billingCycle === 'anual' ? 'anual' : 'mensual', currentSubscription.paymentMethod || 'demo-card');
+    try {
+      await updateDoc(doc(db, 'users', user.uid), subscriptionStateForFirestore(renewed));
+      onTierChange('PRO');
+      onSubscriptionChange?.(renewed);
+      triggerToast('Tu suscripción PRO fue renovada.');
+      await logSubscription('PRO', 'PRO', 'Renovación de suscripción PRO.', {
+        subscriptionStatus: renewed.status,
+        billingCycle: renewed.billingCycle,
+      });
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -716,17 +815,17 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
               {/* License Level Banner */}
               <div className="text-center sm:text-right">
-                {userTier === 'PRO' ? (
+                {currentSubscription.plan === 'PRO' ? (
                   <div className="flex flex-col items-center sm:items-end gap-1">
                     <span className="px-3.5 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs ring-2 ring-amber-300">
-                      💎 Licencia PRO Activa
+                      💎 {SUBSCRIPTION_STATUS_LABELS[currentSubscription.status]}
                     </span>
                     <button 
                       onClick={handleCancelSubscription}
                       className="text-[9px] text-gray-400 underline hover:text-red-500 mt-1 cursor-pointer"
-                      title="Volver a versión gratuita para probar límites"
+                      title="Volver a versión gratuita"
                     >
-                      Bajar a Plan Gratuito (Demo)
+                      Cancelar suscripción
                     </button>
                   </div>
                 ) : (
@@ -735,13 +834,46 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                       Licencia Básica Gratuita
                     </span>
                     <button
-                      onClick={() => setShowAddCard(true)}
+                      onClick={handleStartTrial}
                       className="text-[10px] text-[#0F766E] font-bold hover:underline"
                     >
-                      Registrar tarjeta simulada para ser PRO
+                      Activar prueba PRO
                     </button>
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-2xl border border-gray-150 bg-[#FAFAFA] p-4">
+              <div className="space-y-2">
+                <div className="text-[10px] uppercase tracking-widest font-black text-gray-400">Estado de suscripción</div>
+                <div className="text-sm font-black text-gray-950">{SUBSCRIPTION_STATUS_LABELS[currentSubscription.status]}</div>
+                <p className="text-xs text-gray-500">
+                  Plan base: {currentSubscription.plan}.{currentSubscription.endsAt ? ` Vence el ${new Date(currentSubscription.endsAt).toLocaleDateString('es-DO')}.` : ''}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 md:justify-end items-start md:items-center">
+                <button
+                  onClick={handleRenewSubscription}
+                  disabled={actionLoading}
+                  className="px-3 py-2 rounded-lg bg-[#0F766E] text-white text-[10px] font-bold disabled:opacity-60"
+                >
+                  Renovar
+                </button>
+                <button
+                  onClick={handleMarkPending}
+                  disabled={actionLoading}
+                  className="px-3 py-2 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold disabled:opacity-60"
+                >
+                  Pendiente de pago
+                </button>
+                <button
+                  onClick={handleStartTrial}
+                  disabled={actionLoading}
+                  className="px-3 py-2 rounded-lg bg-gray-900 text-white text-[10px] font-bold disabled:opacity-60"
+                >
+                  Probar 7 días
+                </button>
               </div>
             </div>
 
@@ -1116,7 +1248,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
                           <div className="flex flex-col items-end">
                             <span className="text-[9px] text-amber-400 font-extrabold uppercase tracking-widest block font-sans">
-                              {userTier === 'PRO' ? '✦ PRO MEMBER' : '✦ VIP ACCESS'}
+                              {currentSubscription.plan === 'PRO' ? '✦ PRO MEMBER' : '✦ VIP ACCESS'}
                             </span>
                             <span className="text-xs font-black uppercase italic tracking-widest mt-0.5">
                               {cardBrand === 'visa' ? 'VISA PREMIUM' : cardBrand === 'mastercard' ? 'MC BLACK' : 'AMEX LITE'}
@@ -1292,7 +1424,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                       </div>
 
                       <div className="flex items-center gap-2 font-sans">
-                        {userTier === 'FREE' && (
+                        {currentSubscription.plan === 'FREE' && (
                           <button
                             onClick={() => handleUpgradeToPro(card.id)}
                             disabled={actionLoading}

@@ -3,6 +3,7 @@ import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
 import { ShieldCheck, Users, Sliders, Terminal, RefreshCw, Activity, Database, Lock, ArrowLeft, BadgeCheck } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { isAdminEmail, ADMIN_EMAIL } from '../config/admin';
+import { createActiveSubscriptionState, createDefaultSubscriptionState, subscriptionStateForFirestore } from '../config/subscription';
 
 type AdminTab = 'overview' | 'users' | 'metrics' | 'audits' | 'terminal';
 
@@ -84,10 +85,10 @@ export default function AdminConsole({ firebaseUser, onBack }: AdminConsoleProps
     const nextRole = currentRole === 'FREE' ? 'PRO' : 'FREE';
     setAllUsers((prev) => prev.map((u) => (u.uid === uid ? { ...u, role: nextRole } : u)));
     try {
-      await updateDoc(doc(db, 'users', uid), {
-        role: nextRole,
-        updatedAt: new Date().toISOString(),
-      });
+      const nextSubscription = nextRole === 'PRO'
+        ? createActiveSubscriptionState('mensual', 'admin-manual')
+        : createDefaultSubscriptionState();
+      await updateDoc(doc(db, 'users', uid), subscriptionStateForFirestore(nextSubscription));
       pushLog(`Rol actualizado: ${uid.slice(0, 8)}... => ${nextRole}`);
     } catch (err) {
       console.error(err);

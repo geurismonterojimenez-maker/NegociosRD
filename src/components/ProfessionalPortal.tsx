@@ -74,7 +74,7 @@ export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE',
           onClick={onUpgrade}
           className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
         >
-          <span>💎 Activar Licencia PRO Gratis (1-Clic)</span>
+          <span>💎 Activar prueba PRO</span>
         </button>
       </div>
     );

@@ -29,7 +29,12 @@ export async function logUsage(calculatorId: string, description: string): Promi
 }
 
 // Log subscription transactions for audit trails
-export async function logSubscription(previousTier: 'FREE' | 'PRO', newTier: 'FREE' | 'PRO', reason: string): Promise<void> {
+export async function logSubscription(
+  previousTier: 'FREE' | 'PRO',
+  newTier: 'FREE' | 'PRO',
+  reason: string,
+  details: Record<string, unknown> = {}
+): Promise<void> {
   const currentUser = auth.currentUser;
   if (!currentUser) return;
 
@@ -42,6 +47,7 @@ export async function logSubscription(previousTier: 'FREE' | 'PRO', newTier: 'FR
       previousTier,
       newTier,
       reason,
+      ...details,
       timestamp: new Date().toISOString()
     });
   } catch (error) {

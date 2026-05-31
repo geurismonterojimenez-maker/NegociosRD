@@ -75,7 +75,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             className="w-full sm:w-auto px-6 py-3 bg-[#0F766E] hover:bg-[#0D645D] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all active:scale-97 cursor-pointer flex items-center justify-center gap-2 mx-auto"
             aria-label={`Desbloquear ${calc.name}`}
           >
-            <span>💎 Activar Licencia PRO Gratis (1-Clic)</span>
+            <span>💎 Activar prueba PRO</span>
           </button>
         </div>
       </div>
