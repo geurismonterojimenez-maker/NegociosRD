@@ -675,10 +675,13 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
                 <Search size={15} />
               </div>
+              <label htmlFor="news-search-input" className="sr-only">Buscar artículos o legislación específica</label>
               <input
+                id="news-search-input"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Buscar artículos o legislación específica"
                 placeholder="Buscar artículos o legislación específica..."
                 className="w-full text-xs pl-9 pr-4 py-2 border border-gray-200 rounded-lg bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all text-[#111827]"
               />
@@ -862,11 +865,14 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                   </div>
                 ) : (
                   <form onSubmit={handleSubscribe} className="space-y-2">
+                    <label htmlFor="news-newsletter-email" className="sr-only">Dirección de correo electrónico</label>
                     <input
+                      id="news-newsletter-email"
                       type="email"
                       required
                       value={newsletterEmail}
                       onChange={(e) => setNewsletterEmail(e.target.value)}
+                      aria-label="Dirección de correo electrónico para suscribirse al boletín"
                       placeholder="ejemplo@correo.com"
                       className="w-full text-xs px-3 py-2 border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#0F766E] text-[#111827]"
                     />

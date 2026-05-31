@@ -348,6 +348,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   let type: 'article' | 'website' = 'website';
   let faqSchema = "";
   let appSchema = "";
+  let homeSchema = "";
 
   if (pathPart.startsWith("/herramientas/")) {
     const slug = pathPart.replace("/herramientas/", "");
@@ -358,7 +359,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
       
       // SoftwareApplication Schema
       appSchema = `
-  <script type="application/ld+json">
+  <script type="application/ld+json" class="dynamic-schema">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -376,7 +377,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
       // Optional: Generate FAQPage Schema if it has standard questions
       if (calc.category === 'impuestos') {
         faqSchema = `
-  <script type="application/ld+json">
+  <script type="application/ld+json" class="dynamic-schema">
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -402,7 +403,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   </script>`;
       } else if (calc.category === 'laboral') {
         faqSchema = `
-  <script type="application/ld+json">
+  <script type="application/ld+json" class="dynamic-schema">
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -448,6 +449,19 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   const originUrl = "https://negociord.com";
   const canonicalUrl = `${originUrl}${pathPart}`;
 
+  if (pathPart === "/" || pathPart === "") {
+    homeSchema = `
+  <script type="application/ld+json" class="dynamic-schema">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "NegocioRD",
+    "url": "${originUrl}",
+    "description": "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII."
+  }
+  </script>`;
+  }
+
   // Replace Title Tags
   html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
   html = html.replace(/<meta name="title" content=".*?" \/>/, `<meta name="title" content="${title}" />`);
@@ -463,7 +477,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   
   // Replace Twitter Card Properties
   html = html.replace(/<meta property="twitter:title" content=".*?" \/>/g, `<meta name="twitter:title" content="${title}" />`);
-  html = html.replace(/<meta name="twitter:description" content=".*?" \/>/g, `<meta name="twitter:description" content="${description}" />`);
+  html = html.replace(/<meta property="twitter:description" content=".*?" \/>/g, `<meta name="twitter:description" content="${description}" />`);
 
   // Inject Canonical element if missing
   if (html.includes('rel="canonical"')) {
@@ -474,7 +488,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
 
   // Inject Breadcrumb JSON-LD & components schemas before </head>
   const breadcrumbSchema = `
-  <script type="application/ld+json">
+  <script type="application/ld+json" class="dynamic-schema">
   {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -501,8 +515,40 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   }
   </script>`;
 
-  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${faqSchema}\n</head>`;
+  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${faqSchema}${homeSchema}\n</head>`;
   return html.replace('</head>', injectedElements);
+}
+
+// Route validation helper for server-side responses
+function isValidRoute(originalUrl: string): boolean {
+  const pathPart = originalUrl.split("?")[0];
+  
+  const validStaticPaths = [
+    "/",
+    "/noticias",
+    "/nosotros",
+    "/centro-laboral",
+    "/centro-financiero",
+    "/precios"
+  ];
+  
+  if (validStaticPaths.includes(pathPart)) {
+    return true;
+  }
+  
+  if (pathPart.startsWith("/herramientas/")) {
+    const slug = pathPart.replace("/herramientas/", "");
+    const calc = CALCULATORS.find(c => c.urlSlug === slug || c.id === slug);
+    return !!calc;
+  }
+  
+  if (pathPart.startsWith("/guia/")) {
+    const slug = pathPart.replace("/guia/", "");
+    const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === slug);
+    return !!guide;
+  }
+  
+  return false;
 }
 
 // Setup Vite Development Server or Production Static file server
@@ -523,13 +569,19 @@ async function startServer() {
           let html = fs.readFileSync(filePath, "utf-8");
           // Dynamically hydrate unique SEO meta tags matching request path
           html = getPrerenderedHTML(html, req.originalUrl);
-          res.send(html);
+          
+          if (!isValidRoute(req.originalUrl)) {
+            // Return status code 404 for search engine crawling compliance
+            res.status(404).send(html);
+          } else {
+            res.send(html);
+          }
         } else {
           res.status(404).send("Index template not found");
         }
       } catch (err) {
         console.error("[ServerError] Static server-side hydration error:", err);
-        res.sendFile(path.join(distPath, "index.html"));
+        res.status(500).sendFile(path.join(distPath, "index.html"));
       }
     });
   }

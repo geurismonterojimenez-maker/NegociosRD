@@ -408,12 +408,13 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {(calc.id === 'itbis-calc' || calc.id === 'itbis-excluido' || calc.id === 'itbis-incluido') && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">
+                  <label htmlFor="itbis-amount-input" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">
                     {calc.id === 'itbis-incluido' ? 'Monto Total Facturado (RD$)' : 'Monto Neto Base (RD$)'}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
+                      id="itbis-amount-input"
                       type="number" 
                       value={itbisAmountInput}
                       onChange={(e) => setItbisAmountInput(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -424,8 +425,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
 
                 {showAdvanced && (
                   <div className="pt-2 animate-in slide-in-from-top-2 duration-150">
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa impositiva de ITBIS</label>
+                    <label htmlFor="itbis-rate-input" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Tasa impositiva de ITBIS</label>
                     <select 
+                      id="itbis-rate-input"
                       value={itbisRateInput}
                       onChange={(e) => setItbisRateInput(parseFloat(e.target.value))}
                       className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
@@ -442,10 +444,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {calc.id === 'isr-asalariado' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Salario Mensual Bruto (RD$)</label>
+                  <label htmlFor="isr-salary-input" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Salario Mensual Bruto (RD$)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
+                      id="isr-salary-input"
                       type="number" 
                       value={isrSalaryInput}
                       onChange={(e) => setIsrSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -475,10 +478,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {calc.id === 'retenciones-dgii' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Monto del servicio bruto (RD$)</label>
+                  <label htmlFor="retencion-invoice-amount" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Monto del servicio bruto (RD$)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
+                      id="retencion-invoice-amount"
                       type="number" 
                       value={retencionInvoiceAmount}
                       onChange={(e) => setRetencionInvoiceAmount(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -490,8 +494,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                 {showAdvanced && (
                   <div className="space-y-4 pt-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-150">
                     <div>
-                      <label className="block text-sm font-medium text-[#111827] mb-1.5">Tipo de Servicio Prestado (Tasa de ISR)</label>
+                      <label htmlFor="retencion-service-type" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Tipo de Servicio Prestado (Tasa de ISR)</label>
                       <select 
+                        id="retencion-service-type"
                         value={retencionServiceType}
                         onChange={(e) => setRetencionServiceType(e.target.value)}
                         className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
@@ -504,8 +509,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[#111827] mb-1.5">Porcentaje de ITBIS a retener por el cliente corporativo</label>
+                      <label htmlFor="retencion-itbis-option" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Porcentaje de ITBIS a retener por el cliente corporativo</label>
                       <select 
+                        id="retencion-itbis-option"
                         value={retencionItbisOption}
                         onChange={(e) => setRetencionItbisOption(e.target.value)}
                         className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
@@ -524,10 +530,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {calc.id === 'recargos-dgii' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Monto de impuesto no pagado (RD$)</label>
+                  <label htmlFor="recargos-tax-base" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Monto de impuesto no pagado (RD$)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium font-semibold">RD$</div>
                     <input 
+                      id="recargos-tax-base"
                       type="number" 
                       value={recargosTaxBase}
                       onChange={(e) => setRecargosTaxBase(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -538,8 +545,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
 
                 {showAdvanced && (
                   <div className="pt-2 animate-in slide-in-from-top-2 duration-150">
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Meses de atraso (desde el vencimiento)</label>
+                    <label htmlFor="recargos-months-late" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Meses de atraso (desde el vencimiento)</label>
                     <input 
+                      id="recargos-months-late"
                       type="number" 
                       min="1"
                       max="120"
@@ -555,10 +563,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {/* Salario Neto Screen */}
             {calc.id === 'salario-neto' && (
               <div>
-                <label className="block text-sm font-medium text-[#111827] mb-1.5">Salario bruto mensual en pesos (RD$)</label>
+                <label htmlFor="net-salary-input" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Salario bruto mensual en pesos (RD$)</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                   <input 
+                    id="net-salary-input"
                     type="number" 
                     value={netSalaryInput}
                     onChange={(e) => setNetSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -571,10 +580,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {/* AFP, SFS, TSS unified state */}
             {(calc.id === 'afp-empleado' || calc.id === 'sfs-empleado' || calc.id === 'tss-completa') && (
               <div>
-                <label className="block text-sm font-medium text-[#111827] mb-1.5">Salario mensual ordinario (RD$)</label>
+                <label htmlFor="tss-salary-input" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Salario mensual ordinario (RD$)</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                   <input 
+                    id="tss-salary-input"
                     type="number" 
                     value={tssSalaryInput}
                     onChange={(e) => setTssSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -588,10 +598,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'vacaciones-calc' || calc.id === 'regalia-pascual' || calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Salario bruto ordinario de contrato (RD$)</label>
+                  <label htmlFor="prestaciones-salary" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Salario bruto ordinario de contrato (RD$)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
+                      id="prestaciones-salary"
                       type="number" 
                       value={prestacionesSalary}
                       onChange={(e) => setPrestacionesSalary(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -604,8 +615,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                 {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#111827] mb-1.5">Fecha de Ingreso</label>
+                      <label htmlFor="prestaciones-ingreso" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Fecha de Ingreso</label>
                       <input 
+                        id="prestaciones-ingreso"
                         type="date"
                         value={prestacionesIngreso}
                         onChange={(e) => setPrestacionesIngreso(e.target.value)}
@@ -613,8 +625,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#111827] mb-1.5">Fecha de Salida</label>
+                      <label htmlFor="prestaciones-salida" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Fecha de Salida</label>
                       <input 
+                        id="prestaciones-salida"
                         type="date"
                         value={prestacionesSalida}
                         onChange={(e) => setPrestacionesSalida(e.target.value)}
@@ -628,8 +641,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                   <div className="space-y-4 pt-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-150">
                     {calc.id === 'liquidacion-laboral' && (
                       <div>
-                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Motivo del fin de contrato</label>
+                        <label htmlFor="liquidacion-motivo" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Motivo del fin de contrato</label>
                         <select 
+                          id="liquidacion-motivo"
                           value={liquidacionMotivo}
                           onChange={(e) => setLiquidacionMotivo(e.target.value)}
                           className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
@@ -672,8 +686,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
 
                     {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral') && (
                       <div>
-                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Vacaciones del último año laborado</label>
+                        <label htmlFor="prestaciones-vacaciones" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Vacaciones del último año laborado</label>
                         <select 
+                          id="prestaciones-vacaciones"
                           value={prestacionesVacaciones}
                           onChange={(e) => setPrestacionesVacaciones(e.target.value as any)}
                           className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
@@ -686,8 +701,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
 
                     {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'regalia-pascual') && (
                       <div>
-                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Meses trabajados en el año actual (para Navidad / Regalía)</label>
+                        <label htmlFor="prestaciones-regalia-meses" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Meses trabajados en el año actual (para Navidad / Regalía)</label>
                         <input 
+                          id="prestaciones-regalia-meses"
                           type="range"
                           min="1"
                           max="12"
@@ -711,10 +727,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {(calc.id === 'prestamo-personal' || calc.id === 'cuota-prestamo' || calc.id === 'prestamo-hipotecario') && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Monto total solicitado (Principal en RD$)</label>
+                  <label htmlFor="loan-principal" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Monto total solicitado (Principal en RD$)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
+                      id="loan-principal"
                       type="number" 
                       value={loanPrincipal}
                       onChange={(e) => setLoanPrincipal(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -727,8 +744,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                   <div className="space-y-4 pt-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-150">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa de interés (%)</label>
+                        <label htmlFor="loan-interest" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Tasa de interés (%)</label>
                         <input 
+                          id="loan-interest"
                           type="number" 
                           step="0.01"
                           value={loanInterest}
@@ -737,8 +755,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Plazo (meses)</label>
+                        <label htmlFor="loan-plazo" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Plazo (meses)</label>
                         <input 
+                          id="loan-plazo"
                           type="number" 
                           value={loanPlazo}
                           onChange={(e) => setLoanPlazo(Math.max(1, parseInt(e.target.value) || 1))}
@@ -749,8 +768,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
 
                     {calc.id === 'cuota-prestamo' && (
                       <div>
-                        <label className="block text-sm font-medium text-[#111827] mb-1.5">Tasa a comparar (%)</label>
+                        <label htmlFor="loan-interest-compare" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Tasa a comparar (%)</label>
                         <input 
+                          id="loan-interest-compare"
                           type="number" 
                           step="0.01"
                           value={loanInterestCompare}
@@ -768,10 +788,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
             {calc.id === 'precio-venta' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[#111827] mb-1.5">Costo por unidad del producto (RD$)</label>
+                  <label htmlFor="biz-cost" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Costo por unidad del producto (RD$)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
+                      id="biz-cost"
                       type="number" 
                       value={bizCost}
                       onChange={(e) => setBizCost(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -782,8 +803,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc }: Calcu
 
                 {showAdvanced && (
                   <div className="pt-2 animate-in slide-in-from-top-2 duration-150">
-                    <label className="block text-sm font-medium text-[#111827] mb-1.5">Margen de ganancia bruto pretendido (%)</label>
+                    <label htmlFor="biz-margin-desired" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Margen de ganancia bruto pretendido (%)</label>
                     <input 
+                      id="biz-margin-desired"
                       type="number" 
                       min="1"
                       max="99"

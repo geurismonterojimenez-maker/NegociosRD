@@ -271,10 +271,11 @@ export default function CentroFinanciero() {
         </div>
 
         <div className="flex items-center gap-2 bg-gray-50 border p-2.5 rounded-lg text-xs" id="dti-income-box">
-          <span className="font-semibold text-gray-500">Sus Ingresos Mensuales Netos:</span>
+          <label htmlFor="dti-income-input" className="font-semibold text-gray-500">Sus Ingresos Mensuales Netos:</label>
           <div className="flex items-center font-mono font-bold text-gray-900">
             <span className="text-[#0F766E]">RD$</span>
             <input 
+              id="dti-income-input"
               type="number" 
               value={income}
               onChange={(e) => setIncome(Math.max(0, parseInt(e.target.value) || 0))}
@@ -394,8 +395,9 @@ export default function CentroFinanciero() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Nombre Deuda/Banco</label>
+                <label htmlFor="debt-name-input" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Nombre Deuda/Banco</label>
                 <input 
+                  id="debt-name-input"
                   type="text" 
                   required
                   value={name}
@@ -406,8 +408,9 @@ export default function CentroFinanciero() {
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Saldo Deudor Actual (RD$)</label>
+                <label htmlFor="debt-balance-input" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Saldo Deudor Actual (RD$)</label>
                 <input 
+                  id="debt-balance-input"
                   type="number" 
                   required
                   value={balance}
@@ -418,8 +421,9 @@ export default function CentroFinanciero() {
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Tasa de Interés Anual (%)</label>
+                <label htmlFor="debt-rate-input" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Tasa de Interés Anual (%)</label>
                 <input 
+                  id="debt-rate-input"
                   type="number" 
                   step="0.01"
                   required
@@ -433,8 +437,9 @@ export default function CentroFinanciero() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
               <div>
-                <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Meses Remanentes de Pago</label>
+                <label htmlFor="debt-term-input" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Meses Remanentes de Pago</label>
                 <input 
+                  id="debt-term-input"
                   type="number" 
                   required
                   value={term}
@@ -445,8 +450,9 @@ export default function CentroFinanciero() {
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Cuota Mensual (0 para Autofórmula)</label>
+                <label htmlFor="debt-monthly-payment-input" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Cuota Mensual (0 para Autofórmula)</label>
                 <input 
+                  id="debt-monthly-payment-input"
                   type="number" 
                   value={monthlyPayment}
                   onChange={(e) => setMonthlyPayment(Math.max(0, parseInt(e.target.value) || 0))}
@@ -512,8 +518,9 @@ export default function CentroFinanciero() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] uppercase font-semibold text-gray-500 block mb-1">Tasa Ofertada Consolidación (% Anual)</label>
+                <label htmlFor="consolidation-rate" className="text-[10px] uppercase font-semibold text-gray-500 block mb-1">Tasa Ofertada Consolidación (% Anual)</label>
                 <input 
+                  id="consolidation-rate"
                   type="number" 
                   step="0.1"
                   value={consolidationRate}
@@ -523,8 +530,9 @@ export default function CentroFinanciero() {
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-semibold text-gray-500 block mb-1">Plazo Convenido (Meses)</label>
+                <label htmlFor="consolidation-term" className="text-[10px] uppercase font-semibold text-gray-500 block mb-1">Plazo Convenido (Meses)</label>
                 <input 
+                  id="consolidation-term"
                   type="number" 
                   value={consolidationTerm}
                   onChange={(e) => setConsolidationTerm(Math.max(1, parseInt(e.target.value) || 12))}
@@ -533,8 +541,9 @@ export default function CentroFinanciero() {
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-semibold text-gray-500 block mb-1">Gastos de Cierre Administrativos (RD$)</label>
+                <label htmlFor="consolidation-costs" className="text-[10px] uppercase font-semibold text-gray-500 block mb-1">Gastos de Cierre Administrativos (RD$)</label>
                 <input 
+                  id="consolidation-costs"
                   type="number" 
                   value={closingCosts}
                   onChange={(e) => setClosingCosts(Math.max(0, parseInt(e.target.value) || 0))}
@@ -602,11 +611,12 @@ export default function CentroFinanciero() {
             </p>
 
             <div>
-              <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1 flex justify-between">
+              <label htmlFor="extra-payment-slider" className="text-[10px] uppercase font-bold text-gray-500 block mb-1 flex justify-between">
                 <span>Inyección Mensual Extraordinaria:</span>
                 <span className="text-[#0F766E] font-bold font-mono">RD$ {extraPayment.toLocaleString()}</span>
               </label>
               <input 
+                id="extra-payment-slider"
                 type="range" 
                 min="1000" 
                 max="25000" 

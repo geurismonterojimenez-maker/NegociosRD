@@ -290,8 +290,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
               <>
                 {calc.id === 'ahorro-plan' ? (
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Meta de Ahorro Deseada (RD$)</label>
+                    <label htmlFor="fin-target-amount" className="block text-xs font-bold text-gray-700 uppercase mb-1">Meta de Ahorro Deseada (RD$)</label>
                     <input
+                      id="fin-target-amount"
                       type="number"
                       value={targetAmountInput}
                       onChange={(e) => setTargetAmountInput(Math.max(0, parseInt(e.target.value) || 0))}
@@ -300,8 +301,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Capital Principal (RD$)</label>
+                    <label htmlFor="fin-principal" className="block text-xs font-bold text-gray-700 uppercase mb-1">Capital Principal (RD$)</label>
                     <input
+                      id="fin-principal"
                       type="number"
                       value={principalInput}
                       onChange={(e) => setPrincipalInput(Math.max(0, parseInt(e.target.value) || 0))}
@@ -311,8 +313,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Tasa de Interés Anual (%)</label>
+                  <label htmlFor="fin-annual-rate" className="block text-xs font-bold text-gray-700 uppercase mb-1">Tasa de Interés Anual (%)</label>
                   <input
+                    id="fin-annual-rate"
                     type="number"
                     step="0.05"
                     value={annualRate}
@@ -323,8 +326,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
 
                 {calc.id !== 'valor-futuro' && calc.id !== 'valor-presente' && (
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Plazo total (En Meses)</label>
+                    <label htmlFor="fin-terms-months" className="block text-xs font-bold text-gray-700 uppercase mb-1">Plazo total (En Meses)</label>
                     <input
+                      id="fin-terms-months"
                       type="number"
                       value={termsInMonths}
                       onChange={(e) => setTermsInMonths(Math.max(1, parseInt(e.target.value) || 1))}
@@ -335,8 +339,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
 
                 {calc.id === 'interes-compuesto' && (
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Aporte Mensual Adicional (RD$)</label>
+                    <label htmlFor="fin-monthly-contrib" className="block text-xs font-bold text-gray-700 uppercase mb-1">Aporte Mensual Adicional (RD$)</label>
                     <input
+                      id="fin-monthly-contrib"
                       type="number"
                       value={monthlyContribution}
                       onChange={(e) => setMonthlyContribution(Math.max(0, parseInt(e.target.value) || 0))}
@@ -347,8 +352,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
 
                 {(calc.id === 'valor-futuro' || calc.id === 'valor-presente') && (
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Plazo de la Inversión (En Años)</label>
+                    <label htmlFor="fin-periods-years" className="block text-xs font-bold text-gray-700 uppercase mb-1">Plazo de la Inversión (En Años)</label>
                     <input
+                      id="fin-periods-years"
                       type="number"
                       value={periodsInYears}
                       onChange={(e) => setPeriodsInYears(Math.max(1, parseInt(e.target.value) || 1))}
@@ -360,8 +366,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                 {calc.id === 'prestamo-avanzado' && (
                   <div className="grid grid-cols-2 gap-3 pt-1 border-t">
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase">Meses Gracia</label>
+                      <label htmlFor="fin-plazo-gracia" className="block text-[10px] font-bold text-gray-500 uppercase">Meses Gracia</label>
                       <input
+                        id="fin-plazo-gracia"
                         type="number"
                         value={plazoGracia}
                         onChange={(e) => setPlazoGracia(Math.max(0, parseInt(e.target.value) || 0))}
@@ -369,8 +376,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase">Seguro Vida (% Anual)</label>
+                      <label htmlFor="fin-seguro-vida" className="block text-[10px] font-bold text-gray-500 uppercase">Seguro Vida (% Anual)</label>
                       <input
+                        id="fin-seguro-vida"
                         type="number"
                         step="0.01"
                         value={seguroVidaAnual}
@@ -387,8 +395,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
             {calc.id === 'comparador-prestamos' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Monto del Financiamiento (RD$)</label>
+                  <label htmlFor="fin-monto-s" className="block text-xs font-bold text-gray-700 uppercase mb-1">Monto del Financiamiento (RD$)</label>
                   <input
+                    id="fin-monto-s"
                     type="number"
                     value={montoS}
                     onChange={(e) => setMontoS(Math.max(0, parseInt(e.target.value) || 0))}
@@ -401,6 +410,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       type="number"
                       placeholder="Tasa A (%)"
+                      aria-label="Tasa A (%)"
                       value={tasaA}
                       onChange={(e) => setTasaA(Math.max(0, parseFloat(e.target.value) || 0))}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
@@ -408,6 +418,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       type="number"
                       placeholder="Plazo A (meses)"
+                      aria-label="Plazo A (meses)"
                       value={plazoA}
                       onChange={(e) => setPlazoA(Math.max(1, parseInt(e.target.value) || 1))}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
@@ -418,6 +429,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       type="number"
                       placeholder="Tasa B (%)"
+                      aria-label="Tasa B (%)"
                       value={tasaB}
                       onChange={(e) => setTasaB(Math.max(0, parseFloat(e.target.value) || 0))}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
@@ -425,6 +437,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       type="number"
                       placeholder="Plazo B (meses)"
+                      aria-label="Plazo B (meses)"
                       value={plazoB}
                       onChange={(e) => setPlazoB(Math.max(1, parseInt(e.target.value) || 1))}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
@@ -438,8 +451,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
             {calc.id === 'refinanciamiento-analizador' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Deuda Pendiente (RD$)</label>
+                  <label htmlFor="fin-deuda-pendiente" className="block text-xs font-bold text-gray-700 uppercase mb-1">Deuda Pendiente (RD$)</label>
                   <input
+                    id="fin-deuda-pendiente"
                     type="number"
                     value={deudaPendiente}
                     onChange={(e) => setDeudaPendiente(Math.max(0, parseInt(e.target.value) || 0))}
@@ -448,8 +462,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                 </div>
                 <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 border rounded-xl">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase">Tasa Actual (%)</label>
+                    <label htmlFor="fin-tasa-ref-actual" className="block text-[10px] font-bold text-gray-500 uppercase">Tasa Actual (%)</label>
                     <input
+                      id="fin-tasa-ref-actual"
                       type="number"
                       value={tasaRefActual}
                       onChange={(e) => setTasaRefActual(parseFloat(e.target.value) || 0)}
@@ -457,8 +472,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase font-semibold">Tasa Nueva (%)</label>
+                    <label htmlFor="fin-tasa-ref-nueva" className="block text-[10px] font-bold text-gray-500 uppercase font-semibold">Tasa Nueva (%)</label>
                     <input
+                      id="fin-tasa-ref-nueva"
                       type="number"
                       value={tasaRefNueva}
                       onChange={(e) => setTasaRefNueva(parseFloat(e.target.value) || 0)}
@@ -466,8 +482,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase">Meses Restantes</label>
+                    <label htmlFor="fin-meses-ref" className="block text-[10px] font-bold text-gray-500 uppercase">Meses Restantes</label>
                     <input
+                      id="fin-meses-ref"
                       type="number"
                       value={mesesRefRestan}
                       onChange={(e) => setMesesRefRestan(parseInt(e.target.value) || 0)}
@@ -475,8 +492,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase">Gatos de Cierre (RD$)</label>
+                    <label htmlFor="fin-ref-comisiones" className="block text-[10px] font-bold text-gray-500 uppercase">Gastos de Cierre (RD$)</label>
                     <input
+                      id="fin-ref-comisiones"
                       type="number"
                       value={refComisiones}
                       onChange={(e) => setRefComisiones(parseInt(e.target.value) || 0)}

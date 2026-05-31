@@ -48,6 +48,8 @@ const injectSchema = (schemaObj: any) => {
   document.head.appendChild(script);
 };
 
+export const PUBLIC_SITE_URL = "https://negociord.com";
+
 const updateMetaTags = (title: string, description: string, path: string, type: 'article' | 'website' = 'website', faqItems?: FaqSchemaItem[]) => {
   if (typeof document === "undefined") return;
   
@@ -61,8 +63,7 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
   if (!metaDesc.parentNode) document.head.appendChild(metaDesc);
 
   // 3. Update Canonical
-  const origin = window.location.origin;
-  const canonicalUrl = `${origin}${path}`;
+  const canonicalUrl = `${PUBLIC_SITE_URL}${path}`;
   const canonical = document.querySelector('link[rel="canonical"]') || document.createElement('link');
   canonical.setAttribute('rel', 'canonical');
   canonical.setAttribute('href', canonicalUrl);
@@ -402,6 +403,11 @@ export default function App() {
         setCurrentView('calculator');
         setActiveCalculator(calc);
         return;
+      } else {
+        setCurrentView('404');
+        setActiveCalculator(null);
+        setSelectedGuideSlug(null);
+        return;
       }
     } else if (path.startsWith('/guia/')) {
       const slug = path.replace('/guia/', '');
@@ -409,6 +415,11 @@ export default function App() {
       if (guide) {
         setCurrentView('blog');
         setSelectedGuideSlug(slug);
+        return;
+      } else {
+        setCurrentView('404');
+        setActiveCalculator(null);
+        setSelectedGuideSlug(null);
         return;
       }
     } else if (path === '/nosotros') {
@@ -436,10 +447,15 @@ export default function App() {
       setActiveCalculator(null);
       setSelectedGuideSlug(null);
       return;
+    } else if (path === '/') {
+      setCurrentView('home');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
     }
     
-    // Default fallback to home
-    setCurrentView('home');
+    // Default fallback to 404 for any other path (avoid soft 404)
+    setCurrentView('404');
     setActiveCalculator(null);
     setSelectedGuideSlug(null);
   };
@@ -582,7 +598,9 @@ export default function App() {
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
               <Search className="h-4 w-4" />
             </div>
+            <label htmlFor="global-header-search" className="sr-only">Buscar calculadora o guía</label>
             <input 
+              id="global-header-search"
               type="text" 
               value={searchFilter}
               onChange={(e) => handleGlobalSearchChange(e.target.value)}
@@ -746,7 +764,9 @@ export default function App() {
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                 <Search className="h-4 w-4" />
               </div>
+              <label htmlFor="mobile-search-nav" className="sr-only">Buscar calculadora o guía en menú móvil</label>
               <input 
+                id="mobile-search-nav"
                 type="text" 
                 value={searchFilter}
                 onChange={(e) => handleGlobalSearchChange(e.target.value)}
@@ -1010,12 +1030,13 @@ export default function App() {
 
               {/* SEARCH INPUT BAR inline */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs">
-                <span className="text-xs font-bold text-[#0F766E] uppercase tracking-wider mb-2.5 block">Buscar herramienta en tiempo real</span>
+                <label htmlFor="search-input-header" className="text-xs font-bold text-[#0F766E] uppercase tracking-wider mb-2.5 block cursor-pointer">Buscar herramienta en tiempo real</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
                     <Search size={18} />
                   </div>
                   <input 
+                    id="search-input-header"
                     type="text" 
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
@@ -1118,8 +1139,9 @@ export default function App() {
                     <form onSubmit={handleCtaCalcular} className="space-y-3 mb-4">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Monto Ventas (RD$)</label>
+                          <label htmlFor="sim-cta-ventas-mes" className="text-[10px] uppercase font-bold text-gray-500 block mb-1 cursor-pointer">Monto Ventas (RD$)</label>
                           <input 
+                            id="sim-cta-ventas-mes"
                             type="number"
                             value={ctaVentasMes}
                             onChange={(e) => setCtaVentasMes(Math.max(0, parseInt(e.target.value) || 0))}
@@ -1127,8 +1149,9 @@ export default function App() {
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Monto Gastos (RD$)</label>
+                          <label htmlFor="sim-cta-gastos-mes" className="text-[10px] uppercase font-bold text-gray-500 block mb-1 cursor-pointer">Monto Gastos (RD$)</label>
                           <input 
+                            id="sim-cta-gastos-mes"
                             type="number"
                             value={ctaGastosMes}
                             onChange={(e) => setCtaGastosMes(Math.max(0, parseInt(e.target.value) || 0))}
@@ -1354,7 +1377,7 @@ export default function App() {
                       <p className="text-xs text-gray-500 mt-1">Perfecto para consultas ocasionales.</p>
                       
                       <div className="my-6">
-                        <span className="text-3xl font-extrabold text-gray-900">RD$ 0</span>
+                        <span className="text-3xl font-extrabold text-gray-950">RD$ 0</span>
                         <span className="text-xs text-gray-400"> / siempre</span>
                       </div>
 
@@ -1383,7 +1406,7 @@ export default function App() {
                       <p className="text-xs text-gray-500 mt-1">Para contadores independientes y pymes.</p>
                       
                       <div className="my-6">
-                        <span className="text-3xl font-extrabold text-gray-900">RD$ 495</span>
+                        <span className="text-3xl font-extrabold text-gray-950">RD$ 495</span>
                         <span className="text-xs text-gray-400"> / al mes</span>
                       </div>
 
@@ -1405,7 +1428,7 @@ export default function App() {
                   </div>
 
                   {/* Plan 3: Pro Anual */}
-                  <div className="border border-gray-200 rounded-2xl p-6 bg-[#FAFAFA] flex flex-col justify-between h-[450px]">
+                  <div className="border border-gray-250 rounded-2xl p-6 bg-[#FAFAFA] flex flex-col justify-between h-[450px]">
                     <div>
                       <h3 className="font-bold text-gray-900 text-lg">PRO Anual</h3>
                       <p className="text-xs text-gray-500 mt-1">El mejor valor para consultores fiscales de RD.</p>
@@ -1442,6 +1465,48 @@ export default function App() {
                       Garantizamos de forma transparente reembolsos dentro de los primeros 14 días si no se encuentra satisfecho con las funcionalidades.
                     </p>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 404 NOT FOUND SECTION */}
+          {currentView === '404' && (
+            <div className="animate-in fade-in duration-150 py-10 max-w-2xl mx-auto w-full text-center px-4">
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 md:p-12 shadow-sm space-y-6">
+                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h1 className="text-3xl font-extrabold text-[#111827]">Página No Encontrada</h1>
+                <p className="text-gray-500 text-sm leading-relaxed max-w-md mx-auto">
+                  La calculadora, guía o sección que busca no existe, ha sido movida o está fuera de servicio temporalmente.
+                </p>
+                <div className="bg-gray-50 p-4 rounded-xl text-left border border-gray-100">
+                  <span className="text-xs font-bold text-gray-750 block mb-2">Herramientas populares de NegocioRD:</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <button onClick={() => navigateTo('/herramientas/calculadora-itbis')} className="flex items-center gap-1.5 text-[#0F766E] hover:underline font-semibold text-left cursor-pointer">
+                      ✦ Calculadora de ITBIS
+                    </button>
+                    <button onClick={() => navigateTo('/herramientas/calculadora-salario-neto')} className="flex items-center gap-1.5 text-[#0F766E] hover:underline font-semibold text-left cursor-pointer">
+                      ✦ Calculadora de Salario Neto
+                    </button>
+                    <button onClick={() => navigateTo('/herramientas/calculadora-prestaciones-laborales')} className="flex items-center gap-1.5 text-[#0F766E] hover:underline font-semibold text-left cursor-pointer">
+                      ✦ Prestaciones Laborales
+                    </button>
+                    <button onClick={() => navigateTo('/herramientas/calculadora-retenciones-dgii')} className="flex items-center gap-1.5 text-[#0F766E] hover:underline font-semibold text-left cursor-pointer">
+                      ✦ Retenciones de ISR/TSS
+                    </button>
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <button
+                    onClick={() => navigateTo('/')}
+                    className="px-6 py-2.5 bg-[#0F766E] text-white text-xs font-bold rounded-lg cursor-pointer hover:opacity-95 transition-all shadow-xs inline-flex items-center gap-2"
+                  >
+                    Regresar al inicio
+                  </button>
                 </div>
               </div>
             </div>
@@ -1525,10 +1590,11 @@ export default function App() {
           </div>
 
           <div>
-            <h4 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Monitoreo De Cambios</h4>
+            <label htmlFor="footer-email-monitoring" className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3 block cursor-pointer">Monitoreo De Cambios</label>
             <p className="text-xs text-gray-450 mb-3 leading-relaxed">Inscríbase para recibir alertas de cambios en las normativas del ISR o de retenciones de salud.</p>
             <div className="flex gap-1.5">
               <input 
+                id="footer-email-monitoring"
                 type="email" 
                 placeholder="correo@ejemplo.com"
                 className="bg-gray-50 border border-gray-300 rounded px-2 text-xs flex-grow outline-none focus:ring-1 focus:ring-[#0F766E] focus:bg-white transition-all"

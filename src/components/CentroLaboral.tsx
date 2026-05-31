@@ -363,8 +363,9 @@ export default function CentroLaboral() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Nombre Completo</label>
+              <label htmlFor="cl-name" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Nombre Completo</label>
               <input 
+                id="cl-name"
                 type="text" 
                 required
                 value={name}
@@ -374,8 +375,9 @@ export default function CentroLaboral() {
               />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Cargo / Función</label>
+              <label htmlFor="cl-role" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Cargo / Función</label>
               <input 
+                id="cl-role"
                 type="text" 
                 required
                 value={role}
@@ -404,8 +406,9 @@ export default function CentroLaboral() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Salario Mensual Bruto (RD$)</label>
+              <label htmlFor="cl-salary" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Salario Mensual Bruto (RD$)</label>
               <input 
+                id="cl-salary"
                 type="number" 
                 required
                 min={100}
@@ -416,8 +419,9 @@ export default function CentroLaboral() {
               />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Fecha de Ingreso (Hiring Date)</label>
+              <label htmlFor="cl-hire-date" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Fecha de Ingreso (Hiring Date)</label>
               <input 
+                id="cl-hire-date"
                 type="date" 
                 required
                 value={hireDate}
@@ -474,6 +478,7 @@ export default function CentroLaboral() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar colaborador..."
+                  aria-label="Buscar colaborador por nombre"
                   className="w-full pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs focus:ring-1 focus:ring-[#0F766E] outline-none"
                 />
               </div>

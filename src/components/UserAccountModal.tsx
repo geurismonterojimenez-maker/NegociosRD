@@ -580,10 +580,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
                 {isRegisterMode && (
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-500">Nombre Completo</label>
+                    <label htmlFor="auth-register-name" className="text-xs font-bold text-gray-500">Nombre Completo</label>
                     <div className="relative">
                       <span className="absolute left-3 top-3 text-gray-400 text-xs">👤</span>
                       <input 
+                        id="auth-register-name"
                         type="text"
                         value={authName}
                         onChange={(e) => setAuthName(e.target.value)}
@@ -596,10 +597,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 )}
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-500">Correo Electrónico</label>
+                  <label htmlFor="auth-login-email" className="text-xs font-bold text-gray-500">Correo Electrónico</label>
                   <div className="relative">
                     <span className="absolute left-3 top-3 text-gray-400 text-xs">✉️</span>
                     <input 
+                      id="auth-login-email"
                       type="email"
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
@@ -611,10 +613,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-500">Contraseña de Seguridad</label>
+                  <label htmlFor="auth-login-password" className="text-xs font-bold text-gray-500">Contraseña de Seguridad</label>
                   <div className="relative">
                     <span className="absolute left-3 top-3 text-gray-400 text-xs">🔒</span>
                     <input 
+                      id="auth-login-password"
                       type="password"
                       value={authPassword}
                       onChange={(e) => setAuthPassword(e.target.value)}
@@ -885,6 +888,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                           min="1" 
                           max="30" 
                           value={itbisFactor}
+                          aria-label="Factor de ITBIS actual"
                           onChange={(e) => {
                             setItbisFactor(Number(e.target.value));
                             addLog(`Configuración de sesión: Variación de factor ITBIS establecido en ${e.target.value}%.`);
@@ -904,6 +908,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                           max="25000" 
                           step="100" 
                           value={minWageDop}
+                          aria-label="Salario Mínimo Nacional Promedio de Referencia"
                           onChange={(e) => {
                             setMinWageDop(Number(e.target.value));
                             addLog(`Configuración laboral: Salario mínimo nacional mutado a RD$ ${Number(e.target.value).toLocaleString()}`);
@@ -1146,8 +1151,9 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                       <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Nombre en Tarjeta</label>
+                        <label htmlFor="card-name-input" className="block text-xs font-bold text-gray-500 mb-1">Nombre en Tarjeta</label>
                         <input 
+                          id="card-name-input"
                           type="text"
                           value={cardName}
                           onChange={(e) => setCardName(e.target.value)}
@@ -1158,9 +1164,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Número de Tarjeta</label>
+                        <label htmlFor="card-number-input" className="block text-xs font-bold text-gray-500 mb-1">Número de Tarjeta</label>
                         <div className="relative">
                           <input 
+                            id="card-number-input"
                             type="text"
                             value={cardNumber}
                             onChange={handleCardNumberChange}
@@ -1177,8 +1184,9 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
                     <div className="grid grid-cols-2 gap-4 text-left">
                       <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1 font-sans">Expira (MM/YY)</label>
+                        <label htmlFor="card-expiry-input" className="block text-xs font-bold text-gray-500 mb-1 font-sans">Expira (MM/YY)</label>
                         <input 
+                          id="card-expiry-input"
                           type="text"
                           value={cardExpiry}
                           onChange={handleExpiryChange}
@@ -1189,8 +1197,9 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Código CVV</label>
+                        <label htmlFor="card-cvv-input" className="block text-xs font-bold text-gray-500 mb-1">Código CVV</label>
                         <input 
+                          id="card-cvv-input"
                           type="password"
                           value={cardCvv}
                           onChange={(e) => {

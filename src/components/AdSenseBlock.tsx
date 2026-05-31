@@ -12,6 +12,7 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
 
   // Check if PRO is active based on props or localStorage
   const isPro = userTier === 'PRO' || (typeof window !== 'undefined' && localStorage.getItem('negociord_user_tier') === 'PRO');
+  const isDev = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV === true;
 
   if (isPro) {
     if (variant === 'skyscraper-left' || variant === 'skyscraper-right') {
@@ -90,27 +91,31 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
     }
   };
 
+  const finalShowCode = isDev && showCode;
+
   // Render Left Skyscraper (Tower, 160x600 or responsive vertical tower)
   if (variant === 'skyscraper-left') {
     return (
-      <div className={`w-full flex flex-col gap-2.5 h-full ${className}`} id="adsense-skyscraper-left">
+      <div className={`w-full flex flex-col gap-2.5 h-full ${className}`}>
         <div className="flex items-center justify-between px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
           <span className="flex items-center gap-1">
             <Monitor size={10} className="text-teal-600" />
             AdSense Lateral Izquierdo
           </span>
-          <button 
-            type="button"
-            onClick={() => setShowCode(!showCode)} 
-            className="hover:text-[#0F766E] transition-colors cursor-pointer"
-            title="Ver código oficial de AdSense"
-            aria-label="Ver código oficial de AdSense Izquierdo"
-          >
-            {showCode ? <Eye size={12} /> : <Code size={12} />}
-          </button>
+          {isDev && (
+            <button 
+              type="button"
+              onClick={() => setShowCode(!showCode)} 
+              className="hover:text-[#0F766E] transition-colors cursor-pointer"
+              title="Ver código oficial de AdSense"
+              aria-label="Ver código oficial de AdSense Izquierdo"
+            >
+              {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
+            </button>
+          )}
         </div>
 
-        {showCode ? (
+        {finalShowCode ? (
           <div className="flex-grow p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-auto break-all border border-gray-800 leading-normal max-h-[600px]">
             <div className="border-b border-gray-800 pb-1.5 mb-2 text-gray-500 font-sans font-bold flex justify-between">
               <span>CÓDIGO DE INTEGRACIÓN</span>
@@ -148,24 +153,26 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
   // Render Right Skyscraper (Tower, 160x600 or responsive vertical tower)
   if (variant === 'skyscraper-right') {
     return (
-      <div className={`w-full flex flex-col gap-2.5 h-full ${className}`} id="adsense-skyscraper-right">
+      <div className={`w-full flex flex-col gap-2.5 h-full ${className}`}>
         <div className="flex items-center justify-between px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
           <span className="flex items-center gap-1">
             <Monitor size={10} className="text-teal-600" />
             AdSense Lateral Derecho
           </span>
-          <button 
-            type="button"
-            onClick={() => setShowCode(!showCode)} 
-            className="hover:text-[#0F766E] transition-colors cursor-pointer"
-            title="Ver código oficial de AdSense"
-            aria-label="Ver código oficial de AdSense Derecho"
-          >
-            {showCode ? <Eye size={12} /> : <Code size={12} />}
-          </button>
+          {isDev && (
+            <button 
+              type="button"
+              onClick={() => setShowCode(!showCode)} 
+              className="hover:text-[#0F766E] transition-colors cursor-pointer"
+              title="Ver código oficial de AdSense"
+              aria-label="Ver código oficial de AdSense Derecho"
+            >
+              {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
+            </button>
+          )}
         </div>
 
-        {showCode ? (
+        {finalShowCode ? (
           <div className="flex-grow p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-auto break-all border border-gray-800 leading-normal max-h-[600px]">
             <div className="border-b border-gray-800 pb-1.5 mb-2 text-gray-500 font-sans font-bold flex justify-between">
               <span>CÓDIGO DE INTEGRACIÓN</span>
@@ -203,29 +210,30 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
   // Render Mobile InFeed (Special phone landscape and portrait block)
   if (variant === 'mobile-infeed') {
     return (
-      <div className={`w-full bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-xs relative overflow-hidden ${className}`} id="adsense-mobile-infeed">
+      <div className={`w-full bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-xs relative overflow-hidden ${className}`}>
         <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-gray-100">
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 select-none">
             <Smartphone size={10} className="text-[#0F766E]" />
             <span>AdSense Optimizado para Celulares / Tablets</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowCode(!showCode)} 
-            className="text-xs text-gray-400 hover:text-[#0F766E] font-medium inline-flex items-center gap-1 cursor-pointer"
-          >
-            {showCode ? <Eye size={12} /> : <Code size={12} />}
-            <span className="text-[10px] font-mono">{showCode ? 'Ver preview' : 'Ver código'}</span>
-          </button>
+          {isDev && (
+            <button
+              type="button"
+              onClick={() => setShowCode(!showCode)} 
+              className="text-xs text-gray-400 hover:text-[#0F766E] font-medium inline-flex items-center gap-1 cursor-pointer"
+            >
+              {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
+              <span className="text-[10px] font-mono">{finalShowCode ? 'Ver preview' : 'Ver código'}</span>
+            </button>
+          )}
         </div>
 
-        {showCode ? (
+        {finalShowCode ? (
           <pre className="p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap leading-relaxed border border-gray-800">
             {getAdSenseCode()}
           </pre>
         ) : (
           <div className="flex flex-col md:flex-row items-center gap-4 py-2">
-            {/* Simulation of a premium native article card ad block */}
             <div className="w-full md:w-28 h-20 bg-gray-50 border border-dashed border-gray-300 rounded-lg flex flex-col justify-center items-center text-center px-2 select-none">
               <span className="text-xl">🏬</span>
               <span className="text-[8px] font-mono text-gray-400 mt-1">Anuncio Adaptable</span>
@@ -249,23 +257,25 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
   // Render Horizontal Bottom full-width banner
   if (variant === 'horizontal-bottom') {
     return (
-      <div className={`w-full flex flex-col gap-2 ${className}`} id="adsense-horizontal-bottom">
+      <div className={`w-full flex flex-col gap-2 ${className}`}>
         <div className="flex items-center justify-between px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
           <span className="flex items-center gap-1">
             <Tablet size={10} className="text-teal-600" />
             AdSense Horizontal Inferior (Responsive)
           </span>
-          <button 
-            type="button"
-            onClick={() => setShowCode(!showCode)} 
-            className="hover:text-[#0F766E] transition-colors cursor-pointer text-xs flex items-center gap-1 font-mono hover:underline"
-          >
-            {showCode ? <Eye size={12} /> : <Code size={12} />}
-            <span>{showCode ? 'Ver diseño' : 'Código'}</span>
-          </button>
+          {isDev && (
+            <button 
+              type="button"
+              onClick={() => setShowCode(!showCode)} 
+              className="hover:text-[#0F766E] transition-colors cursor-pointer text-xs flex items-center gap-1 font-mono hover:underline"
+            >
+              {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
+              <span>{finalShowCode ? 'Ver diseño' : 'Código'}</span>
+            </button>
+          )}
         </div>
 
-        {showCode ? (
+        {finalShowCode ? (
           <pre className="p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap leading-relaxed border border-gray-800">
             {getAdSenseCode()}
           </pre>
@@ -287,20 +297,22 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
 
   // Render inline results banner wrapper
   return (
-    <div className={`w-full flex flex-col gap-2 ${className}`} id="adsense-results-inline">
+    <div className={`w-full flex flex-col gap-2 ${className}`}>
       <div className="flex items-center justify-between px-1 text-[9px] text-[#9CA3AF] font-bold uppercase tracking-wider select-none">
         <span>Publicidad Relacionada</span>
-        <button 
-          type="button"
-          onClick={() => setShowCode(!showCode)} 
-          className="hover:text-[#0F766E] transition-colors cursor-pointer"
-          aria-label="Ver código fiscal del anuncio"
-        >
-          {showCode ? <Eye size={12} /> : <Code size={12} />}
-        </button>
+        {isDev && (
+          <button 
+            type="button"
+            onClick={() => setShowCode(!showCode)} 
+            className="hover:text-[#0F766E] transition-colors cursor-pointer"
+            aria-label="Ver código fiscal del anuncio"
+          >
+            {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
+          </button>
+        )}
       </div>
 
-      {showCode ? (
+      {finalShowCode ? (
         <pre className="p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap leading-normal border border-gray-800">
           {getAdSenseCode()}
         </pre>

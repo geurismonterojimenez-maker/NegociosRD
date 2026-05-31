@@ -312,7 +312,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
             {/* Show Salary input block for almost all except proportional cumulative */}
             {calc.id !== 'regalia-proporcional' && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label htmlFor="lab-salary-input" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                   Salario Ordinario Mensual (RD$)
                 </label>
                 <div className="relative">
@@ -320,6 +320,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                     <span className="text-xs font-semibold">$</span>
                   </div>
                   <input
+                    id="lab-salary-input"
                     type="number"
                     value={salaryInput}
                     onChange={(e) => setSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -334,10 +335,11 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
             {/* Décimo tercer salario / Vacaciones Pendientes Months picker */}
             {(calc.id === 'decimo-tercer-salario' || calc.id === 'vacaciones-pendientes') && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label htmlFor="lab-months-worked" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                   Meses Trabajados en el Año
                 </label>
                 <input
+                  id="lab-months-worked"
                   type="range"
                   min="1"
                   max="12"
@@ -359,8 +361,9 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                 <span className="text-xs font-bold text-[#0F766E] uppercase tracking-wider block">Desglose de horas extraordinarias</span>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Horas 44 a 68 (+35%)</label>
+                    <label htmlFor="lab-hours-35" className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Horas 44 a 68 (+35%)</label>
                     <input
+                      id="lab-hours-35"
                       type="number"
                       value={hoursOver35}
                       onChange={(e) => setHoursOver35(Math.max(0, parseInt(e.target.value) || 0))}
@@ -368,8 +371,9 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">H. Extras &gt;68 (+100%)</label>
+                    <label htmlFor="lab-hours-68" className="block text-[10px] font-bold text-gray-500 uppercase mb-1">H. Extras &gt;68 (+100%)</label>
                     <input
+                      id="lab-hours-68"
                       type="number"
                       value={hoursOver68}
                       onChange={(e) => setHoursOver68(Math.max(0, parseInt(e.target.value) || 0))}
@@ -377,8 +381,9 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">H. Festivos (+100%)</label>
+                    <label htmlFor="lab-hours-holiday" className="block text-[10px] font-bold text-gray-500 uppercase mb-1">H. Festivos (+100%)</label>
                     <input
+                      id="lab-hours-holiday"
                       type="number"
                       value={hoursHoliday}
                       onChange={(e) => setHoursHoliday(Math.max(0, parseInt(e.target.value) || 0))}
@@ -392,10 +397,11 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
             {/* Trabajo nocturno numeric inputs */}
             {calc.id === 'trabajo-nocturno' && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label htmlFor="lab-night-hours" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                   Total Horas Nocturnas Trabajadas
                 </label>
                 <input
+                  id="lab-night-hours"
                   type="number"
                   value={nightHours}
                   onChange={(e) => setNightHours(Math.max(0, parseInt(e.target.value) || 0))}
@@ -408,10 +414,11 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
             {/* Salario por hora shift size */}
             {calc.id === 'salario-por-hora' && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label htmlFor="lab-daily-hours" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                   Horas de la Jornada Diaria
                 </label>
                 <select
+                  id="lab-daily-hours"
                   value={dailyHours}
                   onChange={(e) => setDailyHours(parseInt(e.target.value))}
                   className="block w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
@@ -426,10 +433,11 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
             {/* Bonificaciones / Indemnizaciones Years picker */}
             {(calc.id === 'bonificaciones-ley' || calc.id === 'indemnizacion-laboral') && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label htmlFor="lab-years-service" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                   Años Completos de Servicio Continuo
                 </label>
                 <input
+                  id="lab-years-service"
                   type="number"
                   min="0"
                   max="45"
@@ -444,10 +452,11 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
             {/* Vacaciones Pendientes overdue days picker */}
             {calc.id === 'vacaciones-pendientes' && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label htmlFor="lab-overdue-days" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                   Días de Vacaciones Vencidas (Años Anteriores)
                 </label>
                 <input
+                  id="lab-overdue-days"
                   type="number"
                   value={overdueDays}
                   onChange={(e) => setOverdueDays(Math.max(0, parseInt(e.target.value) || 0))}
@@ -460,10 +469,11 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
             {/* Regalía Proporcional accum input */}
             {calc.id === 'regalia-proporcional' && (
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                <label htmlFor="lab-total-yearly" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                   Suma de Todos los Salarios Ganados Este Año (RD$)
                 </label>
                 <input
+                  id="lab-total-yearly"
                   type="number"
                   value={totalYearlyEarnings}
                   onChange={(e) => setTotalYearlyEarnings(Math.max(0, parseFloat(e.target.value) || 0))}
