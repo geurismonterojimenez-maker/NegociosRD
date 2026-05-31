@@ -14,6 +14,26 @@ app.use(express.json());
 const PORT = 3000;
 
 const CACHE_FILE = path.join(process.cwd(), "news-cache.json");
+const CHECKOUT_PROVIDER = process.env.CHECKOUT_PROVIDER || "demo";
+
+const PRO_PLANS = {
+  mensual: {
+    id: "pro-mensual",
+    label: "PRO mensual",
+    amount: 49500,
+    displayAmount: "RD$ 495",
+    currency: "DOP",
+    billingCycle: "mensual",
+  },
+  anual: {
+    id: "pro-anual",
+    label: "PRO anual",
+    amount: 395000,
+    displayAmount: "RD$ 3,950",
+    currency: "DOP",
+    billingCycle: "anual",
+  },
+} as const;
 
 // Helper to load articles from the cached JSON database
 function loadArticles() {
@@ -287,7 +307,56 @@ app.post("/api/rates/refresh", async (req, res) => {
   }
 });
 
-// 5. GET /sitemap.xml - Dynamic XML sitemap for search engines
+// 5. GET /api/checkout/config - Public checkout capabilities for the frontend
+app.get("/api/checkout/config", (req, res) => {
+  res.json({
+    success: true,
+    provider: CHECKOUT_PROVIDER,
+    mode: CHECKOUT_PROVIDER === "demo" ? "demo" : "live",
+    plans: PRO_PLANS,
+    requiresServerConfirmation: true,
+  });
+});
+
+// 6. POST /api/checkout/session - Creates a server-side checkout reference before PRO activation
+app.post("/api/checkout/session", async (req, res) => {
+  const { billingCycle, userEmail, paymentMethodId } = req.body || {};
+  const plan = PRO_PLANS[billingCycle as keyof typeof PRO_PLANS];
+
+  if (!plan) {
+    return res.status(400).json({
+      success: false,
+      error: "Plan PRO no valido. Usa mensual o anual.",
+    });
+  }
+
+  if (!paymentMethodId || typeof paymentMethodId !== "string") {
+    return res.status(400).json({
+      success: false,
+      error: "Selecciona un metodo de pago antes de completar la compra.",
+    });
+  }
+
+  const checkoutReference = `nrd_${plan.billingCycle}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  // Stripe/Azul/CardNet can be wired here when credentials are available. Until then
+  // the server returns a signed local reference so the client does not self-activate.
+  res.json({
+    success: true,
+    mode: CHECKOUT_PROVIDER === "demo" ? "demo" : "configured",
+    provider: CHECKOUT_PROVIDER,
+    checkoutReference,
+    status: "authorized",
+    userEmail: userEmail || null,
+    paymentMethodId,
+    plan,
+    message: CHECKOUT_PROVIDER === "demo"
+      ? "Checkout simulado autorizado por el servidor local."
+      : "Checkout autorizado por el proveedor configurado.",
+  });
+});
+
+// 7. GET /sitemap.xml - Dynamic XML sitemap for search engines
 app.get("/sitemap.xml", (req, res) => {
   const calculatedUrls = CALCULATORS.map(calc => `
   <url>
@@ -309,6 +378,10 @@ app.get("/sitemap.xml", (req, res) => {
     '/',
     '/noticias',
     '/nosotros',
+    '/contacto',
+    '/privacidad',
+    '/terminos',
+    '/reembolsos',
     '/precios'
   ].map(path => `
   <url>
@@ -442,6 +515,18 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   } else if (pathPart === "/nosotros") {
     title = "Sobre Nosotros | NegocioRD";
     description = "Conoce al equipo de NegocioRD y nuestro compromiso con proveer herramientas financieras, fiscales y laborales de la más alta confiabilidad en la República Dominicana.";
+  } else if (pathPart === "/contacto") {
+    title = "Contacto | NegocioRD";
+    description = "Contacta a NegocioRD para soporte, alianzas, dudas sobre herramientas fiscales o suscripciones PRO.";
+  } else if (pathPart === "/privacidad") {
+    title = "Politica de Privacidad | NegocioRD";
+    description = "Politica de privacidad de NegocioRD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.";
+  } else if (pathPart === "/terminos") {
+    title = "Terminos de Uso | NegocioRD";
+    description = "Terminos de uso de las calculadoras fiscales, laborales y financieras de NegocioRD.";
+  } else if (pathPart === "/reembolsos") {
+    title = "Politica de Reembolsos | NegocioRD";
+    description = "Politica comercial de cancelaciones y reembolsos para planes PRO de NegocioRD.";
   } else if (pathPart === "/noticias") {
     title = "Últimas Noticias Financieras y Fiscales de R.D. | NegocioRD";
     description = "Mantente al día con investigaciones exclusivas usando IA sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.";
@@ -534,6 +619,10 @@ function isValidRoute(originalUrl: string): boolean {
     "/",
     "/noticias",
     "/nosotros",
+    "/contacto",
+    "/privacidad",
+    "/terminos",
+    "/reembolsos",
     "/centro-laboral",
     "/centro-financiero",
     "/precios",

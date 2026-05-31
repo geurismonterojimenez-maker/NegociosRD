@@ -133,6 +133,30 @@ function saveLocalPaymentMethods(cards: PaymentMethodItem[]) {
   localStorage.setItem(LOCAL_PAYMENT_METHODS_KEY, JSON.stringify(cards));
 }
 
+async function createCheckoutSession(params: {
+  billingCycle: Exclude<BillingCycle, 'trial'>;
+  userEmail?: string | null;
+  paymentMethodId: string;
+}) {
+  const response = await fetch('/api/checkout/session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok || !payload?.success) {
+    throw new Error(payload?.error || 'No se pudo autorizar el checkout PRO.');
+  }
+
+  return payload as {
+    checkoutReference: string;
+    mode: string;
+    provider: string;
+    plan: { displayAmount: string; billingCycle: string };
+  };
+}
+
 function getAuthErrorMessage(err: any): string {
   const code = err?.code || err?.message || '';
 
@@ -561,16 +585,23 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     const plan = PRO_PLAN_PRICES[billingCycle];
     try {
       const nextSubscription = createActiveSubscriptionState(billingCycle, `card-${cardId}`);
+      const checkout = await createCheckoutSession({
+        billingCycle,
+        userEmail: user.email,
+        paymentMethodId: cardId,
+      });
       await persistSubscriptionState(nextSubscription);
       onTierChange('PRO');
       onSubscriptionChange?.(nextSubscription);
-      triggerToast(`Compra completada: ${plan.label} activo.`);
+      triggerToast(`Compra completada: ${plan.label} activo. Ref. ${checkout.checkoutReference}`);
       if (!isLocalDemoUser(user)) {
         await logSubscription(currentSubscription.plan, 'PRO', `Compra simulada completada: ${plan.label}.`, {
           subscriptionStatus: nextSubscription.status,
           billingCycle: nextSubscription.billingCycle,
           paymentMethod: nextSubscription.paymentMethod,
           checkoutTotal: plan.total,
+          checkoutReference: checkout.checkoutReference,
+          checkoutProvider: checkout.provider,
         });
       }
     } catch (err) {

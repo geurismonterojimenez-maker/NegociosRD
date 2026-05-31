@@ -24,15 +24,10 @@ import {
 import CalculatorsList from './components/CalculatorsList';
 import CalculatorForm from './components/CalculatorForm';
 import GuidesView from './components/GuidesView';
-import NewsSection from './components/NewsSection';
 import AdSenseBlock from './components/AdSenseBlock';
-import AdminConsole from './components/AdminConsole';
-import ProfessionalPortal from './components/ProfessionalPortal';
-import UserAccountModal from './components/UserAccountModal';
-import CentroLaboral from './components/CentroLaboral';
-import CentroFinanciero from './components/CentroFinanciero';
 import { isAdminEmail } from './config/admin';
 import { logSubscription } from './lib/firebase';
+import { TAX_RATES_REGISTRY } from './config/tax-rates';
 import { 
   Search, 
   Sparkles, 
@@ -71,6 +66,59 @@ const injectSchema = (schemaObj: any) => {
 };
 
 export const PUBLIC_SITE_URL = "https://negociord.com";
+
+const TRUST_PAGES = {
+  contacto: {
+    title: 'Contacto | NegocioRD',
+    description: 'Contacta a NegocioRD para soporte, alianzas, dudas sobre herramientas fiscales o suscripciones PRO.',
+    heading: 'Contacto y soporte',
+    body: 'Para soporte de cuenta, consultas sobre calculadoras o alianzas profesionales, escribe a soporte@negociord.com. Respondemos solicitudes operativas y comerciales en horario laboral de Republica Dominicana.',
+    bullets: ['Soporte para suscripciones PRO', 'Correcciones de datos o fuentes oficiales', 'Alianzas con contadores, firmas y pymes'],
+  },
+  privacidad: {
+    title: 'Politica de Privacidad | NegocioRD',
+    description: 'Politica de privacidad de NegocioRD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.',
+    heading: 'Politica de privacidad',
+    body: 'NegocioRD recoge solo la informacion necesaria para autenticacion, administracion de cuenta, seguridad operativa y mejora de herramientas. Las tarjetas en modo local son simuladas; una pasarela real debera procesar datos sensibles fuera de nuestros servidores.',
+    bullets: ['No vendemos datos personales', 'Los calculos introducidos se tratan como informacion operativa del usuario', 'El acceso PRO se valida por estado de suscripcion y registro de cuenta'],
+  },
+  terminos: {
+    title: 'Terminos de Uso | NegocioRD',
+    description: 'Terminos de uso de las calculadoras fiscales, laborales y financieras de NegocioRD.',
+    heading: 'Terminos de uso',
+    body: 'Las herramientas de NegocioRD son de apoyo informativo y no sustituyen asesoria contable, fiscal, financiera o legal individualizada. El usuario debe validar resultados criticos contra fuentes oficiales y documentacion propia.',
+    bullets: ['Uso permitido para calculos internos y educativos', 'No garantizamos decision administrativa de DGII, TSS o Ministerio de Trabajo', 'El usuario es responsable de verificar datos antes de presentar declaraciones'],
+  },
+  reembolsos: {
+    title: 'Politica de Reembolsos | NegocioRD',
+    description: 'Politica comercial de cancelaciones y reembolsos para planes PRO de NegocioRD.',
+    heading: 'Cancelaciones y reembolsos',
+    body: 'Las suscripciones PRO pueden cancelarse desde el portal de cuenta. Cuando exista pasarela real, los reembolsos se revisaran segun fecha de compra, uso del servicio y reglas del proveedor de pago.',
+    bullets: ['Cancelacion disponible desde el portal de cuenta', 'Modo demo no realiza cargos reales', 'Pagos reales deberan emitir referencia y recibo de compra'],
+  },
+} as const;
+
+const SOURCE_SUMMARY = [
+  TAX_RATES_REGISTRY.itbis.general,
+  TAX_RATES_REGISTRY.topesCotizables.salarioMinimoTSS,
+  TAX_RATES_REGISTRY.isrEscalasAnuales.metadata,
+  TAX_RATES_REGISTRY.recargosDGII.interesIndemnizatorio,
+];
+
+const AdminConsole = React.lazy(() => import('./components/AdminConsole'));
+const CentroFinanciero = React.lazy(() => import('./components/CentroFinanciero'));
+const CentroLaboral = React.lazy(() => import('./components/CentroLaboral'));
+const NewsSection = React.lazy(() => import('./components/NewsSection'));
+const ProfessionalPortal = React.lazy(() => import('./components/ProfessionalPortal'));
+const UserAccountModal = React.lazy(() => import('./components/UserAccountModal'));
+
+function LazyFallback({ label = 'Cargando modulo...' }: { label?: string }) {
+  return (
+    <div className="py-10 text-center text-xs font-bold text-gray-500">
+      {label}
+    </div>
+  );
+}
 
 const updateMetaTags = (title: string, description: string, path: string, type: 'article' | 'website' = 'website', faqItems?: FaqSchemaItem[], robots: string = 'index, follow') => {
   if (typeof document === "undefined") return;
@@ -390,7 +438,7 @@ function ProUpgradeModal({ isOpen, onClose, onUpgrade, featureName }: ProUpgrade
 }
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios' | 'admin' | '404'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'contacto' | 'privacidad' | 'terminos' | 'reembolsos' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios' | 'admin' | '404'>('home');
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -584,6 +632,26 @@ export default function App() {
       setActiveCalculator(null);
       setSelectedGuideSlug(null);
       return;
+    } else if (path === '/contacto') {
+      setCurrentView('contacto');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (path === '/privacidad') {
+      setCurrentView('privacidad');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (path === '/terminos') {
+      setCurrentView('terminos');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (path === '/reembolsos') {
+      setCurrentView('reembolsos');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
     } else if (path === '/noticias') {
       setCurrentView('news');
       setActiveCalculator(null);
@@ -654,6 +722,9 @@ export default function App() {
       }
     } else if (currentView === 'nosotros') {
       updateMetaTags("Sobre Nosotros | NegocioRD", "Conoce al equipo de NegocioRD y nuestro compromiso con proveer herramientas de cálculo y consultoría fiscal confiables en República Dominicana.", "/nosotros", "website");
+    } else if (currentView in TRUST_PAGES) {
+      const page = TRUST_PAGES[currentView as keyof typeof TRUST_PAGES];
+      updateMetaTags(page.title, page.description, `/${currentView}`, "website");
     } else if (currentView === 'news') {
       updateMetaTags("Últimas Noticias Financieras y Fiscales de R.D. | NegocioRD", "Mantente al día con investigaciones exclusivas sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.", "/noticias", "website");
     } else if (currentView === 'centro-laboral') {
@@ -1226,6 +1297,36 @@ export default function App() {
                 <AdSenseBlock variant="results-inline" className="border border-gray-200 bg-gray-50/20" />
               </div>
 
+              <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
+                  <div>
+                    <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block mb-1">Fuentes y vigencia</span>
+                    <h2 className="text-base font-extrabold text-[#111827]">Tasas criticas visibles antes de calcular</h2>
+                  </div>
+                  <button
+                    onClick={() => navigateTo('/contacto')}
+                    className="text-xs font-bold text-[#0F766E] hover:underline text-left"
+                  >
+                    Reportar una tasa desactualizada
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                  {SOURCE_SUMMARY.map((rate) => (
+                    <a
+                      key={rate.label}
+                      href={rate.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-xl border border-gray-200 bg-[#FAFAFA] p-4 hover:border-[#0F766E]/40 transition-colors"
+                    >
+                      <div className="text-[10px] uppercase tracking-wider font-black text-gray-400">{rate.sourceName}</div>
+                      <div className="mt-1 text-xs font-extrabold text-gray-950 leading-snug">{rate.label}</div>
+                      <div className="mt-2 text-[10px] text-gray-500">Verificado: {rate.lastChecked}</div>
+                    </a>
+                  ))}
+                </div>
+              </section>
+
               {/* MAIN DYNAMIC DIRECTORY COMPONENT */}
               <div className="bg-white rounded-2xl border border-gray-250/80 shadow-xs overflow-hidden">
                 <CalculatorsList 
@@ -1341,7 +1442,9 @@ export default function App() {
           {currentView === 'centro-laboral' && (
             <div className="animate-in fade-in duration-150">
               {userTier === 'PRO' ? (
-                <CentroLaboral />
+                <React.Suspense fallback={<LazyFallback label="Cargando Centro Laboral..." />}>
+                  <CentroLaboral />
+                </React.Suspense>
               ) : (
                 <PremiumFeaturePaywall 
                   title="Centro Laboral de Recursos Humanos (TSS)"
@@ -1362,7 +1465,9 @@ export default function App() {
           {currentView === 'centro-financiero' && (
             <div className="animate-in fade-in duration-150">
               {userTier === 'PRO' ? (
-                <CentroFinanciero />
+                <React.Suspense fallback={<LazyFallback label="Cargando Centro Financiero..." />}>
+                  <CentroFinanciero />
+                </React.Suspense>
               ) : (
                 <PremiumFeaturePaywall 
                   title="Centro de Planificación Financiera y Pasivos"
@@ -1423,10 +1528,12 @@ export default function App() {
           {/* NEWS PORTAL VIEW */}
           {currentView === 'news' && (
             <div className="animate-in fade-in duration-150">
-              <NewsSection 
-                onBackToHome={() => { navigateTo('/'); }} 
-                onNavigateToCalcBySlug={handleNavigateToCalcBySlug}
-              />
+              <React.Suspense fallback={<LazyFallback label="Cargando noticias..." />}>
+                <NewsSection 
+                  onBackToHome={() => { navigateTo('/'); }} 
+                  onNavigateToCalcBySlug={handleNavigateToCalcBySlug}
+                />
+              </React.Suspense>
             </div>
           )}
 
@@ -1456,6 +1563,39 @@ export default function App() {
                   >
                     Regresar al Inicio
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(currentView === 'contacto' || currentView === 'privacidad' || currentView === 'terminos' || currentView === 'reembolsos') && (
+            <div className="animate-in fade-in duration-150 py-4 max-w-4xl mx-auto w-full">
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 shadow-xs space-y-6">
+                <div className="flex items-start gap-3 border-b border-gray-100 pb-5">
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 text-[#0F766E] flex items-center justify-center shrink-0">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-[#111827]">
+                      {TRUST_PAGES[currentView as keyof typeof TRUST_PAGES].heading}
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {TRUST_PAGES[currentView as keyof typeof TRUST_PAGES].description}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {TRUST_PAGES[currentView as keyof typeof TRUST_PAGES].body}
+                </p>
+                <ul className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {TRUST_PAGES[currentView as keyof typeof TRUST_PAGES].bullets.map((item) => (
+                    <li key={item} className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs font-semibold text-gray-700 leading-relaxed">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 leading-relaxed">
+                  NegocioRD ofrece herramientas de apoyo informativo. Para decisiones fiscales, laborales o financieras definitivas, valida con la institucion oficial correspondiente o con tu asesor profesional.
                 </div>
               </div>
             </div>
@@ -1827,10 +1967,12 @@ export default function App() {
           )}
 
           {currentView === 'admin' && authReady && isAdminUser && (
-            <AdminConsole
-              firebaseUser={firebaseUser}
-              onBack={() => navigateTo('/')}
-            />
+            <React.Suspense fallback={<LazyFallback label="Cargando administracion..." />}>
+              <AdminConsole
+                firebaseUser={firebaseUser}
+                onBack={() => navigateTo('/')}
+              />
+            </React.Suspense>
           )}
 
           {currentView === 'admin' && authReady && !isAdminUser && (
@@ -1969,6 +2111,10 @@ export default function App() {
               <li><a href="https://mt.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">Ministerio de Trabajo <ExternalLink size={10} /></a></li>
               <li><a href="https://www.tss.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">Seguridad Social TSS <ExternalLink size={10} /></a></li>
               <li><a href="https://ProUsuario.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">ProUsuario SB <ExternalLink size={10} /></a></li>
+              <li><button onClick={() => navigateTo('/contacto')} className="hover:text-[#0F766E] transition-colors text-left">Contacto</button></li>
+              <li><button onClick={() => navigateTo('/privacidad')} className="hover:text-[#0F766E] transition-colors text-left">Privacidad</button></li>
+              <li><button onClick={() => navigateTo('/terminos')} className="hover:text-[#0F766E] transition-colors text-left">Terminos</button></li>
+              <li><button onClick={() => navigateTo('/reembolsos')} className="hover:text-[#0F766E] transition-colors text-left">Reembolsos</button></li>
             </ul>
           </div>
 
@@ -1999,12 +2145,14 @@ export default function App() {
       </footer>
 
       {/* Professional Portal Workspace (ITBIS NCF Desglose + Retenciones & Recargos DGII Calculators) */}
-      <ProfessionalPortal 
-        isOpen={showPortalModal} 
-        onClose={() => setShowPortalModal(false)} 
-        userTier={userTier}
-        onUpgrade={activateProDemo}
-      />
+      <React.Suspense fallback={null}>
+        <ProfessionalPortal 
+          isOpen={showPortalModal} 
+          onClose={() => setShowPortalModal(false)} 
+          userTier={userTier}
+          onUpgrade={activateProDemo}
+        />
+      </React.Suspense>
 
       {/* Trial Activation Pro Modal */}
       <ProUpgradeModal 
@@ -2015,26 +2163,28 @@ export default function App() {
       />
 
       {/* Dynamic Firebase-Backed Google Auth and Payments Portal Modal */}
-      <UserAccountModal
-        isOpen={showAccountModal}
-        onClose={() => setShowAccountModal(false)}
-        userTier={userTier}
-        subscriptionState={subscriptionState}
-        initialCheckoutPlan={pendingCheckoutPlan}
-        onTierChange={(newTier) => {
-          const nextState = newTier === 'PRO'
-            ? createActiveSubscriptionState(subscriptionState.billingCycle === 'anual' ? 'anual' : 'mensual', subscriptionState.paymentMethod || 'demo-card')
-            : createDefaultSubscriptionState();
-          setSubscriptionState(nextState);
-          localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
-          localStorage.setItem('negociord_user_tier', newTier);
-        }}
-        onSubscriptionChange={(nextState) => {
-          setSubscriptionState(nextState);
-          localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
-          localStorage.setItem('negociord_user_tier', nextState.plan);
-        }}
-      />
+      <React.Suspense fallback={null}>
+        <UserAccountModal
+          isOpen={showAccountModal}
+          onClose={() => setShowAccountModal(false)}
+          userTier={userTier}
+          subscriptionState={subscriptionState}
+          initialCheckoutPlan={pendingCheckoutPlan}
+          onTierChange={(newTier) => {
+            const nextState = newTier === 'PRO'
+              ? createActiveSubscriptionState(subscriptionState.billingCycle === 'anual' ? 'anual' : 'mensual', subscriptionState.paymentMethod || 'demo-card')
+              : createDefaultSubscriptionState();
+            setSubscriptionState(nextState);
+            localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
+            localStorage.setItem('negociord_user_tier', newTier);
+          }}
+          onSubscriptionChange={(nextState) => {
+            setSubscriptionState(nextState);
+            localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
+            localStorage.setItem('negociord_user_tier', nextState.plan);
+          }}
+        />
+      </React.Suspense>
 
     </div>
   );
