@@ -39,8 +39,6 @@ interface InvoiceRow {
 }
 
 export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE', onUpgrade }: ProfessionalPortalProps) {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState<'itbis-ncf' | 'contratos-trabajo' | 'exportacion-reportes' | 'retenciones-recargos'>('itbis-ncf');
   const [notification, setNotification] = useState<string | null>(null);
   const [printSize, setPrintSize] = useState<'letter' | 'legal'>('letter');
@@ -782,6 +780,8 @@ Sello de Recibido Empresa (Fecha y Hora):`;
 
   // Print stylesheet inline simulation style
   const printBlockStyle = "print:absolute print:inset-0 print:bg-white print:text-black print:z-[200] print:p-8 print:block";
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-[#0F172A]/70 z-[100] flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
