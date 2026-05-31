@@ -172,7 +172,6 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
     injectSchema(faqSchema);
   }
 };
-
 // --- MULTI-TIER PRO vs FREE PAYWALL OVERLAY COMPONENT ---
 interface PaywallProps {
   title: string;
@@ -183,42 +182,94 @@ interface PaywallProps {
 
 function PremiumFeaturePaywall({ title, description, benefits, onUpgrade }: PaywallProps) {
   return (
-    <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-8 md:p-12 text-center max-w-2xl mx-auto shadow-xs my-4 animate-in fade-in duration-200" id="premium-paywall">
-      <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-6 border border-amber-200">
-        <span className="text-3xl text-amber-500">🔒</span>
-      </div>
-      
-      <span className="px-3.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full uppercase tracking-wider inline-block mb-4">
-        Función Exclusiva PRO
-      </span>
-      
-      <h3 className="text-2xl font-extrabold text-[#111827] mb-3">{title}</h3>
-      <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-lg mx-auto">{description}</p>
-      
-      <div className="bg-gray-50 rounded-xl p-5 mb-8 max-w-md mx-auto text-left border border-gray-150">
-        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3">¿Qué incluye la Licencia PRO?</span>
-        <ul className="space-y-2.5">
-          {benefits.map((b, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-xs font-semibold text-gray-700">
-              <span className="text-emerald-600 shrink-0">✔</span>
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
+    <div className="relative rounded-3xl overflow-hidden border border-gray-200/80 bg-white p-1.5 my-6 shadow-sm animate-in fade-in duration-300" id="premium-paywall">
+      {/* Blurred Dashboard Frame Underneath */}
+      <div className="absolute inset-x-2 inset-y-2 opacity-50 blur-[5px] select-none pointer-events-none grid grid-cols-12 gap-4 p-6 bg-slate-50 rounded-2xl">
+        <div className="col-span-3 border border-slate-200 rounded-xl p-4 space-y-4 bg-white/40">
+          <div className="h-6 w-3/4 bg-slate-200 rounded-md"></div>
+          <div className="h-4 w-1/2 bg-slate-200 rounded-md"></div>
+          <div className="space-y-2 pt-4">
+            <div className="h-8 bg-slate-200 rounded-lg"></div>
+            <div className="h-8 bg-slate-200 rounded-lg"></div>
+            <div className="h-8 bg-slate-200 rounded-lg"></div>
+          </div>
+        </div>
+        <div className="col-span-9 space-y-6">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="h-24 border border-slate-200 rounded-xl bg-white/40 p-4 space-y-3">
+              <div className="h-4 w-1/3 bg-slate-200 rounded"></div>
+              <div className="h-6 w-2/3 bg-slate-200 rounded"></div>
+            </div>
+            <div className="h-24 border border-slate-200 rounded-xl bg-white/40 p-4 space-y-3">
+              <div className="h-4 w-1/3 bg-slate-200 rounded"></div>
+              <div className="h-6 w-2/3 bg-slate-200 rounded"></div>
+            </div>
+            <div className="h-24 border border-slate-200 rounded-xl bg-white/40 p-4 space-y-3">
+              <div className="h-4 w-1/3 bg-slate-200 rounded"></div>
+              <div className="h-6 w-2/3 bg-slate-200 rounded"></div>
+            </div>
+          </div>
+          <div className="h-64 border border-slate-200 rounded-xl bg-white/40 p-6 space-y-4">
+            <div className="h-6 w-1/4 bg-slate-200 rounded-md"></div>
+            <div className="space-y-2 pt-2">
+              <div className="h-10 bg-slate-100 rounded-lg"></div>
+              <div className="h-10 bg-slate-100 rounded-lg"></div>
+              <div className="h-10 bg-slate-100 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-        <button 
-          onClick={onUpgrade}
-          className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1"
-        >
-          <span>💎 Activar Prueba Gratis PRO en 1-Clic</span>
-        </button>
+      {/* Actual High-End Paywall Overlay */}
+      <div className="relative z-10 bg-white/92 backdrop-blur-md px-6 py-12 md:py-16 md:px-12 rounded-2xl flex flex-col items-center text-center">
+        <div className="relative mb-6">
+          {/* Glowing Ring */}
+          <div className="absolute inset-0 bg-amber-400 rounded-full blur-xl opacity-30 animate-pulse"></div>
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-3xl text-white shadow-lg border border-amber-300">
+            👑
+          </div>
+        </div>
+
+        <span className="px-3.5 py-1 bg-amber-50 text-amber-700 text-[10px] font-black rounded-full uppercase tracking-wider inline-block mb-3 border border-amber-200">
+          Función Exclusiva PRO
+        </span>
+
+        <h3 className="text-2xl md:text-3xl font-black text-gray-950 tracking-tight leading-none mb-3">
+          {title}
+        </h3>
+        <p className="text-gray-500 text-xs md:text-sm max-w-lg leading-relaxed mb-8">
+          {description}
+        </p>
+
+        {/* Exclusive Benefits Grid */}
+        <div className="w-full max-w-lg bg-gradient-to-b from-gray-50 to-white rounded-2xl border border-gray-150 p-6 text-left mb-8 block font-semibold text-gray-800">
+          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest block mb-4">
+            ¿Qué incluye la Licencia PRO de NegocioRD?
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+            {benefits.map((b, idx) => (
+              <div key={idx} className="flex items-start gap-2 text-xs">
+                <span className="text-emerald-500 shrink-0 font-extrabold">✔</span>
+                <span className="text-gray-700 font-semibold">{b}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Upgrade Call to Action */}
+        <div className="w-full max-w-md space-y-4">
+          <button 
+            onClick={onUpgrade}
+            className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 bg-[length:200%_auto] hover:bg-right transition-all duration-300 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-1 cursor-pointer uppercase tracking-wider"
+          >
+            <span>💎 Activar Prueba Gratis PRO en 1-Clic</span>
+          </button>
+          
+          <p className="text-[10px] text-gray-400 leading-normal">
+            Navegación libre de publicidad. Los datos introducidos se sincronizan automáticamente en tu navegador usando almacenamiento seguro encriptado de Firebase.
+          </p>
+        </div>
       </div>
-      
-      <p className="text-[10px] text-gray-400 mt-4 leading-normal">
-        Navegación libre de publicidad. Los datos introducidos se sincronizan automáticamente en tu navegador usando almacenamiento local encriptado.
-      </p>
     </div>
   );
 }
@@ -316,6 +367,11 @@ export default function App() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // High-End Premium Interactive pricing & ROI estimator states
+  const [billingCycle, setBillingCycle] = useState<'mensual' | 'anual'>('mensual');
+  const [roiCalculos, setRoiCalculos] = useState<number>(35);
+  const [roiTarifaHora, setRoiTarifaHora] = useState<number>(800);
 
   // Subscription tier state
   const [userTier, setUserTier] = useState<'FREE' | 'PRO'>(() => {
@@ -1269,7 +1325,7 @@ export default function App() {
                     onClick={() => { navigateTo('/'); }}
                     className="px-6 py-2.5 bg-[#0F766E] text-white text-xs font-bold rounded-lg cursor-pointer hover:opacity-95 transition-all shadow-xs"
                   >
-                    Regresar al portal principal
+                    Regresar al Inicio
                   </button>
                 </div>
               </div>
@@ -1278,111 +1334,345 @@ export default function App() {
 
           {/* PRECIOS VIEWS */}
           {currentView === 'precios' && (
-            <div className="animate-in fade-in duration-150 py-4 max-w-5xl mx-auto w-full">
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 shadow-xs space-y-8">
-                <div className="text-center space-y-3">
-                  <span className="px-3 py-1 bg-teal-50 text-[#0F766E] text-xs font-black rounded-full uppercase tracking-wider inline-block">Membresía Simple PRO</span>
-                  <h1 className="text-3xl md:text-4xl font-extrabold text-[#111827]">Planes de Precios Flexibles</h1>
-                  <p className="text-gray-500 text-sm max-w-2xl mx-auto leading-relaxed">
-                    Potencie su productividad contable en República Dominicana con nuestra licencia PRO simple y de valor incomparable. Sin burocracia empresarial.
+            <div className="animate-in fade-in duration-200 py-4 max-w-5xl mx-auto w-full">
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-md space-y-10 relative overflow-hidden">
+                <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-teal-500/5 blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
+
+                <div className="text-center space-y-4 max-w-3xl mx-auto">
+                  <span className="px-3.5 py-1 bg-amber-50 text-amber-700 text-xs font-black rounded-full uppercase tracking-widest inline-block border border-amber-200 animate-pulse">
+                    🏆 MEMBRESÍA PROFESIONAL
+                  </span>
+                  <h1 className="text-3xl md:text-5xl font-black text-[#111827] tracking-tight leading-none">
+                    Invierte en Precisión, <span className="text-[#0F766E]">Duplica tu Velocidad</span>
+                  </h1>
+                  <p className="text-gray-550 text-sm md:text-base leading-relaxed">
+                    Sustituya hojas de cálculo rústicas y errores manuales por simuladores de alto estándar con soporte oficial de normativas DGII, TSS y Código Laboral de RD.
                   </p>
+
+                  {/* Period Selector Toggle */}
+                  <div className="inline-flex items-center gap-2 p-1 bg-gray-100 rounded-2xl border border-gray-200/50 mt-4 select-none">
+                    <button
+                      onClick={() => setBillingCycle('mensual')}
+                      className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        billingCycle === 'mensual' 
+                          ? 'bg-[#0F766E] text-white shadow-sm' 
+                          : 'text-gray-500 hover:text-gray-800'
+                      }`}
+                    >
+                      Pago Mensual
+                    </button>
+                    <button
+                      onClick={() => setBillingCycle('anual')}
+                      className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        billingCycle === 'anual' 
+                          ? 'bg-[#0F766E] text-white shadow-sm' 
+                          : 'text-gray-500 hover:text-gray-800'
+                      }`}
+                    >
+                      <span>Pago Anual</span>
+                      <span className="px-1.5 py-0.5 bg-amber-400 text-amber-950 text-[8px] font-black rounded-md block uppercase">
+                        -33%
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                {/* DYNAMIC PRICING CARDS */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 items-stretch">
                   
                   {/* Plan 1: Free */}
-                  <div className="border border-gray-200 rounded-2xl p-6 bg-[#FAFAFA] flex flex-col justify-between h-[450px]">
+                  <div className="border border-gray-200/80 rounded-2xl p-6 bg-[#FAFAFA]/75 flex flex-col justify-between hover:border-gray-300 transition-all shadow-xs">
                     <div>
-                      <h3 className="font-bold text-lg text-gray-900">Básico Gratuito</h3>
-                      <p className="text-xs text-gray-500 mt-1">Perfecto para consultas ocasionales.</p>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-extrabold text-base text-gray-900">Básico Gratuito</h3>
+                          <p className="text-[10px] text-gray-450 mt-0.5">Para consultas esporádicas.</p>
+                        </div>
+                        <span className="text-xs text-gray-400 font-extrabold uppercase">Free</span>
+                      </div>
                       
                       <div className="my-6">
-                        <span className="text-3xl font-extrabold text-gray-950">RD$ 0</span>
-                        <span className="text-xs text-gray-400"> / siempre</span>
+                        <span className="text-4xl font-black text-gray-950 tracking-tight">RD$ 0</span>
+                        <span className="text-xs text-gray-400 block mt-1">/ para siempre</span>
                       </div>
 
-                      <ul className="space-y-2.5 text-xs text-gray-600">
-                        <li className="flex items-center gap-1.5 font-medium">✨ Accesibilidad total a calculadoras</li>
-                        <li className="flex items-center gap-1.5 font-medium">📣 Anuncios publicitarios visibles</li>
-                        <li className="flex items-center gap-1.5 text-gray-400 line-through">🗄️ Historial ampliado de cálculos</li>
-                        <li className="flex items-center gap-1.5 text-gray-400 line-through">📄 Exportaciones ilimitadas a PDF/CSV</li>
-                        <li className="flex items-center gap-1.5 text-gray-400 line-through">⭐ Guardar cálculos favoritos</li>
+                      <div className="border-t border-gray-200/60 my-4" />
+
+                      <ul className="space-y-3 text-xs text-gray-600 font-medium">
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-emerald-600 shrink-0" />
+                          <span>Acceso a calculadoras base</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-emerald-600 shrink-0" />
+                          <span>Vistas con anuncios integrados</span>
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-400 line-through decoration-gray-300">
+                          <span>Historial de cálculos recurrentes</span>
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-400 line-through decoration-gray-300">
+                          <span>Exportaciones ilimitadas a PDF/CSV</span>
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-400 line-through decoration-gray-300">
+                          <span>Gestor multi-nómina & contratos</span>
+                        </li>
                       </ul>
                     </div>
 
                     <button 
                       onClick={() => navigateTo('/')}
-                      className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                      className="w-full mt-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                     >
-                      Usar Gratis Ahora
+                      Usar Plan Gratuito
                     </button>
                   </div>
 
                   {/* Plan 2: Pro Mensual - DESTACADO */}
-                  <div className="border-2 border-[#0F766E] rounded-2xl p-6 bg-white flex flex-col justify-between h-[450px] shadow-md relative overflow-hidden">
-                    <div className="absolute top-3 right-3 bg-[#0F766E] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Popular</div>
+                  <div className="border-2 border-[#0F766E] rounded-2xl p-6 bg-white flex flex-col justify-between shadow-lg relative overflow-hidden ring-4 ring-[#0F766E]/5 hover:scale-[1.01] transition-all">
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[8px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                      Recomendado
+                    </div>
                     <div>
-                      <h3 className="font-extrabold text-[#0F766E] text-lg">PRO Mensual</h3>
-                      <p className="text-xs text-gray-500 mt-1">Para contadores independientes y pymes.</p>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-extrabold text-[#0F766E] text-base">Plan Profesional (PRO)</h3>
+                          <p className="text-[10px] text-gray-450 mt-0.5">Para contadores, pymes y consultores independientes.</p>
+                        </div>
+                      </div>
                       
                       <div className="my-6">
-                        <span className="text-3xl font-extrabold text-gray-950">RD$ 495</span>
-                        <span className="text-xs text-gray-400"> / al mes</span>
+                        <span className="text-4xl font-black text-gray-950 tracking-tight">
+                          {billingCycle === 'mensual' ? 'RD$ 495' : 'RD$ 329'}
+                        </span>
+                        <span className="text-xs text-gray-400 font-semibold"> / mes</span>
+                        {billingCycle === 'anual' && (
+                          <span className="block text-[10px] text-amber-600 font-extrabold mt-1">
+                            Facturado anualmente (RD$ 3,950 al año)
+                          </span>
+                        )}
+                        {billingCycle === 'mensual' && (
+                          <span className="block text-[10px] text-gray-400 mt-1">
+                            Cancela cuando quieras
+                          </span>
+                        )}
                       </div>
 
-                      <ul className="space-y-2.5 text-xs text-gray-800">
-                        <li className="flex items-center gap-1.5 font-semibold text-[#0F766E]">✦ Totalmente libre de anuncios</li>
-                        <li className="flex items-center gap-1.5 font-semibold">✦ Historial ilimitado de simulaciones</li>
-                        <li className="flex items-center gap-1.5 font-semibold">✦ Exportaciones ilimitadas (PDF y CSV)</li>
-                        <li className="flex items-center gap-1.5 font-semibold">✦ Guardar cálculos favoritos de nómina</li>
-                        <li className="flex items-center gap-1.5 font-semibold">✦ Acceso completo Centro Laboral y Financiero</li>
+                      <div className="border-t border-[#0F766E]/20 my-4" />
+
+                      <ul className="space-y-3 text-xs text-gray-800 font-bold leading-normal">
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-[#0F766E] shrink-0" />
+                          <span>100% Libre de Publicidad (AdSense)</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-[#0F766E] shrink-0" />
+                          <span>Acceso completo a Centro Laboral y Financiero</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-[#0F766E] shrink-0" />
+                          <span>Amortizaciones e Impuestos Ilimitados</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-[#0F766E] shrink-0" />
+                          <span>Personalización con Logo/Membrete de Oficina</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-[#0F766E] shrink-0" />
+                          <span>Reportes Oficiales PDF y Matrices Excel</span>
+                        </li>
                       </ul>
                     </div>
 
                     <button 
                       onClick={() => setShowAccountModal(true)}
-                      className="w-full py-2.5 bg-[#0F766E] hover:bg-opacity-95 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+                      className="w-full mt-8 py-3.5 bg-[#0F766E] hover:bg-opacity-95 text-white text-xs font-black rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center justify-center gap-1.5"
                     >
-                      {userTier === 'PRO' ? 'Mi suscripción PRO' : 'Adquirir Licencia PRO'}
+                      <span>💎 {userTier === 'PRO' ? 'Mi Suscripción PRO está Activa' : 'Activar Prueba PRO Gratis'}</span>
                     </button>
                   </div>
 
                   {/* Plan 3: Pro Anual */}
-                  <div className="border border-gray-250 rounded-2xl p-6 bg-[#FAFAFA] flex flex-col justify-between h-[450px]">
+                  <div className="border border-gray-200 rounded-2xl p-6 bg-[#FAFAFA]/75 flex flex-col justify-between hover:border-gray-300 transition-all shadow-xs">
                     <div>
-                      <h3 className="font-bold text-gray-900 text-lg">PRO Anual</h3>
-                      <p className="text-xs text-gray-500 mt-1">El mejor valor para consultores fiscales de RD.</p>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-extrabold text-base text-gray-900">PRO Licencia Corporativa</h3>
+                          <p className="text-[10px] text-gray-450 mt-0.5">Soporte premium para bufetes de asesores.</p>
+                        </div>
+                        <span className="text-[9px] bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded-md font-black uppercase border border-emerald-200">Ahorra más</span>
+                      </div>
                       
                       <div className="my-6">
-                        <span className="text-3xl font-extrabold text-gray-950">RD$ 3,950</span>
-                        <span className="text-xs text-gray-400"> / al año</span>
-                        <span className="block text-[10px] text-emerald-600 font-extrabold tracking-wide mt-1">¡Ahorre un 33% sobre mensual!</span>
+                        <span className="text-4xl font-black text-gray-950 tracking-tight">RD$ 3,950</span>
+                        <span className="text-xs text-gray-400"> / año</span>
+                        <span className="block text-[10px] text-emerald-600 font-extrabold tracking-wide mt-1">
+                          Equivale a RD$ 329 mensuales (Ahórrate RD$ 1,990 al año)
+                        </span>
                       </div>
 
-                      <ul className="space-y-2.5 text-xs text-gray-650">
-                        <li className="flex items-center gap-1.5 font-medium text-[#0F766E]">✦ Todo lo incluido en mensual</li>
-                        <li className="flex items-center gap-1.5 font-medium">✦ Cero publicidad garantizada</li>
-                        <li className="flex items-center gap-1.5 font-medium">✦ Soporte prioritario por WhatsApp</li>
-                        <li className="flex items-center gap-1.5 font-medium">✦ Factura fiscal con NCF de crédito</li>
-                        <li className="flex items-center gap-1.5 font-medium text-emerald-600">✦ Regalo de plantillas avanzadas en Excel</li>
+                      <div className="border-t border-gray-200/60 my-4" />
+
+                      <ul className="space-y-3 text-xs text-gray-600 font-medium">
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-emerald-600 shrink-0" />
+                          <span>Todo lo incluido en la Licencia PRO</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-emerald-600 shrink-0" />
+                          <span>Factura Fiscal válida para crédito (NCF de gasto)</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-emerald-600 shrink-0" />
+                          <span>Soporte directo prioritario VIP vía WhatsApp</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-emerald-600 shrink-0" />
+                          <span>Pack especial de 25 plantillas financieras en Excel</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle size={12} className="text-emerald-600 shrink-0" />
+                          <span>Actualizaciones regulatorias inmediatas garantizadas</span>
+                        </li>
                       </ul>
                     </div>
 
                     <button 
                       onClick={() => setShowAccountModal(true)}
-                      className="w-full py-2.5 bg-gray-900 hover:bg-stone-850 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                      className="w-full mt-8 py-3 bg-gray-900 hover:bg-stone-850 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                     >
-                      {userTier === 'PRO' ? 'Mi membresía anual' : 'Comprar plan Anual'}
+                      {userTier === 'PRO' ? 'Mi Licencia Anual' : 'Instaurar Membresía Anual'}
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-left text-xs text-amber-900 leading-normal flex gap-2">
-                  <span>💡</span>
-                  <div className="space-y-1">
-                    <span className="font-bold">Garantía de tranquilidad absoluta:</span>
-                    <p className="text-gray-600">
-                      Garantizamos de forma transparente reembolsos dentro de los primeros 14 días si no se encuentra satisfecho con las funcionalidades.
+                {/* HIGH-END INTERACTIVE VALUE CALCULATOR (ROI DEMONSTRATOR) */}
+                <div className="bg-[#FAFAFA] border border-gray-200 rounded-2xl p-6 md:p-8 text-left space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-200 pb-4">
+                    <div>
+                      <span className="px-2.5 py-0.5 bg-[#0F766E]/10 text-[#0F766E] text-[10px] font-black rounded-md block w-fit mb-1 uppercase tracking-wider">
+                        Simulador de Productividad Financiera
+                      </span>
+                      <h4 className="font-extrabold text-[#111827] text-lg">
+                        ¿Cuál es tu retorno económico con NegocioRD PRO?
+                      </h4>
+                    </div>
+                    <div className="text-xs text-gray-400 font-medium max-w-xs sm:text-right leading-tight">
+                      Calcula estimativamente las horas de trabajo contable que optimizas y valorizas.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                    
+                    {/* Input Sliders Panel */}
+                    <div className="md:col-span-7 space-y-6">
+                      
+                      {/* Metric 1: Calculations */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-gray-700">Simulaciones / Cálculos al mes:</span>
+                          <span className="px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-black text-gray-900">
+                            {roiCalculos} cálculos
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="5"
+                          max="200"
+                          step="5"
+                          value={roiCalculos}
+                          aria-label="Cálculos fiscales o simulaciones estimadas al mes"
+                          onChange={(e) => setRoiCalculos(Number(e.target.value))}
+                          className="w-full accent-[#0F766E]"
+                        />
+                        <div className="flex justify-between text-[10px] text-gray-400 font-medium">
+                          <span>Básico (5)</span>
+                          <span>Estudio Profesional (100)</span>
+                          <span>Firma Independiente (200)</span>
+                        </div>
+                      </div>
+
+                      {/* Metric 2: Hourly labor rate */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-gray-700">Estima tu tarifa por hora laboral (RD$):</span>
+                          <span className="px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-black text-[#0F766E]">
+                            RD$ {roiTarifaHora.toLocaleString()} / hr
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="300"
+                          max="3000"
+                          step="100"
+                          value={roiTarifaHora}
+                          aria-label="Cargos o costos estimados por cada hora de servicios técnicos"
+                          onChange={(e) => setRoiTarifaHora(Number(e.target.value))}
+                          className="w-full accent-[#0F766E]"
+                        />
+                        <div className="flex justify-between text-[10px] text-gray-400 font-medium">
+                          <span>Junior (RD$ 300)</span>
+                          <span>Asesor Senior (RD$ 1,500)</span>
+                          <span>Consultor Especializado (RD$ 3,000)</span>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Highly Designed Summary Panel */}
+                    <div className="md:col-span-5 bg-white border border-gray-150/70 p-5 rounded-2xl shadow-xs space-y-4 font-sans text-center relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-500/10 to-transparent rounded-full pointer-events-none" />
+                      
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wide">Productividad mensual estimada</span>
+                        <div className="text-3xl font-black text-[#111827]">
+                          RD${' '}
+                          {Math.floor(
+                            parseFloat((roiCalculos * 15 / 60).toFixed(2)) * roiTarifaHora
+                          ).toLocaleString()}
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block">
+                          Tiempo optimizado: {parseFloat((roiCalculos * 15 / 60).toFixed(1))} horas/mes
+                        </span>
+                      </div>
+
+                      <div className="border-t border-gray-100 my-2" />
+
+                      <div className="grid grid-cols-2 gap-2 text-left">
+                        <div className="bg-gray-50 p-2.5 rounded-xl text-center">
+                          <span className="text-[9px] text-gray-400 block font-semibold">Costo Licencia</span>
+                          <span className="text-xs font-black text-gray-800">
+                            RD$ {billingCycle === 'mensual' ? '495' : '329'} / mes
+                          </span>
+                        </div>
+                        
+                        <div className="bg-amber-50 p-2.5 rounded-xl text-center border border-amber-100">
+                          <span className="text-[9px] text-amber-800 block font-extrabold uppercase">RETORNO ROI</span>
+                          <span className="text-xs font-black text-amber-900">
+                            {billingCycle === 'mensual' 
+                              ? ( (parseFloat((roiCalculos * 15 / 60).toFixed(2)) * roiTarifaHora) / 495 * 100 ).toFixed(0)
+                              : ( (parseFloat((roiCalculos * 15 / 60).toFixed(2)) * roiTarifaHora) / 329 * 100 ).toFixed(0)
+                            }% Neto
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-[9px] text-gray-400 text-center leading-normal pt-1">
+                        * Evite multas de hasta <strong>RD$ 45,000</strong> por presentar datos errados de TSS o DGII al automatizar el proceso de manera profesional.
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="bg-amber-50/70 p-5 rounded-3xl border border-amber-200 max-w-4xl mx-auto text-left flex gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 font-bold text-amber-600 flex items-center justify-center text-lg shrink-0">
+                    🛡️
+                  </div>
+                  <div className="space-y-1.5 leading-normal">
+                    <span className="font-extrabold text-amber-950 text-sm block">Garantía Dominicana de Tranquilidad Absoluta:</span>
+                    <p className="text-xs text-gray-700">
+                      Garantizamos de forma transparente reembolsos dentro de los primeros 14 días si no se encuentra 100% satisfecho con las funcionalidades. Para cualquier soporte fiscal o reajuste emitido por cambio de normativas en la República Dominicana, nuestro asesoramiento es continuo.
                     </p>
                   </div>
                 </div>

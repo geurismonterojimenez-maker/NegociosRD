@@ -1081,64 +1081,99 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                   <h5 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider text-left">Ingresa un nuevo método de pago simulado</h5>
 
                   {/* INTERACTIVE FLIPPABLE CREDIT CARD */}
-                  <div className="max-w-[320px] mx-auto perspective-1000 mb-6 font-mono">
+                  <div className="max-w-[340px] mx-auto perspective-1000 mb-6 font-mono">
                     <div 
-                      className={`relative w-full h-[180px] rounded-2xl transition-transform duration-500 transform-style-3d shadow-xl cursor-pointer select-none ${
+                      className={`relative w-full h-[190px] rounded-2xl transition-transform duration-700 transform-style-3d shadow-2xl cursor-pointer select-none hover:scale-105 active:scale-95 ${
                         isFlipped ? 'rotate-y-180' : ''
                       } bg-gradient-to-br ${
                         cardBrand === 'visa' 
-                          ? 'from-[#1A1F3B] to-[#2D386E]' 
+                          ? 'from-[#0F172A] via-[#1E293B] to-[#334155]' 
                           : cardBrand === 'mastercard' 
-                          ? 'from-[#1E1E1E] to-[#434447]' 
-                          : 'from-[#117864] to-[#145A32]'
-                      } text-white p-5`}
+                          ? 'from-[#1E1E1E] via-[#2D2D30] to-[#434447]' 
+                          : 'from-[#022C22] via-[#064E3B] to-[#0F766E]'
+                      } text-white p-6 border border-white/10`}
                       onClick={() => setIsFlipped(!isFlipped)}
-                      title="Haz clic para ver el reverso"
+                      title="Haz clic para dar la vuelta a la tarjeta virtual"
                     >
                       {/* FRONT CARD SIDE */}
-                      <div className="absolute inset-0 backface-hidden p-5 flex flex-col justify-between">
+                      <div className="absolute inset-0 backface-hidden p-6 flex flex-col justify-between rounded-2xl overflow-hidden">
+                        {/* Elegant background texture glow */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+                        <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
+
                         <div className="flex justify-between items-start">
-                          <div className="w-10 h-7 bg-amber-200/90 rounded-md ring-1 ring-white/10 opacity-80" />
-                          <span className="text-sm font-extrabold uppercase italic tracking-widest">
-                            {cardBrand === 'visa' ? 'VISA' : cardBrand === 'mastercard' ? 'MASTER' : 'AMEX'}
-                          </span>
+                          {/* Tactile Metallic Chip Container */}
+                          <div className="relative w-11 h-8 bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 rounded-md border border-amber-600/30 shadow-inner flex flex-col justify-between p-1.5 overflow-hidden">
+                            {/* Chip details lines simulating contacts */}
+                            <div className="w-full h-[1px] bg-amber-800/30" />
+                            <div className="w-full h-[1px] bg-amber-800/30" />
+                            <div className="w-full h-full flex justify-between absolute inset-0 px-2 py-1 pointer-events-none">
+                              <div className="w-[1px] h-full bg-amber-800/25" />
+                              <div className="w-[1px] h-full bg-amber-800/25" />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col items-end">
+                            <span className="text-[9px] text-amber-400 font-extrabold uppercase tracking-widest block font-sans">
+                              {userTier === 'PRO' ? '✦ PRO MEMBER' : '✦ VIP ACCESS'}
+                            </span>
+                            <span className="text-xs font-black uppercase italic tracking-widest mt-0.5">
+                              {cardBrand === 'visa' ? 'VISA PREMIUM' : cardBrand === 'mastercard' ? 'MC BLACK' : 'AMEX LITE'}
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="text-lg tracking-widest text-center py-2">
+                        {/* Card Number spacing */}
+                        <div className="text-xl tracking-[0.18em] text-center py-2 font-semibold text-gray-100 drop-shadow-md">
                           {cardNumber || '•••• •••• •••• ••••'}
                         </div>
 
                         <div className="flex justify-between items-end">
                           <div className="text-left">
-                            <span className="text-[7px] text-gray-300 block uppercase font-mono">Tarjetahabiente</span>
-                            <span className="text-xs uppercase tracking-wider truncate max-w-[150px] block">
-                              {cardName || 'NÉSTOR PERDOMO'}
+                            <span className="text-[7px] text-gray-400 block uppercase font-sans tracking-wider">Tarjetahabiente</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[170px] block text-white">
+                              {cardName || 'JUAN PÉREZ'}
                             </span>
                           </div>
-                          <div className="text-right">
-                            <span className="text-[7px] text-gray-300 block uppercase font-mono">Expira</span>
-                            <span className="text-xs tracking-wider block font-sans">
-                              {cardExpiry || 'MM/YY'}
-                            </span>
+                          <div className="flex items-end gap-3.5">
+                            <div className="text-right">
+                              <span className="text-[7px] text-gray-400 block uppercase font-sans tracking-wider">Expira</span>
+                              <span className="text-[11px] font-semibold tracking-wider block font-sans text-gray-200">
+                                {cardExpiry || 'MM/YY'}
+                              </span>
+                            </div>
+                            
+                            {/* Shiny Hologram Sticker Element */}
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-400 via-pink-400 to-yellow-300 opacity-80 border border-white/20 animate-pulse pointer-events-none shadow-sm" />
                           </div>
                         </div>
                       </div>
 
                       {/* BACK CARD SIDE */}
-                      <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-[#2D386E] to-[#1A1F3B] rounded-2xl p-5 flex flex-col justify-between">
-                        <div className="w-full h-8 bg-gray-900 -mx-5 mt-2" />
-                        <div className="flex items-center justify-between border border-white/20 p-1.5 rounded-lg bg-white/5 mt-4">
-                          <span className="text-[8px] text-gray-300 uppercase">Firma Autorizada</span>
-                          <span className="bg-white text-gray-800 text-xs px-2.5 py-0.5 rounded italic font-bold">
-                            {cardCvv || '•••'}
-                          </span>
+                      <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-[#1E293B] to-[#0F172A] rounded-2xl p-6 flex flex-col justify-between border border-white/10 overflow-hidden">
+                        <div className="absolute -inset-0 bg-radial from-transparent to-black/20 pointer-events-none" />
+                        
+                        {/* Magnetic Strip */}
+                        <div className="w-full h-10 bg-gray-950 absolute left-0 top-6" />
+                        
+                        <div className="mt-12">
+                          <div className="flex items-center justify-between border border-white/15 p-2 rounded-lg bg-white/5">
+                            <span className="text-[8px] text-gray-400 font-sans tracking-wide">Firma Autorizada</span>
+                            <div className="bg-amber-50 text-gray-900 font-bold italic px-3 py-1 rounded shadow-inner text-xs tracking-wider">
+                              CVV: {cardCvv || '•••'}
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-[7px] text-gray-400 text-center leading-tight">
-                          Tarjeta ficticia de pruebas para la simulación del módulo de pago en NegocioRD.
-                        </p>
+                        
+                        <div className="text-[7px] text-gray-400 leading-normal text-left font-sans pt-2 border-t border-white/5 flex gap-1">
+                          <span>🔔</span>
+                          <p>Módulo de pago de simulación segura de NegocioRD. Ningún cobro real es aplicado. Versión de demostración premium.</p>
+                        </div>
                       </div>
                     </div>
-                    <span className="text-[9px] text-gray-400 text-center block mt-1.5">💡 Toca la tarjeta digital para verla de reverso.</span>
+                    <span className="text-[10px] text-gray-450 text-center block mt-2 font-sans font-medium">
+                      💡 Toca la tarjeta digital para rotarla y ver el CVV.
+                    </span>
                   </div>
 
                   {/* FORM FIELDS FOR CARD REGISTRY */}
