@@ -275,10 +275,10 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 2xl:grid-cols-12 gap-6 xl:gap-8 items-start min-w-0">
         
         {/* Left Control Column */}
-        <div className="lg:col-span-5 space-y-5 print:hidden">
+        <div className="2xl:col-span-5 space-y-5 print:hidden min-w-0">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-150">
             <span className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
               <Building size={18} />
@@ -575,7 +575,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
         </div>
 
         {/* Right Output Sheet segment */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="2xl:col-span-7 space-y-6 min-w-0">
           {/* Dynamic Print CSS for Letter / Legal paper support */}
           <style dangerouslySetInnerHTML={{__html: `
             @media print {

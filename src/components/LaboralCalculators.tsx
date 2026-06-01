@@ -302,10 +302,10 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
       )}
 
       {/* Main Dynamic Interactive Grid split: Form vs Live Result Box */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start min-w-0">
+      <div className="grid grid-cols-1 2xl:grid-cols-12 gap-6 xl:gap-8 items-start min-w-0">
         
         {/* Left Inputs Block */}
-        <div className="lg:col-span-5 space-y-6 print:hidden min-w-0">
+        <div className="2xl:col-span-5 space-y-6 print:hidden min-w-0">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
             <span className="p-2 rounded-lg bg-teal-50 text-[#0F766E]">
               <Briefcase size={18} />
@@ -590,7 +590,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
         </div>
 
         {/* Right Main Results Pane */}
-        <div className="lg:col-span-7 space-y-6 min-w-0">
+        <div className="2xl:col-span-7 space-y-6 min-w-0">
           {/* Dynamic Print CSS for Letter / Legal paper support */}
           <style dangerouslySetInnerHTML={{__html: `
             @media print {

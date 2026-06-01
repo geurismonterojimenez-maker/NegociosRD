@@ -307,7 +307,7 @@ export default function CentroLaboral() {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-6" id="centro-laboral-root">
+    <div className="p-4 md:p-6 2xl:p-8 space-y-6 min-w-0" id="centro-laboral-root">
       
       {/* Title block */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-5">
@@ -476,10 +476,10 @@ export default function CentroLaboral() {
       )}
 
       {/* Main Grid: Management Table on left, Active Employee Drawer on right */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="labor-database-manager">
+      <div className="grid grid-cols-1 gap-6 min-w-0" id="labor-database-manager">
         
         {/* Employees Table view */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4 min-w-0">
           <div className="bg-white border border-gray-200 rounded-xl shadow-xs overflow-hidden">
             {/* Table Filters */}
             <div className="p-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3">

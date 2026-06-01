@@ -455,9 +455,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
       </div>
 
       {/* Grid of Form and Results */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+      <div className="grid grid-cols-1 2xl:grid-cols-12 gap-6 xl:gap-8 mb-12 min-w-0">
         {/* Form Module - occupies 5 cols on lg */}
-        <div className="lg:col-span-5 bg-white border border-[#E5E7EB] rounded-xl p-6 shadow-sm self-start">
+        <div className="2xl:col-span-5 bg-white border border-[#E5E7EB] rounded-xl p-5 md:p-6 shadow-sm self-start min-w-0">
           <h2 className="text-lg font-semibold text-[#111827] border-b border-[#E5E7EB] pb-3 mb-5 flex items-center gap-2">
             <Calculator size={18} className="text-[#0F766E]" />
             Parámetros de entrada
@@ -950,7 +950,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
         </div>
 
         {/* Results Screen - occupies 7 cols on lg */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="2xl:col-span-7 space-y-6 min-w-0">
           {/* Main Results Graphic Widget in deep primary teal */}
           <div className="calculator-results-panel bg-[#0F766E] rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700 min-w-0">
             <span className="text-xs font-bold text-teal-200 uppercase tracking-widest mb-5 block flex items-center gap-1.5">
@@ -1646,9 +1646,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
       )}
 
       {/* SEO & Educational Context Section (800 - 1500 words Equivalent Structure) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+      <div className="grid grid-cols-1 2xl:grid-cols-12 gap-6 xl:gap-8 mb-12 min-w-0">
         {/* Main educational info */}
-        <div className="lg:col-span-8 bg-white border border-[#E5E7EB] rounded-xl p-8 shadow-sm space-y-6">
+        <div className="2xl:col-span-8 bg-white border border-[#E5E7EB] rounded-xl p-5 md:p-8 shadow-sm space-y-6 min-w-0">
           <h2 className="text-xl font-bold text-[#111827] border-b border-gray-100 pb-3">
             Información Educativa y Marco Normativo
           </h2>
@@ -1688,7 +1688,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
         </div>
 
         {/* Sidebar widgets for relates / AdSense */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="2xl:col-span-4 space-y-6 min-w-0">
           {/* Related Tools */}
           <div className="bg-[#FFFFFF] border border-[#E5E7EB] rounded-xl p-5 shadow-sm">
             <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wider mb-4 flex items-center gap-1.5">

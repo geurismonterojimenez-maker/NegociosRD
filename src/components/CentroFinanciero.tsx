@@ -297,7 +297,7 @@ export default function CentroFinanciero() {
   })();
 
   return (
-    <div className="p-4 md:p-8 space-y-6" id="financial-center-print-preview" data-print-kind="report-document">
+    <div className="p-4 md:p-6 2xl:p-8 space-y-6 min-w-0" id="financial-center-print-preview" data-print-kind="report-document">
       
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-5">
@@ -330,7 +330,7 @@ export default function CentroFinanciero() {
       </div>
 
       {/* Overview stats: DTI, Total, and Average rate */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="debt-dashboard-stats">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0" id="debt-dashboard-stats">
         <div className="bg-white border border-gray-150 rounded-xl p-5 shadow-xs">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Total Saldo Deudor Activo</span>
           <div className="flex items-baseline gap-1.5">
@@ -368,10 +368,10 @@ export default function CentroFinanciero() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="debts-interactive-workspace">
+      <div className="grid grid-cols-1 gap-6 min-w-0" id="debts-interactive-workspace">
         
         {/* Left pane: Add and List current debts */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className="space-y-4 min-w-0">
           
           {/* Debts Table */}
           <div className="bg-white border border-gray-150 rounded-xl shadow-xs overflow-hidden">
@@ -619,7 +619,7 @@ export default function CentroFinanciero() {
         </div>
 
         {/* Right pane: Debt consolidation simulator */}
-        <div className="lg:col-span-5">
+        <div className="min-w-0">
           <div className="bg-white border border-gray-150 rounded-xl p-5 shadow-xs space-y-4">
             <h3 className="font-extrabold text-sm text-gray-850 flex items-center gap-1.5 border-b pb-2.5">
               <RefreshCw className="text-[#0F766E] animate-spin-slow" size={16} />

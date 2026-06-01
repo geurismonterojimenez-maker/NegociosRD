@@ -1160,7 +1160,7 @@ export default function App() {
         <div className={`${shouldShowAdRail ? 'xl:col-span-8' : 'xl:col-span-12'} col-span-12 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white min-w-0 lg:h-full lg:overflow-hidden`} id="center-content-ad-hybrid">
           
           {/* SIDEBAR NAVIGATION - Exact Match */}
-          <aside className="col-span-3 border-r border-gray-200 bg-white p-6 hidden lg:flex flex-col justify-between lg:h-full lg:overflow-y-auto z-10">
+          <aside className="min-[1700px]:col-span-2 border-r border-gray-200 bg-white p-4 xl:p-5 hidden min-[1700px]:flex flex-col justify-between lg:h-full lg:overflow-y-auto z-10">
           <div>
             <h2 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-4">Herramientas Populares</h2>
             <ul className="space-y-1">
@@ -1253,7 +1253,7 @@ export default function App() {
         </aside>
 
         {/* WORKSPACE AREA - occupies col-span-9 on desktop, col-span-12 on smaller displays */}
-        <div className="col-span-12 lg:col-span-9 p-4 md:p-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto" id="main-workspace-balance">
+        <div className="col-span-12 min-[1700px]:col-span-10 p-4 md:p-6 2xl:p-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto" id="main-workspace-balance">
           
           {currentView === 'home' && (
             <div className="space-y-6 animate-in fade-in duration-150">

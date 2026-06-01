@@ -6,6 +6,55 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+#outer-adsense-grid-wrapper,
+#center-content-ad-hybrid,
+#main-workspace-balance,
+#main-workspace-balance > div {
+  min-width: 0;
+}
+
+#main-workspace-balance {
+  scrollbar-gutter: stable;
+}
+
+#main-workspace-balance h1,
+#main-workspace-balance h2,
+#main-workspace-balance h3,
+#main-workspace-balance p,
+#main-workspace-balance span,
+#main-workspace-balance button,
+#main-workspace-balance label {
+  overflow-wrap: anywhere;
+}
+
+#main-workspace-balance .font-mono,
+#main-workspace-balance table,
+#main-workspace-balance td,
+#main-workspace-balance th {
+  overflow-wrap: normal;
+}
+
+#main-workspace-balance input,
+#main-workspace-balance select,
+#main-workspace-balance textarea {
+  min-width: 0;
+}
+
+#main-workspace-balance table {
+  table-layout: auto;
+}
+
+#main-workspace-balance [class*="rounded-2xl"],
+#main-workspace-balance [class*="rounded-xl"] {
+  max-width: 100%;
+}
+
+@media (max-width: 1535px) {
+  #main-workspace-balance .lg\:grid-cols-12 {
+    row-gap: 1.5rem;
+  }
+}
+
 .calculator-results-panel {
   container-type: inline-size;
 }
@@ -115,6 +164,27 @@
   display: block;
   font-size: clamp(1rem, 1.55cqw, 1.25rem) !important;
   line-height: 1.12;
+}
+
+#debt-dashboard-stats > div {
+  min-width: 0;
+}
+
+#debt-dashboard-stats .font-mono {
+  display: block;
+  font-size: clamp(1.125rem, 1.8cqw, 1.5rem) !important;
+  line-height: 1.12;
+  white-space: nowrap;
+}
+
+#debts-interactive-workspace,
+#labor-database-manager {
+  min-width: 0;
+}
+
+#debts-interactive-workspace > *,
+#labor-database-manager > * {
+  min-width: 0;
 }
 
 #centro-laboral-root table .font-mono,

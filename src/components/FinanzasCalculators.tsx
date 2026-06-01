@@ -277,10 +277,10 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
 
   return (
     <div className="bg-white border rounded-2xl p-6 md:p-8 shadow-sm">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 2xl:grid-cols-12 gap-6 xl:gap-8 items-start min-w-0">
         
         {/* Left Inputs block */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="2xl:col-span-5 space-y-6 min-w-0">
           <div className="flex items-center gap-2 pb-3 border-b">
             <span className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
               <Calculator size={18} />
@@ -621,7 +621,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
         </div>
 
         {/* Right Outputs block */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="2xl:col-span-7 space-y-6 min-w-0">
           {/* Dynamic Print CSS for Letter / Legal paper support */}
           <style dangerouslySetInnerHTML={{__html: `
             @media print {
