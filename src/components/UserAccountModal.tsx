@@ -103,6 +103,8 @@ const PRO_PLAN_PRICES: Record<Exclude<BillingCycle, 'trial'>, { label: string; a
 const LOCAL_DEMO_UID = 'local-demo-user';
 const LOCAL_DEMO_EMAIL = ADMIN_EMAIL;
 const LOCAL_PAYMENT_METHODS_KEY = 'negociord_local_payment_methods';
+const FIREBASE_PROJECT_ID = 'tactical-mediator-407pf';
+const FIREBASE_AUTH_SETTINGS_URL = `https://console.firebase.google.com/project/${FIREBASE_PROJECT_ID}/authentication/settings`;
 
 function isUnauthorizedDomainError(err: any): boolean {
   const code = err?.code || err?.message || '';
@@ -218,7 +220,7 @@ function getAuthErrorMessage(err: any): string {
   }
 
   if (code.includes('auth/unauthorized-domain')) {
-    return 'Este dominio no esta autorizado en Firebase Auth. Agrega tunegociord.com y www.tunegociord.com en Firebase Console > Authentication > Settings > Authorized domains. Para pruebas locales conserva tambien localhost.';
+    return 'Firebase Auth necesita autorizar este dominio antes de permitir el acceso. Agrega tunegociord.com y www.tunegociord.com en Authorized domains.';
   }
 
   if (code.includes('auth/too-many-requests')) {
@@ -916,7 +918,17 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
               <form onSubmit={handleEmailAuthSubmit} className="space-y-4">
                 {credentialsError && (
-                  <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl font-semibold border border-red-100 leading-relaxed">
+                  <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl font-semibold border border-red-100 leading-relaxed space-y-2">
+                    {credentialsError.includes('Authorized domains') && (
+                      <a
+                        href={FIREBASE_AUTH_SETTINGS_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mb-2 inline-flex items-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-red-700 hover:bg-red-50"
+                      >
+                        Abrir configuracion de Firebase
+                      </a>
+                    )}
                     ⚠️ {credentialsError}
                   </div>
                 )}
