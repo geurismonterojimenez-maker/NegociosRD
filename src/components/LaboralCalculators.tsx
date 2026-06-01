@@ -27,6 +27,18 @@ interface ActionFeedback {
   msg: string;
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsProps) {
   const [feedback, setFeedback] = useState<ActionFeedback | null>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -129,7 +141,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
 
   // Handling visual actions
   const handleCopyText = () => {
-    let copyText = `--- NegocioRD: ${calc.name} Generado ---\n`;
+    let copyText = `--- Tu Negocio RD: ${calc.name} Generado ---\n`;
     if (result) {
       if ('regaliaAmount' in result) {
         copyText += `Regalía Pascual Estimada: RD$ ${result.regaliaAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
@@ -160,19 +172,15 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
 
   const handleExportCSV = () => {
     if (!result) return;
-    let csvContent = "data:text/csv;charset=utf-8,Concepto,Valor\n";
+    let csvContent = "Concepto,Valor\n";
+    csvContent += `"Herramienta","${calc.name.replace(/"/g, '""')}"\n`;
+    csvContent += `"Fecha de emision","${new Date().toLocaleDateString('es-DO')}"\n`;
     Object.entries(result).forEach(([key, val]) => {
       if (typeof val === 'number' || typeof val === 'string') {
         csvContent += `"${key}","${val.toString().replace(/"/g, '""')}"\n`;
       }
     });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Calculo_Laboral_${calc.id}_2026.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`Calculo_Laboral_${calc.id}_2026.csv`, csvContent);
     triggerFeedback('export', 'Archivo CSV descargado correctamente.');
     logUsage(calc.id, `Exportó resultados a CSV corporativo. Salario base: RD$ ${salaryInput.toLocaleString()}`);
   };
@@ -322,10 +330,13 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                   <input
                     id="lab-salary-input"
                     type="number"
-                    value={salaryInput}
-                    onChange={(e) => setSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
+                    placeholder="0"
+                    value={salaryInput || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSalaryInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                    }}
                     className="block w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
-                    placeholder="Monto ordinario bruto..."
                   />
                 </div>
                 <p className="text-[10px] text-gray-400 mt-1">Salario básico de nómina fija antes de deducciones.</p>
@@ -365,8 +376,12 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                     <input
                       id="lab-hours-35"
                       type="number"
-                      value={hoursOver35}
-                      onChange={(e) => setHoursOver35(Math.max(0, parseInt(e.target.value) || 0))}
+                      placeholder="0"
+                      value={hoursOver35 || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setHoursOver35(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                      }}
                       className="w-full px-2.5 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-center focus:bg-white outline-none"
                     />
                   </div>
@@ -375,8 +390,12 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                     <input
                       id="lab-hours-68"
                       type="number"
-                      value={hoursOver68}
-                      onChange={(e) => setHoursOver68(Math.max(0, parseInt(e.target.value) || 0))}
+                      placeholder="0"
+                      value={hoursOver68 || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setHoursOver68(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                      }}
                       className="w-full px-2.5 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-center focus:bg-white outline-none"
                     />
                   </div>
@@ -385,8 +404,12 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                     <input
                       id="lab-hours-holiday"
                       type="number"
-                      value={hoursHoliday}
-                      onChange={(e) => setHoursHoliday(Math.max(0, parseInt(e.target.value) || 0))}
+                      placeholder="0"
+                      value={hoursHoliday || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setHoursHoliday(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                      }}
                       className="w-full px-2.5 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-center focus:bg-white outline-none"
                     />
                   </div>
@@ -403,8 +426,12 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                 <input
                   id="lab-night-hours"
                   type="number"
-                  value={nightHours}
-                  onChange={(e) => setNightHours(Math.max(0, parseInt(e.target.value) || 0))}
+                  placeholder="0"
+                  value={nightHours || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNightHours(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                  }}
                   className="block w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
                 />
                 <p className="text-[10px] text-gray-400 mt-1">Horas desempeñadas de 9:00 PM a 7:00 AM.</p>
@@ -441,8 +468,12 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                   type="number"
                   min="0"
                   max="45"
-                  value={yearsOfService}
-                  onChange={(e) => setYearsOfService(Math.max(0, parseInt(e.target.value) || 0))}
+                  placeholder="0"
+                  value={yearsOfService || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setYearsOfService(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                  }}
                   className="block w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
                 />
                 <p className="text-[10px] text-gray-400 mt-1">Antigüedad real para cálculo de escala de días correspondientes.</p>
@@ -458,8 +489,12 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                 <input
                   id="lab-overdue-days"
                   type="number"
-                  value={overdueDays}
-                  onChange={(e) => setOverdueDays(Math.max(0, parseInt(e.target.value) || 0))}
+                  placeholder="0"
+                  value={overdueDays || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setOverdueDays(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                  }}
                   className="block w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
                 />
                 <p className="text-[10px] text-gray-400 mt-1">Días de descanso acumulados por mora patronal.</p>
@@ -475,8 +510,12 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                 <input
                   id="lab-total-yearly"
                   type="number"
-                  value={totalYearlyEarnings}
-                  onChange={(e) => setTotalYearlyEarnings(Math.max(0, parseFloat(e.target.value) || 0))}
+                  placeholder="0"
+                  value={totalYearlyEarnings || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTotalYearlyEarnings(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                  }}
                   className="block w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
                 />
                 <p className="text-[10px] text-gray-400 mt-1">Suma consolidada de nóminas e incentivos devengados.</p>
@@ -687,6 +726,11 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                   </div>
                 </div>
 
+                <div className="pt-3 border-t border-gray-150/70 text-[10px] text-gray-500 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 print-avoid-break">
+                  <span>Emitido por Tu Negocio RD el {new Date().toLocaleDateString('es-DO')}</span>
+                  <span>Referencia: NRD-LAB-{calc.id.toUpperCase()}</span>
+                </div>
+
               </div>
             )}
 
@@ -719,7 +763,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                 aria-label="Exportar a formato CSV"
               >
                 <Download size={13} />
-                Exportar Excel (CSV)
+                Exportar CSV compatible con Excel
               </button>
             </div>
           </div>

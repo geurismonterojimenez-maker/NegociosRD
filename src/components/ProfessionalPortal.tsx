@@ -38,6 +38,18 @@ interface InvoiceRow {
   itbisRate: number; // 0.18, 0.16, 0.0
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE', onUpgrade }: ProfessionalPortalProps) {
   const [activeTab, setActiveTab] = useState<'itbis-ncf' | 'contratos-trabajo' | 'exportacion-reportes' | 'retenciones-recargos'>('itbis-ncf');
   const [notification, setNotification] = useState<string | null>(null);
@@ -74,7 +86,7 @@ export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE',
           onClick={onUpgrade}
           className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
         >
-          <span>💎 Activar Licencia PRO Gratis (1-Clic)</span>
+          <span>💎 Activar prueba PRO</span>
         </button>
       </div>
     );
@@ -147,15 +159,8 @@ export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE',
       return `"${inv.client.replace(/"/g, '""')}","${inv.ncfType}","${inv.ncfNumber}",${inv.baseAmount.toFixed(2)},${itbis.toFixed(2)},${total.toFixed(2)}`;
     }).join('\n');
 
-    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'anexo_607_dgii_simulado.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('Anexo 607 (Ventas) exportado en Excel/CSV.');
+    downloadCsvFile('anexo_607_dgii_simulado.csv', headers + rows);
+    showToast('Anexo 607 (Ventas) exportado como CSV compatible con Excel.');
   };
 
 
@@ -553,15 +558,8 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                    `Monto Final de Pago a DGII con Deducciones: RD$ ${it1FinalPaymentDGII}\n`;
     }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('Archivo Excel/CSV exportado con éxito.');
+    downloadCsvFile(filename, csvContent);
+    showToast('Archivo CSV compatible con Excel exportado con éxito.');
   };
 
 
@@ -794,7 +792,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
               💼
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold tracking-tight">Portal Corporativo - NegocioRD Pro</h2>
+              <h2 className="text-base sm:text-lg font-bold tracking-tight">Portal Profesional - Tu Negocio RD Pro</h2>
               <p className="text-[10px] text-teal-100 font-medium tracking-wide">ÁREA EXCLUSIVA DE HERRAMIENTAS CORPORATIVAS Y ASESORÍA FISCAL</p>
             </div>
           </div>
@@ -1256,8 +1254,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 uppercase block">Salario Mensual RD$</label>
                             <input 
                               type="number"
-                              value={laboralSalario}
-                              onChange={(e) => setLaboralSalario(Number(e.target.value))}
+                              placeholder="0"
+                              value={laboralSalario || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setLaboralSalario(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1.5 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1304,8 +1306,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 uppercase block">Honorarios Iguala RD$ (Mensual)</label>
                             <input 
                               type="number"
-                              value={laboralSalario}
-                              onChange={(e) => setLaboralSalario(Number(e.target.value))}
+                              placeholder="0"
+                              value={laboralSalario || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setLaboralSalario(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1.5 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1336,8 +1342,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 uppercase block">Salario Fijo Base RD$</label>
                             <input 
                               type="number"
-                              value={laboralSalario}
-                              onChange={(e) => setLaboralSalario(Number(e.target.value))}
+                              placeholder="0"
+                              value={laboralSalario || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setLaboralSalario(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1.5 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1361,8 +1371,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 uppercase block">Suma Transada Acordada (RD$)</label>
                             <input 
                               type="number"
-                              value={laboralSalario}
-                              onChange={(e) => setLaboralSalario(Number(e.target.value))}
+                              placeholder="0"
+                              value={laboralSalario || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setLaboralSalario(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1.5 py-1 bg-[#FFFBEB] border border-amber-200 rounded outline-none font-mono text-amber-900 font-bold"
                             />
                           </div>
@@ -1535,6 +1549,10 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       </div>
                       
                       {compileDocumentText()}
+
+                      <div className="hidden print:block mt-8 pt-3 border-t border-gray-300 text-[8.5pt] text-gray-600 font-sans print-avoid-break">
+                        Documento generado por Tu Negocio RD el {new Date().toLocaleDateString('es-DO')}. Revise este borrador con su asesor legal antes de firmar o depositar.
+                      </div>
                     </div>
                   </div>
 
@@ -1565,7 +1583,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Download size={14} />
-                      Descargar Contrato (.txt)
+                      Descargar texto legal (.txt)
                     </button>
                     <button 
                       onClick={triggerMockPrint}
@@ -1747,8 +1765,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             </div>
                             <input 
                               type="number"
-                              value={repPreSalario}
-                              onChange={(e) => setRepPreSalario(Number(e.target.value))}
+                              placeholder="0"
+                              value={repPreSalario || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepPreSalario(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className={`w-full text-xs px-2 py-1 border rounded outline-none font-mono transition-all ${
                                 autoSync 
                                   ? 'bg-[#ECFDF5] border-[#A7F3D0] text-[#064E3B] font-semibold cursor-not-allowed' 
@@ -1776,8 +1798,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 block">Días Preaviso</label>
                             <input 
                               type="number"
-                              value={repPrePreaviso}
-                              onChange={(e) => setRepPrePreaviso(Number(e.target.value))}
+                              placeholder="0"
+                              value={repPrePreaviso || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepPrePreaviso(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1785,8 +1811,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 block">Días Cesantía</label>
                             <input 
                               type="number"
-                              value={repPreCesantia}
-                              onChange={(e) => setRepPreCesantia(Number(e.target.value))}
+                              placeholder="0"
+                              value={repPreCesantia || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepPreCesantia(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1794,8 +1824,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 block">Días Vacaciones</label>
                             <input 
                               type="number"
-                              value={repPreVacaciones}
-                              onChange={(e) => setRepPreVacaciones(Number(e.target.value))}
+                              placeholder="0"
+                              value={repPreVacaciones || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepPreVacaciones(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1809,8 +1843,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                           <label className="text-[9px] font-semibold text-gray-500 block">Monto Capital Principal (RD$)</label>
                           <input 
                             type="number"
-                            value={repAmAmount}
-                            onChange={(e) => setRepAmAmount(Number(e.target.value))}
+                            placeholder="0"
+                            value={repAmAmount || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setRepAmAmount(val === '' ? 0 : Number(val) || 0);
+                            }}
                             className="w-full text-xs px-2 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                           />
                         </div>
@@ -1820,8 +1858,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <input 
                               type="number"
                               step="0.1"
-                              value={repAmRate}
-                              onChange={(e) => setRepAmRate(Number(e.target.value))}
+                              placeholder="0"
+                              value={repAmRate || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepAmRate(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-2 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1829,8 +1871,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 block">Plazo en Meses</label>
                             <input 
                               type="number"
-                              value={repAmTerm}
-                              onChange={(e) => setRepAmTerm(Number(e.target.value))}
+                              placeholder="0"
+                              value={repAmTerm || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepAmTerm(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-2 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1848,8 +1894,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             </div>
                             <input 
                               type="number"
-                              value={repItSales}
-                              onChange={(e) => setRepItSales(Number(e.target.value))}
+                              placeholder="0"
+                              value={repItSales || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepItSales(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className={`w-full text-xs px-1 py-1 border rounded outline-none font-mono transition-all ${
                                 autoSync 
                                   ? 'bg-[#ECFDF5] border-[#A7F3D0] text-[#064E3B] font-semibold cursor-not-allowed' 
@@ -1862,8 +1912,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 block">Compras Totales RD$</label>
                             <input 
                               type="number"
-                              value={repItPurchases}
-                              onChange={(e) => setRepItPurchases(Number(e.target.value))}
+                              placeholder="0"
+                              value={repItPurchases || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepItPurchases(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1876,8 +1930,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             </div>
                             <input 
                               type="number"
-                              value={repItRetentions}
-                              onChange={(e) => setRepItRetentions(Number(e.target.value))}
+                              placeholder="0"
+                              value={repItRetentions || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepItRetentions(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className={`w-full text-xs px-1.5 py-1 border rounded outline-none font-mono transition-all ${
                                 autoSync 
                                   ? 'bg-[#ECFDF5] border-[#A7F3D0] text-[#064E3B] font-semibold cursor-not-allowed' 
@@ -1890,8 +1948,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             <label className="text-[9px] font-semibold text-gray-500 block">Anticipos Colectados</label>
                             <input 
                               type="number"
-                              value={repItAdvances}
-                              onChange={(e) => setRepItAdvances(Number(e.target.value))}
+                              placeholder="0"
+                              value={repItAdvances || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setRepItAdvances(val === '' ? 0 : Number(val) || 0);
+                              }}
                               className="w-full text-xs px-1.5 py-1 bg-white border border-gray-200 rounded outline-none font-mono"
                             />
                           </div>
@@ -1995,7 +2057,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                             </tbody>
                           </table>
 
-                          <div className="pt-8 flex justify-between gap-4 mt-4 text-[9px]">
+                          <div className="pt-8 flex justify-between gap-4 mt-4 text-[9px] print-avoid-break">
                             <div className="flex-1 text-center font-mono">
                               <div className="border-t mx-auto w-36 mb-1"></div>
                               <span>Sello de Oficina Asesora</span>
@@ -2097,6 +2159,11 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                         </div>
                       )}
 
+                      <div className="mt-8 pt-3 border-t border-gray-200 text-[9px] text-gray-500 font-mono flex flex-col sm:flex-row justify-between gap-1 print-avoid-break">
+                        <span>Referencia: NRD-{reportType.toUpperCase()}-{new Date().getFullYear()}</span>
+                        <span>Emitido: {new Date().toLocaleDateString('es-DO')}</span>
+                      </div>
+
                     </div>
                   </div>
 
@@ -2120,7 +2187,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       className="w-full sm:w-auto px-4 py-2 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all text-center"
                     >
                       <Download size={14} className="text-[#0F766E]" />
-                      Descargar Formato Excel (CSV)
+                      Descargar CSV compatible con Excel
                     </button>
                     <button 
                       onClick={triggerMockPrint}
@@ -2223,9 +2290,13 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                         <input 
                           type="number"
                           className="w-full text-xs pl-10 pr-2 py-1.5 bg-white border border-gray-200 rounded outline-none font-mono font-bold"
-                          value={retGrossAmount}
+                          placeholder="0"
+                          value={retGrossAmount || ''}
                           min="1"
-                          onChange={(e) => setRetGrossAmount(Math.max(0, parseFloat(e.target.value) || 0))}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setRetGrossAmount(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                          }}
                         />
                       </div>
                     </div>
@@ -2261,9 +2332,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                         type="number"
                         className="w-full text-xs px-2.5 py-1.5 bg-white border border-gray-200 rounded outline-none font-mono font-bold text-red-650"
                         min="0"
-                        value={retOverdueDays}
                         placeholder="Ej: 45 días..."
-                        onChange={(e) => setRetOverdueDays(Math.max(0, parseInt(e.target.value) || 0))}
+                        value={retOverdueDays || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setRetOverdueDays(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                        }}
                       />
                       <span className="absolute right-2.5 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">DÍAS</span>
                     </div>

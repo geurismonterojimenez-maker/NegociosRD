@@ -18,7 +18,7 @@ export async function logUsage(calculatorId: string, description: string): Promi
     await setDoc(doc(db, 'usageLogs', logId), {
       id: logId,
       uid: currentUser.uid,
-      email: currentUser.email || 'anonimo@negociord.com',
+      email: currentUser.email || 'anonimo@tunegociord.com',
       calculatorId,
       description,
       timestamp: new Date().toISOString()
@@ -29,7 +29,12 @@ export async function logUsage(calculatorId: string, description: string): Promi
 }
 
 // Log subscription transactions for audit trails
-export async function logSubscription(previousTier: 'FREE' | 'PRO', newTier: 'FREE' | 'PRO', reason: string): Promise<void> {
+export async function logSubscription(
+  previousTier: 'FREE' | 'PRO',
+  newTier: 'FREE' | 'PRO',
+  reason: string,
+  details: Record<string, unknown> = {}
+): Promise<void> {
   const currentUser = auth.currentUser;
   if (!currentUser) return;
 
@@ -38,10 +43,11 @@ export async function logSubscription(previousTier: 'FREE' | 'PRO', newTier: 'FR
     await setDoc(doc(db, 'subscriptionLogs', logId), {
       id: logId,
       uid: currentUser.uid,
-      email: currentUser.email || 'anonimo@negociord.com',
+      email: currentUser.email || 'anonimo@tunegociord.com',
       previousTier,
       newTier,
       reason,
+      ...details,
       timestamp: new Date().toISOString()
     });
   } catch (error) {

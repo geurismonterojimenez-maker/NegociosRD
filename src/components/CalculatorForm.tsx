@@ -75,7 +75,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             className="w-full sm:w-auto px-6 py-3 bg-[#0F766E] hover:bg-[#0D645D] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all active:scale-97 cursor-pointer flex items-center justify-center gap-2 mx-auto"
             aria-label={`Desbloquear ${calc.name}`}
           >
-            <span>💎 Activar Licencia PRO Gratis (1-Clic)</span>
+            <span>💎 Activar prueba PRO</span>
           </button>
         </div>
       </div>
@@ -477,8 +477,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                     <input 
                       id="itbis-amount-input"
                       type="number" 
-                      value={itbisAmountInput}
-                      onChange={(e) => setItbisAmountInput(Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="0"
+                      value={itbisAmountInput || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setItbisAmountInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
@@ -511,8 +515,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                     <input 
                       id="isr-salary-input"
                       type="number" 
-                      value={isrSalaryInput}
-                      onChange={(e) => setIsrSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="0"
+                      value={isrSalaryInput || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setIsrSalaryInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
@@ -545,8 +553,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                     <input 
                       id="retencion-invoice-amount"
                       type="number" 
-                      value={retencionInvoiceAmount}
-                      onChange={(e) => setRetencionInvoiceAmount(Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="0"
+                      value={retencionInvoiceAmount || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRetencionInvoiceAmount(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
@@ -597,8 +609,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                     <input 
                       id="recargos-tax-base"
                       type="number" 
-                      value={recargosTaxBase}
-                      onChange={(e) => setRecargosTaxBase(Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="0"
+                      value={recargosTaxBase || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRecargosTaxBase(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
@@ -612,8 +628,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                       type="number" 
                       min="1"
                       max="120"
-                      value={recargosMonthsLate}
-                      onChange={(e) => setRecargosMonthsLate(Math.max(1, parseInt(e.target.value) || 1))}
+                      placeholder="e.g. 1"
+                      value={recargosMonthsLate || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRecargosMonthsLate(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
+                      }}
                       className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
@@ -630,8 +650,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                   <input 
                     id="net-salary-input"
                     type="number" 
-                    value={netSalaryInput}
-                    onChange={(e) => setNetSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
+                    placeholder="0"
+                    value={netSalaryInput || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNetSalaryInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                    }}
                     className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                   />
                 </div>
@@ -647,8 +671,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                   <input 
                     id="tss-salary-input"
                     type="number" 
-                    value={tssSalaryInput}
-                    onChange={(e) => setTssSalaryInput(Math.max(0, parseFloat(e.target.value) || 0))}
+                    placeholder="0"
+                    value={tssSalaryInput || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setTssSalaryInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                    }}
                     className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                   />
                 </div>
@@ -665,8 +693,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                     <input 
                       id="prestaciones-salary"
                       type="number" 
-                      value={prestacionesSalary}
-                      onChange={(e) => setPrestacionesSalary(Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="0"
+                      value={prestacionesSalary || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPrestacionesSalary(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
@@ -794,8 +826,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                     <input 
                       id="loan-principal"
                       type="number" 
-                      value={loanPrincipal}
-                      onChange={(e) => setLoanPrincipal(Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="0"
+                      value={loanPrincipal || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setLoanPrincipal(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
@@ -810,8 +846,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                           id="loan-interest"
                           type="number" 
                           step="0.01"
-                          value={loanInterest}
-                          onChange={(e) => setLoanInterest(Math.max(0.1, parseFloat(e.target.value) || 0))}
+                          placeholder="0"
+                          value={loanInterest || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setLoanInterest(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                          }}
                           className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
                         />
                       </div>
@@ -820,8 +860,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                         <input 
                           id="loan-plazo"
                           type="number" 
-                          value={loanPlazo}
-                          onChange={(e) => setLoanPlazo(Math.max(1, parseInt(e.target.value) || 1))}
+                          placeholder="e.g. 1"
+                          value={loanPlazo || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setLoanPlazo(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
+                          }}
                           className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
                         />
                       </div>
@@ -834,8 +878,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                           id="loan-interest-compare"
                           type="number" 
                           step="0.01"
-                          value={loanInterestCompare}
-                          onChange={(e) => setLoanInterestCompare(Math.max(0.1, parseFloat(e.target.value) || 0))}
+                          placeholder="0"
+                          value={loanInterestCompare || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setLoanInterestCompare(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                          }}
                           className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
                         />
                       </div>
@@ -855,8 +903,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                     <input 
                       id="biz-cost"
                       type="number" 
-                      value={bizCost}
-                      onChange={(e) => setBizCost(Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="0"
+                      value={bizCost || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setBizCost(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
@@ -870,8 +922,12 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                       type="number" 
                       min="1"
                       max="99"
-                      value={bizMarginDesired}
-                      onChange={(e) => setBizMarginDesired(Math.max(1, Math.min(99.9, parseFloat(e.target.value) || 1)))}
+                      placeholder="0"
+                      value={bizMarginDesired || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setBizMarginDesired(val === '' ? 0 : Math.max(0, Math.min(99.9, parseFloat(val) || 0)));
+                      }}
                       className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                     <span className="text-xs text-gray-400 mt-1 block">Margen de utilidad sobre precio de venta, no simple markup.</span>
@@ -885,7 +941,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="w-full mt-2 flex items-center justify-between px-3.5 py-2.5 border border-gray-200 hover:border-[#0F766E] rounded-xl text-xs font-bold text-gray-500 hover:text-[#0F766E] uppercase tracking-wider bg-[#F9FAFB] transition-all cursor-pointer shadow-xs active:scale-98"
+                className="w-full mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-3.5 py-2.5 border border-gray-200 hover:border-[#0F766E] rounded-xl text-xs font-bold text-gray-500 hover:text-[#0F766E] uppercase tracking-wider bg-[#F9FAFB] transition-all cursor-pointer shadow-xs active:scale-98 text-left"
               >
                 <span>{showAdvanced ? '▲ Ocultar opciones avanzadas' : '⚙️ Ver opciones de ley avanzadas'}</span>
                 <span className="text-[10px]">{showAdvanced ? 'Muestra menos campos' : 'Tasa, periodos, preaviso...'}</span>
@@ -897,7 +953,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
         {/* Results Screen - occupies 7 cols on lg */}
         <div className="lg:col-span-7 space-y-6">
           {/* Main Results Graphic Widget in deep primary teal */}
-          <div className="bg-[#0F766E] rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700">
+          <div className="bg-[#0F766E] rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700 min-w-0">
             <span className="text-xs font-bold text-teal-200 uppercase tracking-widest mb-5 block flex items-center gap-1.5">
               <Sparkles size={14} className="text-teal-300" />
               Resultado Calculado — República Dominicana
@@ -908,35 +964,35 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 1 & 2 & 3. ITBIS results */}
             {(calc.id === 'itbis-calc' || calc.id === 'itbis-excluido' || calc.id === 'itbis-incluido') && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Total ITBIS ({itbisRateInput * 100}%)</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl md:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.itbisAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">
                       {calc.id === 'itbis-incluido' ? 'Monto Neto Base' : 'Monto total final'}
                     </p>
-                    <p className="text-3xl font-bold font-mono text-white mt-1">
+                    <p className="text-2xl md:text-3xl font-bold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ { (calc.id === 'itbis-incluido' ? calculatedResults.baseAmount : calculatedResults.totalWithItbis).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-3.5 text-sm">
-                  <div className="flex justify-between border-b border-teal-600/30 pb-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 border-b border-teal-600/30 pb-2">
                     <span className="text-teal-100">Monto base neto:</span>
-                    <span className="font-semibold font-mono text-white">RD$ {calculatedResults.baseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold font-mono text-white break-words">RD$ {calculatedResults.baseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between border-b border-teal-600/30 pb-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 border-b border-teal-600/30 pb-2">
                     <span className="text-teal-100">ITBIS recaudado ({itbisRateInput * 100}%):</span>
-                    <span className="font-semibold font-mono text-white">RD$ {calculatedResults.itbisAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold font-mono text-white break-words">RD$ {calculatedResults.itbisAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between pt-1.5 font-bold text-base text-white">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 pt-1.5 font-bold text-base text-white">
                     <span>Total consolidado:</span>
-                    <span className="font-mono text-teal-200">RD$ {calculatedResults.totalWithItbis.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-mono text-teal-200 break-words">RD$ {calculatedResults.totalWithItbis.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>
@@ -945,16 +1001,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 4. ISR Asalariados results */}
             {calc.id === 'isr-asalariado' && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Retención ISR Mensual</p>
-                    <p className="text-3xl font-extrabold font-mono text-rose-200 mt-1">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-rose-200 mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.monthlyIsrAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Tasa Efectiva de Impuesto</p>
-                    <p className="text-3xl font-bold font-mono text-teal-200 mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-teal-200 mt-1 break-words tabular-nums">
                       {calculatedResults.effectiveIsrRate}%
                     </p>
                   </div>
@@ -990,16 +1046,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 5. Retenciones Screen results */}
             {calc.id === 'retenciones-dgii' && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Neto a Cobrar (Pesos)</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.totalNetoA_Cobrar.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Total de Retenciones</p>
-                    <p className="text-3xl font-bold font-mono text-rose-200 mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-rose-200 mt-1 break-words tabular-nums">
                       RD$ {(calculatedResults.itbisRetenido + calculatedResults.isrRetenido).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -1033,16 +1089,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 6. Recargos DGII results */}
             {calc.id === 'recargos-dgii' && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Total a Liquidar ante la DGII</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.totalPagar.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Total de Multa Adicional</p>
-                    <p className="text-3xl font-bold font-mono text-rose-200 mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-rose-200 mt-1 break-words tabular-nums">
                       RD$ {(calculatedResults.recargoMoraMonto + calculatedResults.interesIndemnizatorioMonto).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -1072,16 +1128,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 7. Salario neto complete results */}
             {calc.id === 'salario-neto' && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Salario Neto Mensual</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.salarioNeto.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Retención de Descuentos</p>
-                    <p className="text-3xl font-bold font-mono text-rose-200 mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-rose-200 mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.totalDescuentos.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -1129,16 +1185,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 8 & 9. AFP or SFS single results */}
             {(calc.id === 'afp-empleado' || calc.id === 'sfs-empleado') && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Descuento Mensual</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.monto.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Salario Máximo Cotizable</p>
-                    <p className="text-3xl font-bold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.tope.toLocaleString('en-US')}
                     </p>
                   </div>
@@ -1164,16 +1220,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 10. TSS complete corporate results */}
             {calc.id === 'tss-completa' && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">TSS Empleado (Descuento)</p>
-                    <p className="text-2xl font-extrabold font-mono text-rose-200 mt-1">
+                    <p className="text-xl sm:text-2xl font-extrabold font-mono text-rose-200 mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.empleado.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">TSS Empleador (Costo)</p>
-                    <p className="text-2xl font-bold font-mono text-teal-200 mt-1">
+                    <p className="text-xl sm:text-2xl font-bold font-mono text-teal-200 mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.empleador.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -1198,9 +1254,9 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 11 & 12. Liquidacion and Prestaciones complete legal output */}
             {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral') && calculatedResults && (
               <div>
-                <div className="border-b border-teal-600/40 pb-5 mb-5 text-center">
+                <div className="border-b border-teal-600/40 pb-5 mb-5 text-center px-2">
                   <p className="text-xs text-teal-200 font-semibold uppercase tracking-wider">Monto total estimado de liquidación</p>
-                  <p className="text-4xl md:text-5xl font-extrabold font-mono text-white mt-2 tracking-tight">
+                  <p className="text-2xl sm:text-3xl md:text-5xl font-extrabold font-mono text-white mt-2 tracking-tight break-words">
                     RD$ {calculatedResults.liquidacionTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -1234,16 +1290,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 13. Vacaciones single output */}
             {calc.id === 'vacaciones-calc' && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Monto por Vacaciones</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.monto.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Días de Descanso</p>
-                    <p className="text-3xl font-bold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-white mt-1 break-words tabular-nums">
                       {calculatedResults.dias} días
                     </p>
                   </div>
@@ -1265,16 +1321,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 14. Regalia single output */}
             {calc.id === 'regalia-pascual' && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Doble Sueldo Estimado</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1 flex items-baseline">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1 flex items-baseline break-words tabular-nums">
                       RD$ {calculatedResults.monto.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Salarios Acumulados</p>
-                    <p className="text-3xl font-bold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.totalGanado.toLocaleString('en-US')}
                     </p>
                   </div>
@@ -1296,16 +1352,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 15 & 16. Preaviso or Cesantia single details */}
             {(calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Indemnización estimada</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.monto.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Días correspondientes</p>
-                    <p className="text-3xl font-bold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-white mt-1 break-words tabular-nums">
                       {calculatedResults.dias} días
                     </p>
                   </div>
@@ -1329,22 +1385,22 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 17 & 19. Préstamos personales o hipotecarios results */}
             {(calc.id === 'prestamo-personal' || calc.id === 'prestamo-hipotecario') && calculatedResults && (
               <div>
-                <div className="grid grid-cols-3 gap-2 border-b border-teal-600/40 pb-5 mb-5">
-                  <div className="col-span-1 border-r border-teal-600/30 pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="border-b sm:border-b-0 sm:border-r border-teal-600/30 pb-2 sm:pb-0 sm:pr-1 min-w-0">
                     <p className="text-[10px] text-teal-200 font-semibold uppercase">Mensualidad Total</p>
-                    <p className="text-lg font-extrabold font-mono text-white mt-1 truncate">
+                    <p className="text-base sm:text-lg font-extrabold font-mono text-white mt-1 truncate tabular-nums">
                       RD$ {calculatedResults.cuotaTotalMensual.toLocaleString('en-US', { minimumFractionDigits: 0 })}
                     </p>
                   </div>
-                  <div className="col-span-1 border-r border-teal-600/30 px-2">
+                  <div className="border-b sm:border-b-0 sm:border-r border-teal-600/30 py-2 sm:py-0 sm:px-2 min-w-0">
                     <p className="text-[10px] text-teal-200 font-semibold uppercase">Cuota Base</p>
-                    <p className="text-lg font-bold font-mono text-white mt-1 truncate">
+                    <p className="text-base sm:text-lg font-bold font-mono text-white mt-1 truncate tabular-nums">
                       RD$ {calculatedResults.cuotaBase.toLocaleString('en-US', { minimumFractionDigits: 0 })}
                     </p>
                   </div>
-                  <div className="col-span-1 pl-2">
+                  <div className="pt-2 sm:pt-0 sm:pl-2 min-w-0">
                     <p className="text-[10px] text-teal-200 font-semibold uppercase">Total Interés</p>
-                    <p className="text-lg font-bold font-mono text-rose-200 mt-1 truncate">
+                    <p className="text-base sm:text-lg font-bold font-mono text-rose-200 mt-1 truncate tabular-nums">
                       RD$ {calculatedResults.totalInteresPagado.toLocaleString('en-US', { minimumFractionDigits: 0 })}
                     </p>
                   </div>
@@ -1393,14 +1449,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {calc.id === 'cuota-prestamo' && calculatedResults && (
               <div>
                 <span className="text-xs font-semibold text-teal-200 uppercase block mb-4">Comparación de Rango de Interés</span>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-4 mb-4">
-                  <div className="p-3 bg-teal-900/40 border border-teal-500/10 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-4 mb-4">
+                  <div className="p-3 bg-teal-900/40 border border-teal-500/10 rounded-lg min-w-0">
                     <span className="text-[10px] text-teal-100 block uppercase font-medium">Cuota con {loanInterest}% interés</span>
-                    <span className="text-lg font-bold font-mono text-white">RD$ {calculatedResults.plan1.cuotaTotalMensual.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
+                    <span className="text-base sm:text-lg font-bold font-mono text-white break-words tabular-nums">RD$ {calculatedResults.plan1.cuotaTotalMensual.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
                   </div>
-                  <div className="p-3 bg-teal-900/40 border border-teal-500/10 rounded-lg">
+                  <div className="p-3 bg-teal-900/40 border border-teal-500/10 rounded-lg min-w-0">
                     <span className="text-[10px] text-teal-100 block uppercase font-medium">Cuota con {loanInterestCompare}% interés</span>
-                    <span className="text-lg font-bold font-mono text-white">RD$ {calculatedResults.plan2.cuotaTotalMensual.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
+                    <span className="text-base sm:text-lg font-bold font-mono text-white break-words tabular-nums">RD$ {calculatedResults.plan2.cuotaTotalMensual.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
                   </div>
                 </div>
 
@@ -1420,16 +1476,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 20. Margen de negocios results */}
             {calc.id === 'precio-venta' && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Precio de Venta Sugerido</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl sm:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.precioSugerido.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Ganancia Bruta por Unidad</p>
-                    <p className="text-3xl font-bold font-mono text-teal-200 mt-1">
+                    <p className="text-2xl sm:text-3xl font-bold font-mono text-teal-200 mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.gananciaBruta.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -1457,7 +1513,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
           <div className="my-4 p-4 bg-teal-50/40 border border-teal-100 rounded-xl flex items-start gap-3">
             <span className="text-lg">💡</span>
             <div>
-              <h5 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Aviso de Validación NegocioRD 2026</h5>
+              <h5 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Aviso de Validación Tu Negocio RD 2026</h5>
               <p className="text-[11px] text-teal-800 leading-normal mt-0.5">
                 Estimación basada en tasas oficiales y topes vigentes documentados de la DGII Dominicana y la TSS (salario base RD$ 23,223.00). Por favor, consulta las fuentes oficiales antes de tomar decisiones legales, fiscales o laborales definitivas. Puedes exportar estos resultados en CSV o imprimir en PDF usando los botones dedicados superiores.
               </p>
@@ -1530,7 +1586,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                 {/* Default fallback */}
                 {(!('explanation' in (calculatedResults || {})) && !('calculationSteps' in (calculatedResults || {})) && !('desgloseExplicativo' in (calculatedResults || {}))) && (
                   <p>
-                    Cálculo realizado de conformidad con los coeficientes exactos declarados periódicamente por las entidades oficiales supervisoras dominicanas (DGII, TSS y Ministerio de Trabajo).
+                    Cálculo orientativo basado en coeficientes documentados por entidades oficiales dominicanas (DGII, TSS y Ministerio de Trabajo).
                   </p>
                 )}
                 
@@ -1612,7 +1668,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             <h3 className="text-base font-bold text-gray-900">Errores comunes a evitar</h3>
             <ul className="list-disc pl-5 mt-2 space-y-2">
               <li><strong>Ignorar topes de cotización:</strong> Muchos contribuyentes omiten que la Tesorería de la Seguridad Social (TSS) tiene límites máximos cotizables para salud y pensiones, por lo que a salarios elevados no se les debe deducir porcentajes planos ilimitados.</li>
-              <li><strong>No actualizar las escalas móviles:</strong> Si bien las escalas del ISR para asalariados de la DGII permanecieron congeladas desde 2017 por disposición legal, es indispensable aplicarlas con exactitud sobre los ingresos anuales acumulados totales.</li>
+              <li><strong>No actualizar las escalas móviles:</strong> Si bien las escalas del ISR para asalariados de la DGII permanecieron congeladas desde 2017 por disposición legal, es indispensable aplicarlas con cuidado sobre los ingresos anuales acumulados totales.</li>
               <li><strong>Tratamiento erróneo de comisiones:</strong> En el marco laboral dominicano, las comisiones y horas ordinarias fijas forman parte integrada del salario computable para fines de prestaciones del desahucio.</li>
             </ul>
 

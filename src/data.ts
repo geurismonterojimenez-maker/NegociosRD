@@ -25,7 +25,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     id: 'itbis-incluido',
     name: 'ITBIS Incluido',
     shortDescription: 'Extrae el valor neto de un total con ITBIS.',
-    description: 'Desglosa de manera exacta el valor neto de un precio final que ya incluye el ITBIS (18% o 16%), mostrándote el impuesto retenido o cobrado.',
+    description: 'Desglosa con detalle el valor neto de un precio final que ya incluye el ITBIS (18% o 16%), mostrándote el impuesto retenido o cobrado.',
     category: 'impuestos',
     tags: ['ITBIS', 'Desglose', 'Precio'],
     urlSlug: 'itbis-incluido',
@@ -78,7 +78,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['Mora', 'Recargos', 'Interés', 'DGII'],
     urlSlug: 'calculadora-recargos-dgii',
     seoTitle: 'Calculadora de Recargos, Mora e Intereses DGII — RD',
-    seoMetaDescription: '¿Pagaste tarde tus impuestos? Calcula de forma exacta las penalidades de la DGII aplicables: 10% de recargo por mora inicial, 4% mensual y 1.1% de interés.',
+    seoMetaDescription: '¿Pagaste tarde tus impuestos? Calcula con base documentada las penalidades de la DGII aplicables: 10% de recargo por mora inicial, 4% mensual y 1.1% de interés.',
     hasFaq: true
   },
 
@@ -99,7 +99,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     id: 'afp-empleado',
     name: 'Calculadora AFP',
     shortDescription: 'Aporte de AFP de empleados (2.87%).',
-    description: 'Calcula el descuento mensual exacto correspondiente a la AFP (2.87%) sobre el salario imponible, aplicando el tope legal de 20 salarios mínimos nacionales.',
+    description: 'Calcula el descuento mensual estimado correspondiente a la AFP (2.87%) sobre el salario imponible, aplicando el tope legal de 20 salarios mínimos nacionales.',
     category: 'laboral',
     tags: ['AFP', 'TSS', 'Pensiones', 'Empleado'],
     urlSlug: 'calculadora-afp',
@@ -116,14 +116,14 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['SFS', 'TSS', 'Salud', 'Empleado'],
     urlSlug: 'calculadora-sfs',
     seoTitle: 'Calculadora SFS Empleado RD — Seguro Familiar de Salud',
-    seoMetaDescription: 'Conoce exactamente el descuento del 3.04% para el seguro de salud familiar en RD. Calcula el monto en base a tu sueldo ordinario y el tope TSS correspondiente.',
+    seoMetaDescription: 'Conoce con detalle el descuento del 3.04% para el seguro de salud familiar en RD. Calcula el monto en base a tu sueldo ordinario y el tope TSS correspondiente.',
     hasFaq: true
   },
   {
     id: 'tss-completa',
     name: 'Calculadora TSS',
     shortDescription: 'Desglose detallado de aportes de empleado y empleador.',
-    description: 'Permite simular el costo exacto de la Seguridad Social para ambas partes: empleado (2.87% AFP, 3.04% SFS) y empleador (7.10% AFP, 7.09% SFS, 1.2% SRL, 1.0% INFOTEP).',
+    description: 'Permite simular el costo estimado de la Seguridad Social para ambas partes: empleado (2.87% AFP, 3.04% SFS) y empleador (7.10% AFP, 7.09% SFS, 1.2% SRL, 1.0% INFOTEP).',
     category: 'laboral',
     tags: ['TSS', 'Patronal', 'SRL', 'INFOTEP', 'Costo'],
     urlSlug: 'calculadora-tss',
@@ -297,12 +297,12 @@ export const CALCULATORS: CalculatorInfo[] = [
     id: 'salario-por-hora',
     name: 'Salario por Hora',
     shortDescription: 'Desglosa tu tarifa por hora a partir del sueldo.',
-    description: 'Calcula el valor exacto de tus horas ordinarias y salario diario basándose en los divisores legales de RD (23.83 para mensuales, 11.91 para quincenales, etc.).',
+    description: 'Calcula el valor estimado de tus horas ordinarias y salario diario basándose en los divisores legales de RD (23.83 para mensuales, 11.91 para quincenales, etc.).',
     category: 'laboral',
     tags: ['Salario Diario', 'Salario por Hora', 'Tarifa'],
     urlSlug: 'calculadora-salario-por-hora',
     seoTitle: 'Calculadora de Salario por Hora en República Dominicana',
-    seoMetaDescription: 'Conoce el valor exacto de tus horas de trabajo con los divisores oficiales de la TSS y el Código de Trabajo dominicano.',
+    seoMetaDescription: 'Conoce el valor estimado de tus horas de trabajo con los divisores oficiales de la TSS y el Código de Trabajo dominicano.',
     hasFaq: true
   },
   {
@@ -314,7 +314,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['Quincena', 'Nómina', 'Quincenal', 'Retenciones'],
     urlSlug: 'calculadora-salario-quincenal',
     seoTitle: 'Calculadora de Salario Quincenal RD — Desglose de Nómina',
-    seoMetaDescription: 'Descubre los deducciones de AFP y SFS quincenales en la nómina dominicana para conocer tu sueldo quincenal neto exacto.',
+    seoMetaDescription: 'Descubre los deducciones de AFP y SFS quincenales en la nómina dominicana para conocer tu sueldo quincenal neto estimado.',
     hasFaq: true
   },
   {
@@ -400,7 +400,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['Interés Simple', 'Rendimientos', 'Finanzas Básicas'],
     urlSlug: 'calculadora-interes-simple',
     seoTitle: 'Calculadora de Interés Simple en RD — Fórmulas Financieras',
-    seoMetaDescription: 'Calcula de forma exacta intereses nominales ganados en tus certificados de depósitos o inversiones simples a tasa fija anual dominicana.',
+    seoMetaDescription: 'Calcula con base documentada intereses nominales estimados en tus certificados de depósitos o inversiones simples a tasa fija anual dominicana.',
     hasFaq: true
   },
   {
@@ -577,7 +577,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     id: 'margen-neto',
     name: 'Margen Neto Corporativo',
     shortDescription: 'Mide la rentabilidad real final de tu empresa.',
-    description: 'Descuenta costos fijos, variables y operativos para conocer el dividendo exacto de ganancia para los socios.',
+    description: 'Descuenta costos fijos, variables y operativos para conocer el dividendo estimado de ganancia para los socios.',
     category: 'negocios',
     tags: ['Margen Neto', 'Rentabilidad', 'Contabilidad'],
     urlSlug: 'calculadora-margen-neto',
@@ -606,7 +606,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['ROI', 'Inversión', 'Retorno', 'Rendimiento'],
     urlSlug: 'calculadora-roi',
     seoTitle: 'Calculadora de ROI RD — Retorno Rentabilidad de Inversión',
-    seoMetaDescription: 'Mide con exactitud el porcentaje de rendimiento neto generado de tus campañas comerciales con nuestra calculadora técnica.',
+    seoMetaDescription: 'Mide con claridad el porcentaje de rendimiento neto generado de tus campañas comerciales con nuestra calculadora técnica.',
     hasFaq: true
   },
   {
@@ -676,20 +676,22 @@ Actualmente, el sistema fiscal dominicano contempla dos tasas activas de ITBIS:
 #### Escenario 1: ITBIS Excluido (Saber el total a partir del neto)
 Si vendes un servicio o producto en un valor neto y necesitas añadir el ITBIS correspondiente, utiliza la siguiente fórmula:
 
-$$\\text{Monto ITBIS} = \\text{Valor Neto} \\times \\text{Tasa ITBIS}$$
-$$\\text{Monto Total} = \\text{Valor Neto} + \\text{Monto ITBIS}$$
+> **Fórmula de Cálculo:**
+> - **Monto ITBIS** = Valor Neto × Tasa ITBIS (0.18 o 0.16)
+> - **Monto Total** = Valor Neto + Monto ITBIS
 
 **Ejemplo:**
 - Valor Neto del servicio de consultoría: **RD$ 10,000.00**
 - Tasa General de ITBIS: **18% (0.18)**
-- ITBIS a cobrar: $10,000 \\times 0.18 =$ **RD$ 1,800.00**
+- ITBIS a cobrar: $10,000 \times 0.18 =$ **RD$ 1,800.00**
 - Total a facturar: $10,000 + 1,800 =$ **RD$ 11,800.00**
 
 #### Escenario 2: ITBIS Incluido (Saber el neto a partir del total)
 Si has vendido un artículo por un precio final global con ITBIS y necesitas reportar cuánto fue el valor neto y cuánto el impuesto recaudado:
 
-$$\\text{Valor Neto Base} = \\frac{\\text{Total Facturado}}{1 + \\text{Tasa ITBIS}}$$
-$$\\text{Monto ITBIS} = \\text{Total Facturado} - \\text{Valor Neto Base}$$
+> **Fórmula de Cálculo:**
+> - **Valor Neto Base** = Total Facturado ÷ (1 + Tasa ITBIS)
+> - **Monto ITBIS** = Total Facturado - Valor Neto Base
 
 **Ejemplo:**
 - Total de compra en tienda: **RD$ 5,900.00** (con ITBIS de 18% incluido)
@@ -732,9 +734,10 @@ El término de la relación laboral genera obligaciones y derechos económicos e
 ### Conceptos Clave de la Liquidación dominicana
 
 #### 1. El Salario Diario Promedio
-Todos los cálculos del Ministerio de Trabajo se basan en el salario diario del trabajador. Si cobras mensual, el código de trabajo define que el mes comercial tiene exactamente **23.83 días laborables**.
+Todos los cálculos del Ministerio de Trabajo se basan en el salario diario del trabajador. Si cobras mensual, el Código de Trabajo usa **23.83 días laborables** como divisor de referencia.
 
-$$\\text{Salario Diario} = \\frac{\\text{Salario Mensual Bruto}}{23.83}$$
+> **Fórmula Oficial del Ministerio de Trabajo:**
+> - **Salario Diario** = Salario Mensual Bruto ÷ 23.83
 
 #### 2. Preaviso (Compensación por Omisión de Aviso)
 Es la notificación obligatoria previa a la desvinculación. Si el empleador despide sin avisar con tiempo, debe indemnizar económicamente según la antigüedad:
@@ -756,7 +759,7 @@ Indemnización por la pérdida del empleo, calculada de la siguiente manera:
 Consideremos un empleado con un salario bruto mensual de **RD$ 30,000.00** que ingresó el **15 de marzo de 2024** y fue desahuciado por su jefe el **15 de marzo de 2026** sin aviso previo y sin haber tomado sus vacaciones correspondientes al último año.
 
 1. **Salario Diario:** $30,000 / 23.83 =$ **RD$ 1,258.91**
-2. **Tiempo de Servicio:** 2 años exactos.
+2. **Tiempo de Servicio:** 2 años completos.
 3. **Preaviso:** Omitido por el empleador (28 días de salario)
    - $1,258.91 \\times 28 =$ **RD$ 35,249.48**
 4. **Cesantía:** 2 años de servicio imponible (21 días por cada año = 42 días en total)
@@ -787,7 +790,7 @@ Consideremos un empleado con un salario bruto mensual de **RD$ 30,000.00** que i
     imageAlt: 'Nómina dominicana y deducciones de sueldo TSS',
     contentMarkdown: `## Guía Paso a Paso: Del Salario Bruto al Salario Neto
 
-¿Quieres saber exactamente cómo se desvanece de tu salario bruto la porción destinada a la seguridad social y al gobierno de la República Dominicana? En esta guía te explicamos, con el máximo rigor, cómo realizar este cálculo manualmente paso a paso.
+¿Quieres entender con claridad cómo se desvanece de tu salario bruto la porción destinada a la seguridad social y al gobierno de la República Dominicana? En esta guía te explicamos, con el máximo rigor, cómo realizar este cálculo manualmente paso a paso.
 
 ---
 
@@ -807,19 +810,21 @@ Antes de cobrar impuestos sobre tu sueldo, la ley dominicana establece que se de
 ### Paso 2: Obtener el Sueldo Neto Sujeto al ISR de la DGII
 El impuesto sobre la renta solar se calcula **después** de restar la porción cotizada del AFP y SFS.
 
-$$\\text{Salario Base ISR} = \\text{Salario Bruto} - \\text{Deducciones TSS}$$
+> **Fórmula:**
+> - **Salario Base ISR** = Salario Bruto - Deducciones TSS (AFP + SFS)
+
 - Utilizando nuestro ejemplo: $50,000 - 2,955 =$ **RD$ 47,045.00**
 
 ---
 
 ### Paso 3: Aplicar la Escala Impositiva de la DGII para ISR
 Anualizamos el salario neto obtenido para evaluar el tramo en la tabla anual imponible de la DGII:
-- Salario anual base: $RD\\$ 47,045.00 \\times 12 = $ **RD$ 564,540.00**
+- Salario anual base: $RD$ 47,045.00 \times 12 = $ **RD$ 564,540.00**
 
 Al contrastar la tasación, este cae en el **Rango Segundo (15%):**
 - Tramo imponible: Desde RD$ 416,220.01 hasta RD$ 624,329.00 anuales.
 - Excedente sobre límite inferior: $564,540.00 - 416,220.01 = $ **RD$ 148,319.99**
-- Impuesto anualizado: $148,319.99 \\times 15% = $ **RD$ 22,248.00**
+- Impuesto anualizado: $148,319.99 \times 15% = $ **RD$ 22,248.00**
 - Retención ISR mensual: $22,248.00 / 12 = $ **RD$ 1,854.00**
 
 ---
@@ -827,7 +832,9 @@ Al contrastar la tasación, este cae en el **Rango Segundo (15%):**
 ### Paso 4: Obtener el Salario Neto Final
 Finalmente restamos todos los aportes combinados de tu salario bruto ordinario:
 
-$$\\text{Salario Neto} = \\text{Salario Bruto} - \\text{TSS} - \\text{ISR}$$
+> **Fórmula:**
+> - **Salario Neto Final** = Salario Bruto - TSS (AFP + SFS) - Retención ISR
+
 - Resultado final: $50,000 - 2,955 (TSS) - 1,854 (ISR) = $ **RD$ 45,191.00**
 
 La tasa efectiva de retención global de este empleado es de **9.62%** del salario bruto original.`
@@ -887,15 +894,16 @@ El **Salario de Navidad**, popularmente denominado "Doble Sueldo", es una remune
 
 Este impuesto correspondiente equivale a la **duodécima parte (1/12)** de la suma total de los salarios ordinarios mensuales devengados por el trabajador durante todo el año calendario en curso (de enero a diciembre).
 
-$$\\text{Salario de Navidad} = \\frac{\\text{Suma de los salarios ordinarios percibidos en el año}}{12}$$
+> **Fórmula:**
+> - **Salario de Navidad** = Suma de todos los salarios ordinarios percibidos ÷ 12
 
 ---
 
 ### Ejemplo Práctico de Regalía Pascual Proporcional
 
 Si un empleado trabajó cobrando **RD$ 40,000.00** al mes desde el **1 de junio** hasta el **31 de diciembre** (un total de 7 meses):
-- Total de sueldos ganados en el año: $RD\\$ 40,000 \\times 7 = RD\\$ 280,000.00$
-- Salario de Navidad / Regalía: $RD\\$ 280,000.00 / 12 = $ **RD$ 23,333.33**
+- Total de sueldos ganados en el año: $RD$ 40,000 \times 7 = RD$ 280,000.00$
+- Salario de Navidad / Regalía: $RD$ 280,000.00 / 12 = $ **RD$ 23,333.33**
 
 ---
 

@@ -152,7 +152,7 @@ export default function CalculatorsList({
             }
           </h2>
           <p className="text-sm text-[#6B7280]">
-            Mostrando {filteredCalculators.length} de {CALCULATORS.length} calculadoras exactas.
+            Mostrando {filteredCalculators.length} de {CALCULATORS.length} calculadoras con fuentes documentadas.
           </p>
         </div>
 

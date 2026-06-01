@@ -27,6 +27,20 @@ import {
   logUsage,
   logSubscription
 } from '../lib/firebase';
+import {
+  BillingCycle,
+  SubscriptionState,
+  createActiveSubscriptionState,
+  createDefaultSubscriptionState,
+  createPendingSubscriptionState,
+  createTrialSubscriptionState,
+  cancelSubscriptionState,
+  normalizeSubscriptionState,
+  subscriptionStateForFirestore,
+  SUBSCRIPTION_STATUS_LABELS,
+  getTierFromSubscription
+} from '../config/subscription';
+import { ADMIN_EMAIL, isAdminEmail } from '../config/admin';
 import { 
   X, 
   CreditCard, 
@@ -56,6 +70,162 @@ interface UserAccountModalProps {
   onClose: () => void;
   userTier: 'FREE' | 'PRO';
   onTierChange: (tier: 'FREE' | 'PRO') => void;
+  subscriptionState?: SubscriptionState;
+  onSubscriptionChange?: (state: SubscriptionState) => void;
+  initialCheckoutPlan?: Exclude<BillingCycle, 'trial'>;
+}
+
+interface CheckoutConfig {
+  provider: 'demo' | 'azul' | 'azul_google_pay';
+  mode: 'demo' | 'live-ready';
+  invoiceEmailEnabled: boolean;
+  providers?: {
+    azul?: { enabled: boolean; configured: boolean; label: string };
+    googlePay?: { enabled: boolean; configured: boolean; label: string; gateway?: string; merchantIdConfigured?: boolean };
+  };
+}
+
+const PRO_PLAN_PRICES: Record<Exclude<BillingCycle, 'trial'>, { label: string; amount: string; total: string; description: string }> = {
+  mensual: {
+    label: 'PRO mensual',
+    amount: 'RD$ 495',
+    total: 'RD$ 495 hoy',
+    description: 'Renovacion mensual. Cancela cuando quieras.',
+  },
+  anual: {
+    label: 'PRO anual',
+    amount: 'RD$ 3,950',
+    total: 'RD$ 3,950 hoy',
+    description: 'Equivale a RD$ 329 mensuales.',
+  },
+};
+
+const LOCAL_DEMO_UID = 'local-demo-user';
+const LOCAL_DEMO_EMAIL = ADMIN_EMAIL;
+const LOCAL_PAYMENT_METHODS_KEY = 'negociord_local_payment_methods';
+
+function isUnauthorizedDomainError(err: any): boolean {
+  const code = err?.code || err?.message || '';
+  return String(code).includes('auth/unauthorized-domain');
+}
+
+function isLocalRuntime(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
+
+function createLocalDemoUser() {
+  return {
+    uid: LOCAL_DEMO_UID,
+    email: LOCAL_DEMO_EMAIL,
+    displayName: 'Tu Negocio RD Local',
+    photoURL: '',
+    isLocalDemo: true,
+  };
+}
+
+function isLocalDemoUser(user?: { uid?: string } | null): boolean {
+  return user?.uid === LOCAL_DEMO_UID;
+}
+
+function loadLocalPaymentMethods(): PaymentMethodItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LOCAL_PAYMENT_METHODS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalPaymentMethods(cards: PaymentMethodItem[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LOCAL_PAYMENT_METHODS_KEY, JSON.stringify(cards));
+}
+
+async function createCheckoutSession(params: {
+  billingCycle: Exclude<BillingCycle, 'trial'>;
+  userEmail?: string | null;
+  paymentMethodId: string;
+}) {
+  const response = await fetch('/api/checkout/session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok || !payload?.success) {
+    throw new Error(payload?.error || 'No se pudo autorizar el checkout PRO.');
+  }
+
+  return payload as {
+    checkoutReference: string;
+    mode: string;
+    provider: string;
+    invoice?: { sent: boolean; reason?: string };
+    plan: { displayAmount: string; billingCycle: string };
+  };
+}
+
+async function fetchCheckoutConfig(): Promise<CheckoutConfig | null> {
+  try {
+    const response = await fetch('/api/checkout/config');
+    const payload = await response.json().catch(() => null);
+    return response.ok && payload?.success ? payload as CheckoutConfig : null;
+  } catch {
+    return null;
+  }
+}
+
+function getAuthErrorMessage(err: any): string {
+  const code = err?.code || err?.message || '';
+
+  if (
+    code.includes('auth/operation-not-allowed') ||
+    code.includes('PASSWORD_LOGIN_DISABLED')
+  ) {
+    return `El acceso con correo y contrasena no esta habilitado en Firebase. Usa "Entrar con Google" con ${ADMIN_EMAIL}, o activa Email/Password en Firebase Auth.`;
+  }
+
+  if (
+    code.includes('auth/wrong-password') ||
+    code.includes('auth/user-not-found') ||
+    code.includes('auth/invalid-credential') ||
+    code.includes('INVALID_LOGIN_CREDENTIALS')
+  ) {
+    return 'Credenciales incorrectas. Verifica el correo y la contrasena, o entra con Google si esa cuenta fue creada con Google.';
+  }
+
+  if (code.includes('auth/email-already-in-use')) {
+    return 'Este correo electronico ya se encuentra registrado. Cambia a modo ingreso o entra con Google.';
+  }
+
+  if (code.includes('auth/weak-password')) {
+    return 'La contrasena provista debe contener al menos 6 caracteres.';
+  }
+
+  if (code.includes('auth/invalid-email')) {
+    return 'Escribe un correo electronico que tenga formato valido.';
+  }
+
+  if (code.includes('auth/popup-blocked')) {
+    return 'El navegador bloqueo la ventana de Google. Permite popups para este sitio e intenta de nuevo.';
+  }
+
+  if (code.includes('auth/popup-closed-by-user')) {
+    return 'Se cerro la ventana de Google antes de completar el acceso.';
+  }
+
+  if (code.includes('auth/unauthorized-domain')) {
+    return 'Este dominio no esta autorizado en Firebase Auth. Para probar localmente agrega "localhost" en Authentication > Settings > Authorized domains.';
+  }
+
+  if (code.includes('auth/too-many-requests')) {
+    return 'Firebase bloqueo temporalmente los intentos por seguridad. Espera unos minutos e intenta de nuevo.';
+  }
+
+  return err?.message || 'Error al autenticar con el servidor de seguridad.';
 }
 
 export interface PaymentMethodItem {
@@ -67,12 +237,18 @@ export interface PaymentMethodItem {
   createdAt?: any;
 }
 
-export default function UserAccountModal({ isOpen, onClose, userTier, onTierChange }: UserAccountModalProps) {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+export default function UserAccountModal({ isOpen, onClose, userTier, onTierChange, subscriptionState, onSubscriptionChange, initialCheckoutPlan = 'mensual' }: UserAccountModalProps) {
+  const currentSubscription = normalizeSubscriptionState(subscriptionState || { role: userTier });
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [cards, setCards] = useState<PaymentMethodItem[]>([]);
   const [cardsLoading, setCardsLoading] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<Exclude<BillingCycle, 'trial'>>(initialCheckoutPlan);
+  const [checkoutConfig, setCheckoutConfig] = useState<CheckoutConfig | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [paymentMethodType, setPaymentMethodType] = useState<'card' | 'gpay'>('card');
+  const [localMode, setLocalMode] = useState<boolean>(false);
 
   // Email / Password Form States
   const [authEmail, setAuthEmail] = useState<string>('');
@@ -107,18 +283,30 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isOpen) {
+      setCheckoutPlan(initialCheckoutPlan);
+      fetchCheckoutConfig().then(setCheckoutConfig);
+    }
+  }, [initialCheckoutPlan, isOpen]);
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser && localMode) {
+        setLoading(false);
+        return;
+      }
       setUser(currentUser);
       setLoading(false);
       
       if (currentUser) {
+        setLocalMode(false);
         // Sync user profile state in Firestore as standard or PRO
         await syncUserProfile(currentUser);
         // Load saved payment methods
         await fetchPaymentMethods(currentUser.uid);
 
         // If the user's email is the designated admin, bootstrap backend data
-        if (currentUser.email === 'jeuri905@gmail.com') {
+        if (isAdminEmail(currentUser.email)) {
           fetchAdminData();
         }
       } else {
@@ -128,11 +316,33 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     });
 
     return () => unsubscribe();
-  }, [userTier]);
+  }, [userTier, localMode]);
+
+  useEffect(() => {
+    if (!selectedCardId && cards.length > 0) {
+      setSelectedCardId(cards[0].id);
+    }
+    if (selectedCardId && cards.length > 0 && !cards.some((card) => card.id === selectedCardId)) {
+      setSelectedCardId(cards[0].id);
+    }
+    if (cards.length === 0 && selectedCardId) {
+      setSelectedCardId('');
+    }
+  }, [cards, selectedCardId]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const activateLocalDemoAccount = () => {
+    const localUser = createLocalDemoUser();
+    setLocalMode(true);
+    setUser(localUser);
+    setLoading(false);
+    setCredentialsError(null);
+    fetchPaymentMethods(localUser.uid);
+    triggerToast('Modo local activo. Ya puedes completar la compra PRO.');
   };
 
   const addLog = (message: string) => {
@@ -142,26 +352,39 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
   // Sync profile document with Firestore
   const syncUserProfile = async (firebaseUser: FirebaseUser) => {
+    if (isLocalDemoUser(firebaseUser)) return;
     const userDocRef = doc(db, 'users', firebaseUser.uid);
     try {
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.role) {
-          onTierChange(data.role as 'FREE' | 'PRO');
+        const normalized = normalizeSubscriptionState({
+          ...data,
+          role: data.role,
+        });
+        onTierChange(normalized.plan);
+        onSubscriptionChange?.(normalized);
+        if (
+          normalized.status !== data.subscriptionStatus ||
+          normalized.plan !== data.subscriptionPlan ||
+          normalized.endsAt !== data.subscriptionEndsAt ||
+          normalized.trialEndsAt !== data.subscriptionTrialEndsAt
+        ) {
+          await updateDoc(userDocRef, subscriptionStateForFirestore(normalized));
         }
       } else {
         // Create user record in Firestore
+        const defaultSubscription = normalizeSubscriptionState({ role: isAdminEmail(firebaseUser.email) ? 'PRO' : userTier });
         const newUserPayload = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
           displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
           photoURL: firebaseUser.photoURL || '',
-          role: firebaseUser.email === 'jeuri905@gmail.com' ? 'PRO' : (userTier || 'FREE'),
-          updatedAt: new Date().toISOString()
+          ...subscriptionStateForFirestore(defaultSubscription),
         };
         await setDoc(userDocRef, newUserPayload);
-        onTierChange(newUserPayload.role as 'FREE' | 'PRO');
+        onTierChange(defaultSubscription.plan);
+        onSubscriptionChange?.(defaultSubscription);
       }
     } catch (err) {
       console.error("Error fetching or syncing user details in Firestore:", err);
@@ -173,6 +396,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     setCardsLoading(true);
     const colPath = `users/${uid}/paymentMethods`;
     try {
+      if (uid === LOCAL_DEMO_UID) {
+        setCards(loadLocalPaymentMethods());
+        return;
+      }
       const qSnap = await getDocs(collection(db, colPath));
       const fetchedCards: PaymentMethodItem[] = [];
       qSnap.forEach((doc) => {
@@ -191,7 +418,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
   // Fetch Admin user directory
   const fetchAdminData = async () => {
-    if (!auth.currentUser || auth.currentUser.email !== 'jeuri905@gmail.com') return;
+    if (!auth.currentUser || !isAdminEmail(auth.currentUser.email)) return;
     setUsersLoading(true);
     setAuditsLoading(true);
     addLog("Inicializando conexión con directorio administrativo de usuarios...");
@@ -255,9 +482,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     
     try {
       const userDocRef = doc(db, 'users', targetUid);
+      const nextSubscription = nextRole === 'PRO'
+        ? createActiveSubscriptionState('mensual', 'admin-manual')
+        : createDefaultSubscriptionState();
       await updateDoc(userDocRef, {
-        role: nextRole,
-        updatedAt: new Date().toISOString()
+        ...subscriptionStateForFirestore(nextSubscription)
       });
       addLog(`Confirmado: Mutación aplicada en Firestore para ${targetUid}.`);
       triggerToast(`Rol actualizado a ${nextRole} exitosamente.`);
@@ -266,6 +495,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       // If updating our self, trigger local state mutation
       if (targetUid === user?.uid) {
         onTierChange(nextRole);
+        onSubscriptionChange?.(nextSubscription);
       }
     } catch (err) {
       addLog(`Error de escritura Firestore en actualización de rol: ${err instanceof Error ? err.message : String(err)}`);
@@ -284,7 +514,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       triggerToast(`¡Bienvenido, ${result.user.displayName || 'usuario'}!`);
     } catch (err) {
       console.error("Google Sign-In Error:", err);
-      setCredentialsError("Surgió un error con el inicio de sesión con Google. Inténtalo de nuevo.");
+      if (isUnauthorizedDomainError(err) && isLocalRuntime()) {
+        activateLocalDemoAccount();
+        return;
+      }
+      setCredentialsError(getAuthErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -294,7 +528,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   const handleEmailAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setCredentialsError(null);
-    if (!authEmail.trim() || !authPassword.trim()) {
+    const email = authEmail.trim().toLowerCase();
+    const password = authPassword.trim();
+
+    if (!email || !password) {
       setCredentialsError("Por favor, llena todos los campos solicitados.");
       return;
     }
@@ -307,7 +544,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     try {
       if (isRegisterMode) {
         // Register flow
-        const credentials = await createUserWithEmailAndPassword(auth, authEmail, authPassword);
+        const credentials = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(credentials.user, {
           displayName: authName
         });
@@ -318,7 +555,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
           email: credentials.user.email || '',
           displayName: authName,
           photoURL: '',
-          role: credentials.user.email === 'jeuri905@gmail.com' ? 'PRO' : 'FREE',
+          role: isAdminEmail(credentials.user.email) ? 'PRO' : 'FREE',
           updatedAt: new Date().toISOString()
         };
         await setDoc(doc(db, 'users', credentials.user.uid), newUserPayload);
@@ -327,22 +564,12 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
         setIsRegisterMode(false);
       } else {
         // Login flow
-        const credentials = await signInWithEmailAndPassword(auth, authEmail, authPassword);
+        const credentials = await signInWithEmailAndPassword(auth, email, password);
         triggerToast(`Sesión iniciada como: ${credentials.user.displayName || credentials.user.email}`);
       }
     } catch (err: any) {
       console.error("Authorization Error:", err);
-      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-        setCredentialsError("Credenciales incorrectas. Verifica el correo e inténtalo de nuevo.");
-      } else if (err.code === 'auth/email-already-in-use') {
-        setCredentialsError("Este correo electrónico ya se encuentra registrado.");
-      } else if (err.code === 'auth/weak-password') {
-        setCredentialsError("La contraseña provista debe contener al menos 6 caracteres.");
-      } else if (err.code === 'auth/invalid-email') {
-        setCredentialsError("Escribe un correo electrónico que tenga formato válido.");
-      } else {
-        setCredentialsError(err.message || "Error al autenticar con el servidor de seguridad.");
-      }
+      setCredentialsError(getAuthErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -352,6 +579,14 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   const handleSignOut = async () => {
     setActionLoading(true);
     try {
+      if (isLocalDemoUser(user)) {
+        setLocalMode(false);
+        setUser(null);
+        setCards([]);
+        triggerToast("Sesion local cerrada correctamente.");
+        onClose();
+        return;
+      }
       await signOut(auth);
       triggerToast("Sesión cerrada correctamente.");
       onClose();
@@ -363,18 +598,37 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   };
 
   // Upgrades role to PRO in Firestore
-  const handleUpgradeToPro = async (cardId: string) => {
+  const handleUpgradeToPro = async (cardId: string, billingCycle: Exclude<BillingCycle, 'trial'> = checkoutPlan) => {
     if (!user) return;
+    if (!cardId) {
+      setFormError('Selecciona o registra una tarjeta antes de completar la compra PRO.');
+      return;
+    }
+
     setActionLoading(true);
-    const userDocRef = doc(db, 'users', user.uid);
+    const plan = PRO_PLAN_PRICES[billingCycle];
     try {
-      await updateDoc(userDocRef, {
-        role: 'PRO',
-        updatedAt: new Date().toISOString()
+      const nextSubscription = createActiveSubscriptionState(billingCycle, `card-${cardId}`);
+      const checkout = await createCheckoutSession({
+        billingCycle,
+        userEmail: user.email,
+        paymentMethodId: cardId,
       });
+      await persistSubscriptionState(nextSubscription);
       onTierChange('PRO');
-      triggerToast("¡Felicidades! Tu Licencia PRO de NegocioRD ha sido activada.");
-      await logSubscription('FREE', 'PRO', 'Actualización de licencia mediante simulación de datos de tarjeta.');
+      onSubscriptionChange?.(nextSubscription);
+      triggerToast(`Compra completada: ${plan.label} activo. Ref. ${checkout.checkoutReference}${checkout.invoice?.sent ? ' | Factura enviada.' : ''}`);
+      if (!isLocalDemoUser(user)) {
+        await logSubscription(currentSubscription.plan, 'PRO', `Compra completada: ${plan.label}.`, {
+          subscriptionStatus: nextSubscription.status,
+          billingCycle: nextSubscription.billingCycle,
+          paymentMethod: nextSubscription.paymentMethod,
+          checkoutTotal: plan.total,
+          checkoutReference: checkout.checkoutReference,
+          checkoutProvider: checkout.provider,
+          invoiceEmailSent: checkout.invoice?.sent || false,
+        });
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -382,19 +636,99 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     }
   };
 
-  // Cancel / revert subscription demo
+  const persistSubscriptionState = async (nextSubscription: SubscriptionState) => {
+    if (isLocalDemoUser(user)) {
+      localStorage.setItem('negociord_subscription_state', JSON.stringify(nextSubscription));
+      localStorage.setItem('negociord_user_tier', nextSubscription.plan);
+      return;
+    }
+
+    await updateDoc(doc(db, 'users', user.uid), subscriptionStateForFirestore(nextSubscription));
+  };
+
+  // Cancel / revert subscription
   const handleCancelSubscription = async () => {
     if (!user) return;
     setActionLoading(true);
-    const userDocRef = doc(db, 'users', user.uid);
     try {
-      await updateDoc(userDocRef, {
-        role: 'FREE',
-        updatedAt: new Date().toISOString()
-      });
+      const nextSubscription = currentSubscription.plan === 'PRO'
+        ? cancelSubscriptionState(currentSubscription)
+        : createDefaultSubscriptionState();
+      await persistSubscriptionState(nextSubscription);
       onTierChange('FREE');
-      triggerToast("Suscripción cambiada a versión Gratuita (Free) exitosamente.");
-      await logSubscription('PRO', 'FREE', 'Remoción voluntaria o baja de suscripción solicitada.');
+      onSubscriptionChange?.(nextSubscription);
+      triggerToast("Suscripción cambiada a versión gratuita exitosamente.");
+      if (!isLocalDemoUser(user)) {
+        await logSubscription('PRO', 'FREE', 'Remoción voluntaria o baja de suscripción solicitada.', {
+          subscriptionStatus: nextSubscription.status,
+        });
+      }
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleStartTrial = async () => {
+    if (!user) return;
+    setActionLoading(true);
+    const nextSubscription = createTrialSubscriptionState();
+    try {
+      await persistSubscriptionState(nextSubscription);
+      onTierChange('PRO');
+      onSubscriptionChange?.(nextSubscription);
+      triggerToast('Tu prueba PRO está activa por 7 días.');
+      if (!isLocalDemoUser(user)) {
+        await logSubscription('FREE', 'PRO', 'Prueba PRO iniciada por el usuario.', {
+          subscriptionStatus: nextSubscription.status,
+          trialEndsAt: nextSubscription.trialEndsAt,
+        });
+      }
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleMarkPending = async () => {
+    if (!user) return;
+    setActionLoading(true);
+    const nextSubscription = createPendingSubscriptionState(currentSubscription.billingCycle === 'anual' ? 'anual' : 'mensual');
+    try {
+      await persistSubscriptionState(nextSubscription);
+      onTierChange('PRO');
+      onSubscriptionChange?.(nextSubscription);
+      triggerToast('Tu suscripción quedó pendiente de pago.');
+      if (!isLocalDemoUser(user)) {
+        await logSubscription('FREE', 'PRO', 'Suscripción marcada como pendiente de pago.', {
+          subscriptionStatus: nextSubscription.status,
+          billingCycle: nextSubscription.billingCycle,
+        });
+      }
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRenewSubscription = async () => {
+    if (!user) return;
+    setActionLoading(true);
+    const renewed = createActiveSubscriptionState(currentSubscription.billingCycle === 'anual' ? 'anual' : 'mensual', currentSubscription.paymentMethod || 'demo-card');
+    try {
+      await persistSubscriptionState(renewed);
+      onTierChange('PRO');
+      onSubscriptionChange?.(renewed);
+      triggerToast('Tu suscripción PRO fue renovada.');
+      if (!isLocalDemoUser(user)) {
+        await logSubscription('PRO', 'PRO', 'Renovación de suscripción PRO.', {
+          subscriptionStatus: renewed.status,
+          billingCycle: renewed.billingCycle,
+        });
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     } finally {
@@ -471,7 +805,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
     setActionLoading(true);
     try {
-      await setDoc(doc(db, `users/${user.uid}/paymentMethods`, cardId), newCardPayload);
+      if (isLocalDemoUser(user)) {
+        saveLocalPaymentMethods([...loadLocalPaymentMethods(), newCardPayload]);
+      } else {
+        await setDoc(doc(db, `users/${user.uid}/paymentMethods`, cardId), newCardPayload);
+      }
       triggerToast('Tarjeta de pago guardada de forma segura.');
       
       setCardNumber('');
@@ -479,6 +817,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       setCardExpiry('');
       setCardCvv('');
       setShowAddCard(false);
+      setSelectedCardId(cardId);
       
       await fetchPaymentMethods(user.uid);
     } catch (err) {
@@ -494,7 +833,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     setActionLoading(true);
     const methodPath = `users/${user.uid}/paymentMethods/${cardId}`;
     try {
-      await deleteDoc(doc(db, `users/${user.uid}/paymentMethods`, cardId));
+      if (isLocalDemoUser(user)) {
+        saveLocalPaymentMethods(loadLocalPaymentMethods().filter((card) => card.id !== cardId));
+      } else {
+        await deleteDoc(doc(db, `users/${user.uid}/paymentMethods`, cardId));
+      }
       triggerToast('Tarjeta eliminada correctamente.');
       await fetchPaymentMethods(user.uid);
     } catch (err) {
@@ -514,7 +857,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
   if (!isOpen) return null;
 
-  const isAdminUser = user?.email === 'jeuri905@gmail.com';
+  const isAdminUser = isAdminEmail(user?.email);
 
   return (
     <div className="fixed inset-0 bg-[#0B0F19]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
@@ -540,7 +883,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
             🏢
           </div>
           <div>
-            <h3 className="text-xl font-extrabold text-[#111827]">Portal Seguro NegocioRD</h3>
+            <h3 className="text-xl font-extrabold text-[#111827]">Portal Seguro Tu Negocio RD</h3>
             <p className="text-xs text-gray-400">Autenticación Firebase & Consola Integrada de Pagos</p>
           </div>
         </div>
@@ -548,7 +891,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
         {loading ? (
           <div className="py-20 text-center space-y-3">
             <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-xs text-gray-500 font-semibold">Cargando base de datos segura de NegocioRD...</p>
+            <p className="text-xs text-gray-500 font-semibold">Cargando base de datos segura de Tu Negocio RD...</p>
           </div>
         ) : !user ? (
           /* --- EXQUISITE DUAL SIGN IN PANELS (EMAIL/PASSWORD + GOOGLE) --- */
@@ -605,7 +948,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                       type="email"
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
-                      placeholder="ejemplo@negociord.com"
+                      placeholder="ejemplo@tunegociord.com"
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 pl-8 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0F766E] focus:bg-white"
                       required
                     />
@@ -637,13 +980,6 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 </button>
               </form>
 
-              {/* Special Tip for direct Admin Auto-Open */}
-              <div className="bg-amber-50 text-amber-900 text-[10px] p-2.5 rounded-xl border border-amber-200 leading-normal flex gap-1.5 font-sans">
-                <span>🔐</span>
-                <span>
-                  <strong>Tip de Acceso:</strong> Si inicias sesión o te registras usando el correo <strong>jeuri905@gmail.com</strong> se habilitará al instante el panel de control administrativo y backend de la plataforma con herramientas interactivas.
-                </span>
-              </div>
             </div>
 
             {/* COLUMN B: FAST SOCIAL SIGN IN */}
@@ -670,6 +1006,17 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 />
                 <span>Entrar con Google</span>
               </button>
+
+              {isLocalRuntime() && (
+                <button
+                  type="button"
+                  onClick={activateLocalDemoAccount}
+                  disabled={actionLoading}
+                  className="w-full py-2.5 px-4 border border-[#0F766E]/30 bg-[#0F766E]/5 hover:bg-[#0F766E]/10 rounded-xl font-bold text-[11px] text-[#0F766E] transition-all disabled:opacity-50"
+                >
+                  Continuar modo local para comprar PRO
+                </button>
+              )}
 
               <div className="flex justify-center items-center gap-1.5 text-[9px] text-gray-400">
                 <ShieldCheck size={12} className="text-[#0F766E]" />
@@ -715,17 +1062,17 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
               {/* License Level Banner */}
               <div className="text-center sm:text-right">
-                {userTier === 'PRO' ? (
+                {currentSubscription.plan === 'PRO' ? (
                   <div className="flex flex-col items-center sm:items-end gap-1">
                     <span className="px-3.5 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-xs ring-2 ring-amber-300">
-                      💎 Licencia PRO Activa
+                      💎 {SUBSCRIPTION_STATUS_LABELS[currentSubscription.status]}
                     </span>
                     <button 
                       onClick={handleCancelSubscription}
                       className="text-[9px] text-gray-400 underline hover:text-red-500 mt-1 cursor-pointer"
-                      title="Volver a versión gratuita para probar límites"
+                      title="Volver a versión gratuita"
                     >
-                      Bajar a Plan Gratuito (Demo)
+                      Cancelar suscripción
                     </button>
                   </div>
                 ) : (
@@ -733,16 +1080,47 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                     <span className="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-[10px] font-bold uppercase tracking-wider">
                       Licencia Básica Gratuita
                     </span>
-                    <button
-                      onClick={() => setShowAddCard(true)}
-                      className="text-[10px] text-[#0F766E] font-bold hover:underline"
-                    >
-                      Registrar tarjeta simulada para ser PRO
-                    </button>
                   </div>
                 )}
               </div>
             </div>
+
+            {(currentSubscription.plan === 'PRO' || isAdminUser) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-2xl border border-gray-150 bg-[#FAFAFA] p-4">
+                <div className="space-y-2">
+                  <div className="text-[10px] uppercase tracking-widest font-black text-gray-400">Estado de suscripción</div>
+                  <div className="text-sm font-black text-gray-950">{SUBSCRIPTION_STATUS_LABELS[currentSubscription.status]}</div>
+                  <p className="text-xs text-gray-500">
+                    Plan base: {currentSubscription.plan}.{currentSubscription.endsAt ? ` Vence el ${new Date(currentSubscription.endsAt).toLocaleDateString('es-DO')}.` : ''}
+                  </p>
+                </div>
+                {isAdminUser && (
+                  <div className="flex flex-wrap gap-2 md:justify-end items-start md:items-center">
+                    <button
+                      onClick={handleRenewSubscription}
+                      disabled={actionLoading}
+                      className="px-3 py-2 rounded-lg bg-[#0F766E] text-white text-[10px] font-bold disabled:opacity-60"
+                    >
+                      Renovar
+                    </button>
+                    <button
+                      onClick={handleMarkPending}
+                      disabled={actionLoading}
+                      className="px-3 py-2 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold disabled:opacity-60"
+                    >
+                      Pendiente de pago
+                    </button>
+                    <button
+                      onClick={handleStartTrial}
+                      disabled={actionLoading}
+                      className="px-3 py-2 rounded-lg bg-gray-900 text-white text-[10px] font-bold disabled:opacity-60"
+                    >
+                      Probar 7 días
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* --- CORE SECTOR FOR ADMIN: DETECTED ADMIN EXCLUSIVE ACCESS BACKEND --- */}
             {isAdminUser ? (
@@ -926,7 +1304,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                     <div className="flex justify-between items-center pb-2 border-b border-stone-800 text-[10px] text-stone-500">
                       <span className="flex items-center gap-1">
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-                        <span>Terminal Activa: jeuri905@gmail.com</span>
+                        <span>Terminal Activa: {ADMIN_EMAIL}</span>
                       </span>
                       <button 
                         onClick={() => { setAdminLogs([]); triggerToast("Consola Limpiada"); }}
@@ -1049,8 +1427,230 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
               </div>
             ) : null}
 
+            {/* --- CHECKOUT SECTOR: COMPRA DE PLAN PRO --- */}
+            {isAdminUser && (
+              <div className="border border-[#0F766E]/20 rounded-2xl p-5 bg-[#F8FFFC] space-y-4">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 text-left">
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest font-black text-[#0F766E]">Checkout PRO</div>
+                  <h4 className="text-base font-extrabold text-gray-950 mt-1">Completar compra del plan profesional</h4>
+                  <p className="text-xs text-gray-500 mt-1 max-w-xl">
+                    {isAdminUser 
+                      ? "Elige el ciclo, selecciona un metodo guardado y confirma la activacion. El backend valida la compra, registra la referencia y envia la factura por correo cuando Gmail esta configurado."
+                      : "Elige tu plan de suscripción para habilitar de inmediato todas las funciones PRO libres de publicidad y con recursos avanzados."
+                    }
+                  </p>
+                  {isAdminUser && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <span className="px-2 py-1 rounded-md bg-white border border-gray-200 text-[10px] font-black text-gray-600 uppercase">
+                        {checkoutConfig?.provider === 'azul_google_pay' ? 'Azul + Google Pay' : checkoutConfig?.provider === 'azul' ? 'Azul' : 'Modo demo'}
+                      </span>
+                      <span className={`px-2 py-1 rounded-md border text-[10px] font-black uppercase ${
+                        checkoutConfig?.invoiceEmailEnabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700'
+                      }`}>
+                        {checkoutConfig?.invoiceEmailEnabled ? 'Factura por Gmail activa' : 'Factura por Gmail pendiente'}
+                      </span>
+                      {checkoutConfig?.providers?.googlePay?.enabled && (
+                        <span className={`px-2 py-1 rounded-md border text-[10px] font-black uppercase ${
+                          checkoutConfig.providers.googlePay.configured ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'
+                        }`}>
+                          Google Pay {checkoutConfig.providers.googlePay.configured ? 'configurado' : 'pendiente'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-right min-w-[150px]">
+                  <div className="text-[10px] text-gray-400 font-black uppercase">Total</div>
+                  <div className="text-lg font-black text-gray-950">{PRO_PLAN_PRICES[checkoutPlan].amount}</div>
+                  <div className="text-[10px] text-[#0F766E] font-bold">{PRO_PLAN_PRICES[checkoutPlan].label}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {(['mensual', 'anual'] as Exclude<BillingCycle, 'trial'>[]).map((planKey) => (
+                  <button
+                    key={planKey}
+                    type="button"
+                    onClick={() => setCheckoutPlan(planKey)}
+                    className={`text-left rounded-xl border p-4 transition-all ${
+                      checkoutPlan === planKey
+                        ? 'border-[#0F766E] bg-white shadow-sm ring-2 ring-[#0F766E]/10'
+                        : 'border-gray-200 bg-white/70 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-black text-gray-950">{PRO_PLAN_PRICES[planKey].label}</span>
+                      <span className="text-sm font-black text-[#0F766E]">{PRO_PLAN_PRICES[planKey].amount}</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-1">{PRO_PLAN_PRICES[planKey].description}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white p-4 text-left space-y-4">
+                {/* Visual Selector for Payment Methods */}
+                <div className="grid grid-cols-2 gap-2 border-b border-gray-100 pb-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethodType('card')}
+                    className={`py-2 px-3 rounded-lg border text-xs font-bold text-center transition-all ${
+                      paymentMethodType === 'card'
+                        ? 'border-[#0F766E] bg-emerald-50 text-[#0F766E]'
+                        : 'border-gray-200 bg-white text-gray-750 hover:border-gray-300'
+                    }`}
+                  >
+                    💳 Tarjeta de Crédito/Débito
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethodType('gpay')}
+                    className={`py-2 px-3 rounded-lg border text-xs font-bold text-center transition-all flex items-center justify-center gap-1.5 ${
+                      paymentMethodType === 'gpay'
+                        ? 'border-gray-900 bg-black text-white'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <svg className="h-3.5 w-8" viewBox="0 0 61 24" fill="currentColor">
+                      <path d="M12.24 10.285V13.44h4.86c-.19 1.13-.86 2.07-1.78 2.68v2.2h2.88c1.69-1.55 2.66-3.83 2.66-6.52 0-.61-.06-1.21-.16-1.78l-8.46-.025z" fill="#4285F4"/>
+                      <path d="M12.24 20c2.43 0 4.47-.8 5.96-2.2l-2.88-2.2c-.8.53-1.83.86-3.08.86-2.37 0-4.38-1.58-5.1-3.73H4.16v2.28C5.64 17.89 8.7 20 12.24 20z" fill="#34A853"/>
+                      <path d="M7.14 12.73a4.74 4.74 0 0 1 0-3.02V7.43H4.16a7.88 7.88 0 0 0 0 7.58l2.98-2.28z" fill="#FBBC05"/>
+                      <path d="M12.24 7.73c1.33 0 2.5.45 3.44 1.34l2.58-2.58C16.7 5.1 14.66 4.3 12.24 4.3 8.7 4.3 5.64 6.41 4.16 9.43l2.98 2.28c.72-2.15 2.73-3.73 5.1-3.73z" fill="#EA4335"/>
+                      <path d="M30 4.3H26v15h4v-15z" fill="currentColor"/>
+                      <path d="M37 11.2V7.7h-3v8.5h3v-3.5c0-1.2.8-2 2-2s2 .8 2 2v3.5h3v-4.5c0-2-1.5-3.5-3.5-3.5-1.5 0-3 1.2-3.5 2.5z" fill="currentColor"/>
+                      <path d="M51.5 7.7c-2.3 0-3.5 1.5-3.5 3.5v4.5h3v-4.5c0-.8.5-1.3 1.2-1.3s1.2.5 1.2 1.3v4.5h3V11c0-2.2-1.5-3.3-3.7-3.3z" fill="currentColor"/>
+                    </svg>
+                    <span>Google Pay</span>
+                  </button>
+                </div>
+
+                {paymentMethodType === 'card' ? (
+                  <>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-widest font-black text-gray-400">Metodo de pago</div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {cards.length > 0 ? 'Selecciona el metodo para completar la compra.' : 'Registra un metodo de pago para continuar.'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddCard(true)}
+                        className="px-3 py-2 rounded-lg bg-gray-900 text-white text-[10px] font-bold"
+                      >
+                        Agregar tarjeta
+                      </button>
+                    </div>
+
+                    {cards.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {cards.map((card) => (
+                          <label
+                            key={card.id}
+                            className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer ${
+                              selectedCardId === card.id ? 'border-[#0F766E] bg-emerald-50' : 'border-gray-200 bg-white'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="checkout-card"
+                              value={card.id}
+                              checked={selectedCardId === card.id}
+                              onChange={() => setSelectedCardId(card.id)}
+                              className="accent-[#0F766E]"
+                            />
+                            <span className="text-xs font-bold text-gray-800">
+                              {card.brand.toUpperCase()} terminada en {card.last4}
+                              <span className="block text-[10px] text-gray-400 font-medium">Expira {card.expiry}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    {formError && (
+                      <div className="bg-red-50 text-red-700 text-xs p-2.5 rounded-lg font-bold text-left">
+                        {formError}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-3">
+                      <div className="text-xs text-gray-500">
+                        <span className="font-extrabold text-gray-900">{PRO_PLAN_PRICES[checkoutPlan].total}</span>
+                        <span className="block text-[10px]">La licencia queda activa al confirmar la autorizacion del servidor.</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleUpgradeToPro(selectedCardId, checkoutPlan)}
+                        disabled={actionLoading}
+                        className="px-5 py-3 rounded-xl bg-[#0F766E] text-white text-xs font-black shadow-sm disabled:opacity-50"
+                      >
+                        {actionLoading ? 'Procesando compra...' : currentSubscription.plan === 'PRO' ? 'Renovar compra PRO' : 'Completar compra PRO'}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/40 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-10 text-blue-600" viewBox="0 0 61 24" fill="currentColor">
+                          <path d="M12.24 10.285V13.44h4.86c-.19 1.13-.86 2.07-1.78 2.68v2.2h2.88c1.69-1.55 2.66-3.83 2.66-6.52 0-.61-.06-1.21-.16-1.78l-8.46-.025z" fill="#4285F4"/>
+                          <path d="M12.24 20c2.43 0 4.47-.8 5.96-2.2l-2.88-2.2c-.8.53-1.83.86-3.08.86-2.37 0-4.38-1.58-5.1-3.73H4.16v2.28C5.64 17.89 8.7 20 12.24 20z" fill="#34A853"/>
+                          <path d="M7.14 12.73a4.74 4.74 0 0 1 0-3.02V7.43H4.16a7.88 7.88 0 0 0 0 7.58l2.98-2.28z" fill="#FBBC05"/>
+                          <path d="M12.24 7.73c1.33 0 2.5.45 3.44 1.34l2.58-2.58C16.7 5.1 14.66 4.3 12.24 4.3 8.7 4.3 5.64 6.41 4.16 9.43l2.98 2.28c.72-2.15 2.73-3.73 5.1-3.73z" fill="#EA4335"/>
+                        </svg>
+                        <h5 className="text-[11px] font-black text-blue-900 uppercase tracking-wide">Google Pay Express</h5>
+                      </div>
+                      <p className="text-xs text-blue-800 leading-relaxed">
+                        Pago directo e instantáneo a través de tu cuenta de Google. Tu monedero Google Pay se encuentra enlazado y listo para autenticarse de forma segura sin requerir el ingreso manual de tarjetas físicas.
+                      </p>
+                    </div>
+
+                    {formError && (
+                      <div className="bg-red-50 text-red-700 text-xs p-2.5 rounded-lg font-bold text-left">
+                        {formError}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-t border-gray-100 pt-3">
+                      <div className="text-xs text-gray-500">
+                        <span className="font-extrabold text-gray-900">{PRO_PLAN_PRICES[checkoutPlan].total}</span>
+                        <span className="block text-[10px]">Autenticación biométrica o contraseña integrada.</span>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleUpgradeToPro('google-pay-token', checkoutPlan)}
+                        disabled={actionLoading}
+                        className="flex items-center justify-center gap-2 bg-black hover:bg-neutral-900 text-white rounded-xl py-3 px-6 text-xs font-black shadow-lg transition-all active:scale-95 disabled:opacity-50 min-w-[200px]"
+                      >
+                        {actionLoading ? (
+                          <span>Procesando GPay...</span>
+                        ) : (
+                          <>
+                            <svg className="h-4.5 w-11" viewBox="0 0 61 24" fill="currentColor">
+                              <path d="M12.24 10.285V13.44h4.86c-.19 1.13-.86 2.07-1.78 2.68v2.2h2.88c1.69-1.55 2.66-3.83 2.66-6.52 0-.61-.06-1.21-.16-1.78l-8.46-.025z" fill="#4285F4"/>
+                              <path d="M12.24 20c2.43 0 4.47-.8 5.96-2.2l-2.88-2.2c-.8.53-1.83.86-3.08.86-2.37 0-4.38-1.58-5.1-3.73H4.16v2.28C5.64 17.89 8.7 20 12.24 20z" fill="#34A853"/>
+                              <path d="M7.14 12.73a4.74 4.74 0 0 1 0-3.02V7.43H4.16a7.88 7.88 0 0 0 0 7.58l2.98-2.28z" fill="#FBBC05"/>
+                              <path d="M12.24 7.73c1.33 0 2.5.45 3.44 1.34l2.58-2.58C16.7 5.1 14.66 4.3 12.24 4.3 8.7 4.3 5.64 6.41 4.16 9.43l2.98 2.28c.72-2.15 2.73-3.73 5.1-3.73z" fill="#EA4335"/>
+                              <path d="M30 4.3H26v15h4v-15z" fill="white"/>
+                              <path d="M37 11.2V7.7h-3v8.5h3v-3.5c0-1.2.8-2 2-2s2 .8 2 2v3.5h3v-4.5c0-2-1.5-3.5-3.5-3.5-1.5 0-3 1.2-3.5 2.5z" fill="white"/>
+                              <path d="M51.5 7.7c-2.3 0-3.5 1.5-3.5 3.5v4.5h3v-4.5c0-.8.5-1.3 1.2-1.3s1.2.5 1.2 1.3v4.5h3V11c0-2.2-1.5-3.3-3.7-3.3z" fill="white"/>
+                            </svg>
+                            <span>Pagar con GPay</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            )}
+
             {/* --- COMPONENT SECTOR: WALLET (TARJETAS VINCULADAS) --- */}
-            <div className="border border-gray-150 rounded-2xl p-5 bg-white space-y-4">
+            {isAdminUser && (
+              <div className="border border-gray-150 rounded-2xl p-5 bg-white space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-left">
                   <CreditCard size={18} className="text-[#0F766E]" />
@@ -1078,7 +1678,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                     Cancelar
                   </button>
 
-                  <h5 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider text-left">Ingresa un nuevo método de pago simulado</h5>
+                  <h5 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider text-left">Ingresa un nuevo metodo de pago</h5>
 
                   {/* INTERACTIVE FLIPPABLE CREDIT CARD */}
                   <div className="max-w-[340px] mx-auto perspective-1000 mb-6 font-mono">
@@ -1115,7 +1715,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
                           <div className="flex flex-col items-end">
                             <span className="text-[9px] text-amber-400 font-extrabold uppercase tracking-widest block font-sans">
-                              {userTier === 'PRO' ? '✦ PRO MEMBER' : '✦ VIP ACCESS'}
+                              {currentSubscription.plan === 'PRO' ? '✦ PRO MEMBER' : '✦ VIP ACCESS'}
                             </span>
                             <span className="text-xs font-black uppercase italic tracking-widest mt-0.5">
                               {cardBrand === 'visa' ? 'VISA PREMIUM' : cardBrand === 'mastercard' ? 'MC BLACK' : 'AMEX LITE'}
@@ -1167,7 +1767,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                         
                         <div className="text-[7px] text-gray-400 leading-normal text-left font-sans pt-2 border-t border-white/5 flex gap-1">
                           <span>🔔</span>
-                          <p>Módulo de pago de simulación segura de NegocioRD. Ningún cobro real es aplicado. Versión de demostración premium.</p>
+                          <p>Modulo de pago preparado para Azul y Google Pay. Los cobros reales dependen de las credenciales activas del comercio.</p>
                         </div>
                       </div>
                     </div>
@@ -1271,7 +1871,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                   <span className="text-3xl text-gray-300 block">💳</span>
                   <p className="text-xs font-bold text-gray-650 font-sans">No tienes tarjetas de pago registradas</p>
                   <p className="text-[10px] text-gray-400 leading-relaxed max-w-xs mx-auto font-sans">
-                    Inserta una tarjeta de crédito o débito simulada de prueba para experimentar el flujo de cobros, y habilitar la suscripción de Licencia PRO.
+                    Inserta una tarjeta de crédito o débito para experimentar el flujo de cobros, y habilitar la suscripción de Licencia PRO cuando el proveedor este activo.
                   </p>
                 </div>
               ) : (
@@ -1291,9 +1891,12 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                       </div>
 
                       <div className="flex items-center gap-2 font-sans">
-                        {userTier === 'FREE' && (
+                        {currentSubscription.plan === 'FREE' && (
                           <button
-                            onClick={() => handleUpgradeToPro(card.id)}
+                            onClick={() => {
+                              setSelectedCardId(card.id);
+                              handleUpgradeToPro(card.id, checkoutPlan);
+                            }}
                             disabled={actionLoading}
                             className="bg-amber-500 hover:bg-amber-600 font-bold text-[9px] text-white px-2.5 py-1.5 rounded-lg transition-all active:scale-95 flex items-center gap-1 cursor-pointer disabled:opacity-40 shadow-xs"
                           >
@@ -1315,17 +1918,20 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 </div>
               )}
             </div>
+            )}
 
             {/* General Info Panel */}
-            <div className="bg-[#0F766E]/5 border border-[#0F766E]/15 rounded-2xl p-4 flex gap-3 text-left">
-              <Info size={16} className="text-[#0F766E] shrink-0 mt-0.5" />
-              <div className="text-xs">
-                <span className="font-extrabold text-[#0F766E] leading-relaxed block">Sobre la seguridad de la información fiscal:</span>
-                <p className="text-gray-500 leading-relaxed mt-1">
-                  Ningún dato real de tarjetas reales es solicitado u almacenado externamente. El procesamiento es un modelo formativo seguro para simular las gestiones de impuestos y planillas formales ante la DGII dominicana.
-                </p>
+            {isAdminUser && (
+              <div className="bg-[#0F766E]/5 border border-[#0F766E]/15 rounded-2xl p-4 flex gap-3 text-left">
+                <Info size={16} className="text-[#0F766E] shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <span className="font-extrabold text-[#0F766E] leading-relaxed block">Sobre la seguridad de la información fiscal:</span>
+                  <p className="text-gray-500 leading-relaxed mt-1">
+                    No guardamos CVV ni datos sensibles completos. El procesamiento real debe realizarse mediante Azul y Google Pay con credenciales de comercio activas.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Bottom Actions footer */}
             <div className="pt-4 border-t border-gray-100 flex justify-between items-center">

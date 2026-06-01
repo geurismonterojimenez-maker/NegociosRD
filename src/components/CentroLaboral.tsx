@@ -22,6 +22,18 @@ interface AttendanceLog {
   type: 'Entrada' | 'Salida';
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function CentroLaboral() {
   // Setup local states
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -143,12 +155,10 @@ export default function CentroLaboral() {
 
   // Delete employee
   const handleDeleteEmployee = (id: string, name: string) => {
-    if (confirm(`¿Está seguro de eliminar a ${name} de los registros activos?`)) {
-      const filtered = employees.filter(e => e.id !== id);
-      saveEmployees(filtered);
-      if (activeEmployee?.id === id) {
-        setActiveEmployee(null);
-      }
+    const filtered = employees.filter(e => e.id !== id);
+    saveEmployees(filtered);
+    if (activeEmployee?.id === id) {
+      setActiveEmployee(null);
     }
   };
 
@@ -284,15 +294,15 @@ export default function CentroLaboral() {
       e.hireDate,
       e.status
     ]);
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
-      + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "nomina_colaboradores_negociord.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const summaryRows = [
+      '',
+      'Resumen de nomina',
+      `Total colaboradores,${employees.length}`,
+      `Total bruto mensual,${totalPayroll}`,
+      `Salario promedio,${avgSalary.toFixed(2)}`,
+      `Fecha de emision,${new Date().toLocaleDateString('es-DO')}`,
+    ];
+    downloadCsvFile("nomina_colaboradores_tu_negocio_rd.csv", [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows].join('\n'));
   };
 
   return (
@@ -412,8 +422,11 @@ export default function CentroLaboral() {
                 type="number" 
                 required
                 min={100}
-                value={salary}
-                onChange={(e) => setSalary(Number(e.target.value))}
+                value={salary || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSalary(val === '' ? 0 : Number(val) || 0);
+                }}
                 placeholder="Ej. 30000"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-xs focus:ring-1 focus:ring-[#0F766E] outline-none font-medium"
               />
@@ -709,7 +722,7 @@ export default function CentroLaboral() {
                     }
                   `}} />
                   <div className="border-b border-dashed border-gray-300 pb-2 text-center">
-                    <span className="font-bold text-xs uppercase tracking-widest block">NegocioRD</span>
+                    <span className="font-bold text-xs uppercase tracking-widest block">Tu Negocio RD</span>
                     <span className="text-[9px] text-gray-400 font-sans block">VOLANTE DE PAGO OFICIAL</span>
                   </div>
 
@@ -771,6 +784,16 @@ export default function CentroLaboral() {
                       <span>Costo Mensual Empresa:</span>
                       <span>RD$ {slipMath.companyCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8 pt-6 text-[10px] text-gray-500 font-sans print-avoid-break">
+                    <div className="text-center border-t border-gray-300 pt-1">Firma colaborador</div>
+                    <div className="text-center border-t border-gray-300 pt-1">Firma RRHH / Empresa</div>
+                  </div>
+
+                  <div className="text-[9px] text-gray-400 font-sans border-t border-dashed border-gray-200 pt-2 flex justify-between print-avoid-break">
+                    <span>Referencia: NRD-PAY-{activeEmployee.id.toUpperCase()}</span>
+                    <span>Emitido: {new Date().toLocaleDateString('es-DO')}</span>
                   </div>
 
                   <div className="pt-3.5 flex flex-col sm:flex-row items-center justify-center gap-2.5">
@@ -970,8 +993,12 @@ export default function CentroLaboral() {
                       <input 
                         type="number"
                         min="1000"
-                        value={overtimeSalary}
-                        onChange={(e) => setOvertimeSalary(Number(e.target.value))}
+                        placeholder="0"
+                        value={overtimeSalary || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setOvertimeSalary(val === '' ? 0 : Number(val) || 0);
+                        }}
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-xs focus:ring-1 focus:ring-[#0F766E] outline-none font-medium text-gray-800"
                       />
                     </div>
@@ -1097,8 +1124,12 @@ export default function CentroLaboral() {
                       <input 
                         type="number"
                         min="1000"
-                        value={regaliaSalary}
-                        onChange={(e) => setRegaliaSalary(Number(e.target.value))}
+                        placeholder="0"
+                        value={regaliaSalary || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setRegaliaSalary(val === '' ? 0 : Number(val) || 0);
+                        }}
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-xs focus:ring-1 focus:ring-[#0F766E] outline-none font-medium text-gray-800"
                       />
                     </div>
@@ -1169,8 +1200,12 @@ export default function CentroLaboral() {
                       <input 
                         type="number"
                         min="1000"
-                        value={bonoSalary}
-                        onChange={(e) => setBonoSalary(Number(e.target.value))}
+                        placeholder="0"
+                        value={bonoSalary || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setBonoSalary(val === '' ? 0 : Number(val) || 0);
+                        }}
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-xs focus:ring-1 focus:ring-[#0F766E] outline-none font-medium text-gray-800"
                       />
                     </div>
@@ -1297,8 +1332,12 @@ export default function CentroLaboral() {
                       <input 
                         type="number"
                         min="1000"
-                        value={subsidioSalary}
-                        onChange={(e) => setSubsidioSalary(Number(e.target.value))}
+                        placeholder="0"
+                        value={subsidioSalary || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubsidioSalary(val === '' ? 0 : Number(val) || 0);
+                        }}
                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-xs focus:ring-1 focus:ring-[#0F766E] outline-none font-medium text-gray-800"
                       />
                     </div>

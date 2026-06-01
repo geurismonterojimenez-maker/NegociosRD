@@ -34,6 +34,23 @@ service cloud.firestore {
         && (data.displayName == null || (data.displayName is string && data.displayName.size() <= 200))
         && (data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1000))
         && data.role is string && (data.role == 'FREE' || data.role == 'PRO')
+        && (data.subscriptionStatus == null || (data.subscriptionStatus is string && (
+          data.subscriptionStatus == 'FREE'
+          || data.subscriptionStatus == 'PRO_ACTIVE'
+          || data.subscriptionStatus == 'PRO_TRIAL'
+          || data.subscriptionStatus == 'PRO_PENDING'
+          || data.subscriptionStatus == 'PRO_EXPIRED'
+          || data.subscriptionStatus == 'PRO_CANCELED'
+        )))
+        && (data.subscriptionPlan == null || (data.subscriptionPlan is string && (data.subscriptionPlan == 'FREE' || data.subscriptionPlan == 'PRO')))
+        && (data.subscriptionBillingCycle == null || (data.subscriptionBillingCycle is string && (data.subscriptionBillingCycle == 'mensual' || data.subscriptionBillingCycle == 'anual' || data.subscriptionBillingCycle == 'trial')))
+        && (data.subscriptionStartedAt == null || data.subscriptionStartedAt is string)
+        && (data.subscriptionEndsAt == null || data.subscriptionEndsAt is string)
+        && (data.subscriptionTrialEndsAt == null || data.subscriptionTrialEndsAt is string)
+        && (data.subscriptionPaymentMethod == null || data.subscriptionPaymentMethod is string)
+        && (data.subscriptionAutoRenew == null || data.subscriptionAutoRenew is bool)
+        && (data.subscriptionLastAction == null || data.subscriptionLastAction is string)
+        && (data.subscriptionUpdatedAt == null || data.subscriptionUpdatedAt is string)
         && (data.updatedAt == null || data.updatedAt is string);
     }
 
@@ -89,7 +106,22 @@ service cloud.firestore {
       allow update: if (isOwner(userId) || isAdmin()) && isValidUser(incoming()) && (
         incoming().uid == existing().uid &&
         incoming().email == existing().email &&
-        incoming().diff(existing()).affectedKeys().hasOnly(['role', 'updatedAt', 'displayName', 'photoURL'])
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'role',
+          'updatedAt',
+          'displayName',
+          'photoURL',
+          'subscriptionStatus',
+          'subscriptionPlan',
+          'subscriptionBillingCycle',
+          'subscriptionStartedAt',
+          'subscriptionEndsAt',
+          'subscriptionTrialEndsAt',
+          'subscriptionPaymentMethod',
+          'subscriptionAutoRenew',
+          'subscriptionLastAction',
+          'subscriptionUpdatedAt'
+        ])
       );
       
       allow delete: if false; // Profile details are permanent

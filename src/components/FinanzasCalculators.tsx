@@ -20,6 +20,18 @@ interface FinanzasCalculatorsProps {
   onBack: () => void;
 }
 
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculatorsProps) {
   const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
@@ -201,7 +213,9 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
 
   const handleExcelExport = () => {
     if (!result) return;
-    let csv = "data:text/csv;charset=utf-8,Clave,Valor\n";
+    let csv = "Clave,Valor\n";
+    csv += `"Herramienta","${calc.name.replace(/"/g, '""')}"\n`;
+    csv += `"Fecha de emision","${new Date().toLocaleDateString('es-DO')}"\n`;
     Object.entries(result).forEach(([k, v]) => {
       if (k !== 'rows' && typeof v !== 'object') {
         csv += `"${k}","${v}"\n`;
@@ -213,14 +227,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
         csv += `${r.period},${r.cuota.toFixed(2)},${r.interes.toFixed(2)},${r.abono.toFixed(2)},${r.restante.toFixed(2)}\n`;
       });
     }
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `NegocioRD_Finanzas_${calc.id}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvFile(`tu_negocio_rd_finanzas_${calc.id}.csv`, csv);
     logUsage(calc.id, `Exportó resultados financieros a un archivo CSV. Principal: RD$ ${principalInput.toLocaleString()}`);
   };
 
@@ -294,8 +301,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-target-amount"
                       type="number"
-                      value={targetAmountInput}
-                      onChange={(e) => setTargetAmountInput(Math.max(0, parseInt(e.target.value) || 0))}
+                      placeholder="0"
+                      value={targetAmountInput || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTargetAmountInput(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                      }}
                       className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                   </div>
@@ -305,8 +316,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-principal"
                       type="number"
-                      value={principalInput}
-                      onChange={(e) => setPrincipalInput(Math.max(0, parseInt(e.target.value) || 0))}
+                      placeholder="0"
+                      value={principalInput || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPrincipalInput(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                      }}
                       className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                   </div>
@@ -318,8 +333,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     id="fin-annual-rate"
                     type="number"
                     step="0.05"
-                    value={annualRate}
-                    onChange={(e) => setAnnualRate(Math.max(0, parseFloat(e.target.value) || 0))}
+                    placeholder="0"
+                    value={annualRate || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAnnualRate(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                    }}
                     className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
                   />
                 </div>
@@ -330,8 +349,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-terms-months"
                       type="number"
-                      value={termsInMonths}
-                      onChange={(e) => setTermsInMonths(Math.max(1, parseInt(e.target.value) || 1))}
+                      placeholder="e.g. 1"
+                      value={termsInMonths || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTermsInMonths(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
+                      }}
                       className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                   </div>
@@ -343,8 +366,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-monthly-contrib"
                       type="number"
-                      value={monthlyContribution}
-                      onChange={(e) => setMonthlyContribution(Math.max(0, parseInt(e.target.value) || 0))}
+                      placeholder="0"
+                      value={monthlyContribution || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setMonthlyContribution(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                      }}
                       className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                   </div>
@@ -356,8 +383,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-periods-years"
                       type="number"
-                      value={periodsInYears}
-                      onChange={(e) => setPeriodsInYears(Math.max(1, parseInt(e.target.value) || 1))}
+                      placeholder="e.g. 1"
+                      value={periodsInYears || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPeriodsInYears(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
+                      }}
                       className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                   </div>
@@ -370,8 +401,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                       <input
                         id="fin-plazo-gracia"
                         type="number"
-                        value={plazoGracia}
-                        onChange={(e) => setPlazoGracia(Math.max(0, parseInt(e.target.value) || 0))}
+                        placeholder="0"
+                        value={plazoGracia || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPlazoGracia(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                        }}
                         className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold text-center focus:ring-1 focus:ring-emerald-500"
                       />
                     </div>
@@ -381,8 +416,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                         id="fin-seguro-vida"
                         type="number"
                         step="0.01"
-                        value={seguroVidaAnual}
-                        onChange={(e) => setSeguroVidaAnual(Math.max(0, parseFloat(e.target.value) || 0))}
+                        placeholder="0"
+                        value={seguroVidaAnual || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSeguroVidaAnual(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                        }}
                         className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold text-center focus:ring-1 focus:ring-emerald-500"
                       />
                     </div>
@@ -399,8 +438,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                   <input
                     id="fin-monto-s"
                     type="number"
-                    value={montoS}
-                    onChange={(e) => setMontoS(Math.max(0, parseInt(e.target.value) || 0))}
+                    placeholder="0"
+                    value={montoS || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setMontoS(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                    }}
                     className="w-full px-3 py-2 border rounded-xl text-xs font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
                   />
                 </div>
@@ -411,16 +454,22 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                       type="number"
                       placeholder="Tasa A (%)"
                       aria-label="Tasa A (%)"
-                      value={tasaA}
-                      onChange={(e) => setTasaA(Math.max(0, parseFloat(e.target.value) || 0))}
+                      value={tasaA || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTasaA(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
                     />
                     <input
                       type="number"
                       placeholder="Plazo A (meses)"
                       aria-label="Plazo A (meses)"
-                      value={plazoA}
-                      onChange={(e) => setPlazoA(Math.max(1, parseInt(e.target.value) || 1))}
+                      value={plazoA || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPlazoA(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
+                      }}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
                     />
                   </div>
@@ -430,16 +479,22 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                       type="number"
                       placeholder="Tasa B (%)"
                       aria-label="Tasa B (%)"
-                      value={tasaB}
-                      onChange={(e) => setTasaB(Math.max(0, parseFloat(e.target.value) || 0))}
+                      value={tasaB || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTasaB(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
                     />
                     <input
                       type="number"
                       placeholder="Plazo B (meses)"
                       aria-label="Plazo B (meses)"
-                      value={plazoB}
-                      onChange={(e) => setPlazoB(Math.max(1, parseInt(e.target.value) || 1))}
+                      value={plazoB || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPlazoB(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
+                      }}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
                     />
                   </div>
@@ -455,8 +510,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                   <input
                     id="fin-deuda-pendiente"
                     type="number"
-                    value={deudaPendiente}
-                    onChange={(e) => setDeudaPendiente(Math.max(0, parseInt(e.target.value) || 0))}
+                    placeholder="0"
+                    value={deudaPendiente || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setDeudaPendiente(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                    }}
                     className="w-full px-3 py-2 border rounded-xl text-xs font-semibold outline-none"
                   />
                 </div>
@@ -466,8 +525,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-tasa-ref-actual"
                       type="number"
-                      value={tasaRefActual}
-                      onChange={(e) => setTasaRefActual(parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                      value={tasaRefActual || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTasaRefActual(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
                     />
                   </div>
@@ -476,8 +539,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-tasa-ref-nueva"
                       type="number"
-                      value={tasaRefNueva}
-                      onChange={(e) => setTasaRefNueva(parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                      value={tasaRefNueva || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTasaRefNueva(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                      }}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold text-emerald-600 font-bold"
                     />
                   </div>
@@ -486,8 +553,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-meses-ref"
                       type="number"
-                      value={mesesRefRestan}
-                      onChange={(e) => setMesesRefRestan(parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      value={mesesRefRestan || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setMesesRefRestan(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                      }}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold text-center"
                     />
                   </div>
@@ -496,8 +567,12 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <input
                       id="fin-ref-comisiones"
                       type="number"
-                      value={refComisiones}
-                      onChange={(e) => setRefComisiones(parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      value={refComisiones || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRefComisiones(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                      }}
                       className="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold"
                     />
                   </div>
@@ -600,7 +675,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <p className="text-xs font-semibold">
                       {result.esRentable 
                         ? `¡Sí es rentable! Al refinanciar su préstamo con estos parámetros se ahorrará RD$ ${result.ahorroTotalInversion.toLocaleString('en-US')} totales de intereses.`
-                        : `No es financieramente rentable refinanciar dado que los gatos de cierre absorben la caída de tasa impositiva.`}
+                        : `No es financieramente rentable refinanciar dado que los gastos de cierre absorben la caída de tasa impositiva.`}
                     </p>
                   </div>
                 )}
@@ -639,16 +714,16 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                 )}
 
                 {calc.id === 'comparador-prestamos' && 'escAl' in result && (
-                  <div className="grid grid-cols-2 gap-4 border-b pb-3 mb-2">
-                    <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b pb-3 mb-2 min-w-0">
+                    <div className="p-3 bg-gray-50 rounded-xl space-y-1 min-w-0">
                       <strong className="text-xs text-gray-900 block font-bold">Préstamo A</strong>
-                      <p className="text-[10px] text-gray-500">Cuota: RD$ {result.escAl.cuota.toLocaleString('en-US')}</p>
-                      <p className="text-[10px] text-gray-500">Total Interés: RD$ {result.escAl.totalInteres.toLocaleString('en-US')}</p>
+                      <p className="text-[10px] text-gray-500 break-words">Cuota: <span className="font-mono">RD$ {result.escAl.cuota.toLocaleString('en-US')}</span></p>
+                      <p className="text-[10px] text-gray-500 break-words">Total Interés: <span className="font-mono">RD$ {result.escAl.totalInteres.toLocaleString('en-US')}</span></p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                    <div className="p-3 bg-gray-50 rounded-xl space-y-1 min-w-0">
                       <strong className="text-xs text-gray-900 block font-bold">Préstamo B</strong>
-                      <p className="text-[10px] text-gray-500">Cuota: RD$ {result.escB.cuota.toLocaleString('en-US')}</p>
-                      <p className="text-[10px] text-gray-500">Total Interés: RD$ {result.escB.totalInteres.toLocaleString('en-US')}</p>
+                      <p className="text-[10px] text-gray-500 break-words">Cuota: <span className="font-mono">RD$ {result.escB.cuota.toLocaleString('en-US')}</span></p>
+                      <p className="text-[10px] text-gray-500 break-words">Total Interés: <span className="font-mono">RD$ {result.escB.totalInteres.toLocaleString('en-US')}</span></p>
                     </div>
                   </div>
                 )}
@@ -658,7 +733,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                     <div className="flex justify-between"><span>Mensualidad antes (Actual):</span><span className="font-mono">RD$ {result.cuotaActual.toLocaleString('en-US')}</span></div>
                     <div className="flex justify-between"><span>Mensualidad recalculada:</span><span className="font-mono font-semibold text-emerald-600">RD$ {result.nuevaCuota.toLocaleString('en-US')}</span></div>
                     <div className="flex justify-between"><span>Ahorro consolidado mensual:</span><span className="font-bold text-gray-900">RD$ {result.ahorroCuotaMensual.toLocaleString('en-US')}</span></div>
-                    <div className="flex justify-between"><span>Comisiones y gatos cierre:</span><span className="font-mono text-rose-500">RD$ {result.gastosCierreRefinanciados.toLocaleString('en-US')}</span></div>
+                    <div className="flex justify-between"><span>Comisiones y gastos de cierre:</span><span className="font-mono text-rose-500">RD$ {result.gastosCierreRefinanciados.toLocaleString('en-US')}</span></div>
                   </>
                 )}
 
@@ -672,6 +747,11 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                 <div className="text-[11px] font-normal text-gray-500 flex items-start gap-1">
                   <ShieldAlert size={12} className="text-gray-400 mt-0.5" />
                   <p><strong>Base Regulatoría:</strong> {(result as any).legalSource || meta.legalSource}</p>
+                </div>
+
+                <div className="pt-3 border-t border-gray-150/70 text-[10px] text-gray-500 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 print-avoid-break">
+                  <span>Emitido por Tu Negocio RD el {new Date().toLocaleDateString('es-DO')}</span>
+                  <span>Referencia: NRD-FIN-{calc.id.toUpperCase()}</span>
                 </div>
               </div>
             )}

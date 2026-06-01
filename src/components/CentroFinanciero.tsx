@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   TrendingDown, TrendingUp, AlertTriangle, CheckCircle, Calculator, 
-  Trash2, Plus, Info, RefreshCw, BarChart, DollarSign, PieChart, ShieldAlert, Download, Zap
+  Trash2, Plus, Info, RefreshCw, BarChart, DollarSign, PieChart, ShieldAlert, Download, Printer, Zap
 } from 'lucide-react';
 
 interface Debt {
@@ -11,7 +11,41 @@ interface Debt {
   rate: number; // annual percentage rate
   term: number;  // remaining months
   monthlyPayment: number;
+  dueDay: number; // Day of the month of vencimiento (1 - 31)
 }
+
+const downloadCsvFile = (filename: string, csvContent: string) => {
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const getDaysUntilDue = (dueDay: number) => {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth();
+  
+  // Start of today (00:00:00) so we don't think a payment due today is past
+  const todayStart = new Date(currentYear, currentMonth, today.getDate());
+  
+  // Due date for this month
+  let dueDate = new Date(currentYear, currentMonth, dueDay);
+  
+  if (dueDate < todayStart) {
+    // If due date this month has passed, shift to next month
+    dueDate = new Date(currentYear, currentMonth + 1, dueDay);
+  }
+  
+  const diffTime = dueDate.getTime() - todayStart.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
 
 export default function CentroFinanciero() {
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -23,6 +57,7 @@ export default function CentroFinanciero() {
   const [rate, setRate] = useState<number>(14.5); // Average RD bank interest rate
   const [term, setTerm] = useState<number>(24);
   const [monthlyPayment, setMonthlyPayment] = useState<number>(7200);
+  const [dueDay, setDueDay] = useState<number>(10);
 
   // Consolidation simulator state
   const [consolidationRate, setConsolidationRate] = useState<number>(10.5); // Promising consolidation offer rate
@@ -39,9 +74,9 @@ export default function CentroFinanciero() {
     } else {
       // Default placeholder debts to look professional
       const defaultDebts: Debt[] = [
-        { id: 'd1', name: 'Préstamo Auto Banreservas', balance: 450000, rate: 12.9, term: 48, monthlyPayment: 12050 },
-        { id: 'd2', name: 'Tarjeta de Crédito Popular', balance: 85000, rate: 28.0, term: 12, monthlyPayment: 8200 },
-        { id: 'd3', name: 'ExtraCrédito BHD', balance: 120000, rate: 18.5, term: 24, monthlyPayment: 6020 }
+        { id: 'd1', name: 'Préstamo Auto Banreservas', balance: 450000, rate: 12.9, term: 48, monthlyPayment: 12050, dueDay: 5 },
+        { id: 'd2', name: 'Tarjeta de Crédito Popular', balance: 85000, rate: 28.0, term: 12, monthlyPayment: 8200, dueDay: 15 },
+        { id: 'd3', name: 'ExtraCrédito BHD', balance: 120000, rate: 18.5, term: 24, monthlyPayment: 6020, dueDay: 28 }
       ];
       setDebts(defaultDebts);
       localStorage.setItem('negociord_debts', JSON.stringify(defaultDebts));
@@ -71,7 +106,8 @@ export default function CentroFinanciero() {
       balance: Number(balance) || 0,
       rate: Number(rate) || 0,
       term: Number(term) || 0,
-      monthlyPayment: Math.round(finalPayment)
+      monthlyPayment: Math.round(finalPayment),
+      dueDay: Number(dueDay) || 10
     };
 
     const updated = [...debts, newDebt];
@@ -83,13 +119,12 @@ export default function CentroFinanciero() {
     setRate(12);
     setTerm(24);
     setMonthlyPayment(0);
+    setDueDay(10);
   };
 
   const handleDeleteDebt = (id: string, debtName: string) => {
-    if (confirm(`¿Confirma que desea retirar la deuda "${debtName}" de su panel financiero?`)) {
-      const filtered = debts.filter(d => d.id !== id);
-      saveDebts(filtered);
-    }
+    const filtered = debts.filter(d => d.id !== id);
+    saveDebts(filtered);
   };
 
   // Calculate global summary variables
@@ -157,15 +192,19 @@ export default function CentroFinanciero() {
       d.term,
       d.monthlyPayment
     ]);
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
-      + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "mis_deudas_negociord.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const summaryRows = [
+      '',
+      'Resumen financiero',
+      `Ingreso mensual neto,${income}`,
+      `Saldo total,${totalBalance}`,
+      `Cuota mensual total,${totalMonthlyPayments}`,
+      `DTI,${dtiRatio.toFixed(2)}%`,
+      `Tasa ponderada,${averageRate.toFixed(2)}%`,
+      consolidationScenario ? `Cuota consolidada estimada,${consolidationScenario.newPayment}` : '',
+      consolidationScenario ? `Ahorro mensual estimado,${consolidationScenario.monthlySaving}` : '',
+    ].filter(Boolean);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows].join('\n');
+    downloadCsvFile("mis_deudas_tu_negocio_rd.csv", csvContent);
   };
 
   // Snowball vs Avalanche simulation engine
@@ -257,7 +296,7 @@ export default function CentroFinanciero() {
   })();
 
   return (
-    <div className="p-4 md:p-8 space-y-6" id="centro-financiero-root">
+    <div className="p-4 md:p-8 space-y-6" id="financial-center-print-preview">
       
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-5">
@@ -270,15 +309,19 @@ export default function CentroFinanciero() {
           <p className="text-gray-500 text-xs mt-1">Comparador avanzado de obligaciones de consumo e hipotecario, índice de endeudamiento DTI y simulador de unificación de deudas.</p>
         </div>
 
-        <div className="flex items-center gap-2 bg-gray-50 border p-2.5 rounded-lg text-xs" id="dti-income-box">
+        <div className="flex items-center gap-2 bg-gray-50 border p-2.5 rounded-lg text-xs print:hidden" id="dti-income-box">
           <label htmlFor="dti-income-input" className="font-semibold text-gray-500">Sus Ingresos Mensuales Netos:</label>
           <div className="flex items-center font-mono font-bold text-gray-900">
             <span className="text-[#0F766E]">RD$</span>
             <input 
               id="dti-income-input"
               type="number" 
-              value={income}
-              onChange={(e) => setIncome(Math.max(0, parseInt(e.target.value) || 0))}
+              placeholder="0"
+              value={income || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setIncome(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+              }}
               className="w-24 bg-transparent outline-none pl-1 font-bold text-gray-900 border-none select-all font-mono"
             />
           </div>
@@ -341,10 +384,20 @@ export default function CentroFinanciero() {
                 onClick={handleExportDebtsCSV}
                 disabled={debts.length === 0}
                 className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-[11px] font-bold text-gray-700 rounded flex items-center gap-1 cursor-pointer disabled:opacity-50 transition"
-                title="Exportar cartera a Excel/CSV"
+                title="Exportar cartera a CSV compatible con Excel"
               >
                 <Download size={12} className="text-[#0F766E]" />
                 <span>Exportar CSV</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                disabled={debts.length === 0}
+                className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-[11px] font-bold text-gray-700 rounded flex items-center gap-1 cursor-pointer disabled:opacity-50 transition"
+                title="Imprimir diagnostico financiero"
+              >
+                <Printer size={12} className="text-[#0F766E]" />
+                <span>Imprimir PDF</span>
               </button>
             </div>
 
@@ -368,18 +421,48 @@ export default function CentroFinanciero() {
                       </td>
                     </tr>
                   ) : (
-                    debts.map((d) => (
-                      <tr key={d.id} className="hover:bg-gray-50/50">
-                        <td className="p-3 font-extrabold text-gray-800">{d.name}</td>
-                        <td className="p-3 text-right font-mono font-bold text-gray-800">RD$ {d.balance.toLocaleString('en-US')}</td>
-                        <td className="p-3 text-center font-mono font-bold text-[#0F766E]">{d.rate}%</td>
-                        <td className="p-3 text-center font-semibold text-gray-650">{d.term} meses</td>
-                        <td className="p-3 text-right font-mono font-bold text-gray-800">RD$ {d.monthlyPayment.toLocaleString('en-US')}</td>
-                        <td className="p-3 text-center text-gray-400 hover:text-rose-600 cursor-pointer" onClick={() => handleDeleteDebt(d.id, d.name)}>
-                          <Trash2 size={14} className="mx-auto" />
-                        </td>
-                      </tr>
-                    ))
+                    debts.map((d) => {
+                      const day = d.dueDay || 10;
+                      const daysLeft = getDaysUntilDue(day);
+                      return (
+                        <tr key={d.id} className={`hover:bg-gray-50/50 transition-colors ${daysLeft <= 7 ? 'bg-amber-50/10' : ''}`}>
+                          <td className="p-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-extrabold text-gray-900">{d.name}</span>
+                              {daysLeft === 0 && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse uppercase tracking-wider">
+                                  <AlertTriangle size={10} className="stroke-[3]" />
+                                  ¡Vence Hoy!
+                                </span>
+                              )}
+                              {daysLeft === 1 && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-orange-50 text-orange-700 border border-orange-200 uppercase tracking-wider">
+                                  <AlertTriangle size={10} className="stroke-[2.5]" />
+                                  Vence Mañana
+                                </span>
+                              )}
+                              {daysLeft > 1 && daysLeft <= 7 && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
+                                  <AlertTriangle size={10} />
+                                  Vence en {daysLeft} días
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-gray-400 mt-0.5 font-medium flex items-center gap-1">
+                              <span>Día de pago ordinario:</span>
+                              <span className="font-bold text-gray-500">{day} de cada mes</span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-gray-800">RD$ {d.balance.toLocaleString('en-US')}</td>
+                          <td className="p-3 text-center font-mono font-bold text-[#0F766E]">{d.rate}%</td>
+                          <td className="p-3 text-center font-semibold text-gray-650">{d.term} meses</td>
+                          <td className="p-3 text-right font-mono font-bold text-gray-800">RD$ {d.monthlyPayment.toLocaleString('en-US')}</td>
+                          <td className="p-3 text-center text-gray-400 hover:text-rose-600 cursor-pointer" onClick={() => handleDeleteDebt(d.id, d.name)}>
+                            <Trash2 size={14} className="mx-auto" />
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -413,9 +496,12 @@ export default function CentroFinanciero() {
                   id="debt-balance-input"
                   type="number" 
                   required
-                  value={balance}
-                  onChange={(e) => setBalance(Math.max(0, parseInt(e.target.value) || 0))}
                   placeholder="Ej. 50000"
+                  value={balance || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setBalance(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                  }}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none"
                 />
               </div>
@@ -427,24 +513,30 @@ export default function CentroFinanciero() {
                   type="number" 
                   step="0.01"
                   required
-                  value={rate}
-                  onChange={(e) => setRate(Math.max(0, parseFloat(e.target.value) || 0))}
                   placeholder="Ej. 18.0"
+                  value={rate || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setRate(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
+                  }}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-2">
               <div>
                 <label htmlFor="debt-term-input" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Meses Remanentes de Pago</label>
                 <input 
                   id="debt-term-input"
                   type="number" 
                   required
-                  value={term}
-                  onChange={(e) => setTerm(Math.max(1, parseInt(e.target.value) || 1))}
                   placeholder="Ej. 12"
+                  value={term || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTerm(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
+                  }}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none"
                 />
               </div>
@@ -454,10 +546,31 @@ export default function CentroFinanciero() {
                 <input 
                   id="debt-monthly-payment-input"
                   type="number" 
-                  value={monthlyPayment}
-                  onChange={(e) => setMonthlyPayment(Math.max(0, parseInt(e.target.value) || 0))}
                   placeholder="Autocalcular cuota fija"
+                  value={monthlyPayment || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMonthlyPayment(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                  }}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="debt-due-day-input" className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Día de Pago del Mes (1-31)</label>
+                <input 
+                  id="debt-due-day-input"
+                  type="number" 
+                  min="1"
+                  max="31"
+                  required
+                  placeholder="Ej. 10"
+                  value={dueDay || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setDueDay(val === '' ? 1 : Math.min(31, Math.max(1, parseInt(val) || 1)));
+                  }}
+                  className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none font-semibold font-mono"
                 />
               </div>
             </div>
@@ -523,8 +636,12 @@ export default function CentroFinanciero() {
                   id="consolidation-rate"
                   type="number" 
                   step="0.1"
-                  value={consolidationRate}
-                  onChange={(e) => setConsolidationRate(Math.max(1, parseFloat(e.target.value) || 12))}
+                  placeholder="0"
+                  value={consolidationRate || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setConsolidationRate(val === '' ? 12 : Math.max(1, parseFloat(val) || 1));
+                  }}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none"
                 />
               </div>
@@ -534,8 +651,12 @@ export default function CentroFinanciero() {
                 <input 
                   id="consolidation-term"
                   type="number" 
-                  value={consolidationTerm}
-                  onChange={(e) => setConsolidationTerm(Math.max(1, parseInt(e.target.value) || 12))}
+                  placeholder="0"
+                  value={consolidationTerm || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setConsolidationTerm(val === '' ? 12 : Math.max(1, parseInt(val) || 1));
+                  }}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none"
                 />
               </div>
@@ -545,8 +666,12 @@ export default function CentroFinanciero() {
                 <input 
                   id="consolidation-costs"
                   type="number" 
-                  value={closingCosts}
-                  onChange={(e) => setClosingCosts(Math.max(0, parseInt(e.target.value) || 0))}
+                  placeholder="0"
+                  value={closingCosts || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setClosingCosts(val === '' ? 0 : Math.max(0, parseInt(val) || 0));
+                  }}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-[#0F766E] outline-none"
                 />
               </div>
@@ -559,14 +684,14 @@ export default function CentroFinanciero() {
                   <span className="font-mono font-bold text-gray-900">RD$ {consolidationScenario.consolidatedBalance.toLocaleString()}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs border-b pb-3.5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs border-b pb-3.5 min-w-0">
+                  <div className="min-w-0">
                     <span className="text-gray-400 block font-medium">Cuota Consolidada:</span>
-                    <span className="font-extrabold text-teal-800 font-mono text-sm">RD$ {consolidationScenario.newPayment.toLocaleString()}</span>
+                    <span className="font-extrabold text-teal-800 font-mono text-sm break-words">RD$ {consolidationScenario.newPayment.toLocaleString()}</span>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-gray-400 block font-medium">Ahorro Mensual Neto:</span>
-                    <span className={`font-extrabold font-mono text-sm ${consolidationScenario.monthlySaving >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                    <span className={`font-extrabold font-mono text-sm break-words ${consolidationScenario.monthlySaving >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
                       RD$ {consolidationScenario.monthlySaving.toLocaleString()}
                     </span>
                   </div>
@@ -638,15 +763,15 @@ export default function CentroFinanciero() {
                     <span className="text-[9px] bg-[#0F766E] text-white rounded font-bold px-1.5 py-0.5 uppercase tracking-wide">Más Ahorro de Dinero</span>
                   </div>
                   <p className="text-[11px] text-gray-650">Prioriza deudas con la <strong>mayor tasa de interés</strong> , minimizando el costo total en intereses de tu cartera.</p>
-                  <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
-                    <div className="bg-white p-2 rounded border border-teal-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-[11px] min-w-0">
+                    <div className="bg-white p-2 rounded border border-teal-100 min-w-0">
                       <span className="text-[9px] text-gray-400 block font-sans">Meses para Liquidar</span>
                       <strong className="text-[#0F766E] font-extrabold">{strategySimulation.avalancheMonths} meses</strong> 
                       <span className="text-[9px] text-gray-400 block font-sans">Ahorro: {strategySimulation.baselineMonths - strategySimulation.avalancheMonths} meses</span>
                     </div>
-                    <div className="bg-white p-2 rounded border border-teal-100">
+                    <div className="bg-white p-2 rounded border border-teal-100 min-w-0">
                       <span className="text-[9px] text-gray-400 block font-sans">Gasto Total Interés</span>
-                      <strong className="text-teal-900">RD$ {strategySimulation.avalancheInterest.toLocaleString()}</strong>
+                      <strong className="text-teal-900 break-all">RD$ {strategySimulation.avalancheInterest.toLocaleString()}</strong>
                       <span className="text-[9px] text-emerald-700 block font-sans">Ahorro: RD$ {(strategySimulation.baselineInterest - strategySimulation.avalancheInterest).toLocaleString()}</span>
                     </div>
                   </div>
@@ -659,15 +784,15 @@ export default function CentroFinanciero() {
                     <span className="text-[9px] bg-amber-600 text-white rounded font-bold px-1.5 py-0.5 uppercase tracking-wide">Victoria Psicológica</span>
                   </div>
                   <p className="text-[11px] text-gray-650">Prioriza deudas de <strong>menor saldo activo</strong> , brindando triunfos tempranos para sostener la disciplina de ahorro.</p>
-                  <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
-                    <div className="bg-white p-2 rounded border border-amber-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-[11px] min-w-0">
+                    <div className="bg-white p-2 rounded border border-amber-100 min-w-0">
                       <span className="text-[9px] text-gray-400 block font-sans">Meses para Liquidar</span>
                       <strong className="text-amber-800 font-extrabold">{strategySimulation.snowballMonths} meses</strong>
                       <span className="text-[9px] text-gray-400 block font-sans">Ahorro: {strategySimulation.baselineMonths - strategySimulation.snowballMonths} meses</span>
                     </div>
-                    <div className="bg-white p-2 rounded border border-amber-100">
+                    <div className="bg-white p-2 rounded border border-amber-100 min-w-0">
                       <span className="text-[9px] text-gray-400 block font-sans">Gasto Total Interés</span>
-                      <strong className="text-amber-950">RD$ {strategySimulation.snowballInterest.toLocaleString()}</strong>
+                      <strong className="text-amber-950 break-all">RD$ {strategySimulation.snowballInterest.toLocaleString()}</strong>
                       <span className="text-[9px] text-emerald-700 block font-sans">Ahorro: RD$ {(strategySimulation.baselineInterest - strategySimulation.snowballInterest).toLocaleString()}</span>
                     </div>
                   </div>
@@ -677,7 +802,7 @@ export default function CentroFinanciero() {
                 <div className="p-2.5 bg-gray-50 border rounded text-[11px] text-gray-650 font-sans flex gap-1.5 leading-snug">
                   <Info size={14} className="text-[#0F766E] shrink-0 mt-0.5" />
                   <span>
-                    <strong>Veredicto NegocioRD:</strong> Alud le ahorra <span className="font-bold font-mono text-gray-900">RD$ {(strategySimulation.snowballInterest - strategySimulation.avalancheInterest).toLocaleString()}</span> de intereses adicionales comparado con Bola de Nieve. Sin embargo, Bola de Nieve es excelente si requiere motivaciones rápidas.
+                    <strong>Veredicto Tu Negocio RD:</strong> Alud le ahorra <span className="font-bold font-mono text-gray-900">RD$ {(strategySimulation.snowballInterest - strategySimulation.avalancheInterest).toLocaleString()}</span> de intereses adicionales comparado con Bola de Nieve. Sin embargo, Bola de Nieve es excelente si requiere motivaciones rápidas.
                   </span>
                 </div>
 
@@ -692,7 +817,12 @@ export default function CentroFinanciero() {
           </div>
         </div>
 
+        <div className="hidden print:flex border-t border-gray-200 pt-3 text-[10px] text-gray-500 justify-between gap-4 print-avoid-break">
+        <span>Diagnostico financiero generado por Tu Negocio RD</span>
+        <span>Emitido: {new Date().toLocaleDateString('es-DO')} | DTI: {dtiRatio.toFixed(1)}%</span>
       </div>
+
+    </div>
 
   );
 }
