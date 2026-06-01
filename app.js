@@ -22,7 +22,22 @@ function runProductionBuild() {
   });
 }
 
-try {
+function listen(app) {
+  const portValue = process.env.PORT || '3000';
+  const numericPort = Number(portValue);
+  const listenTarget = Number.isNaN(numericPort) ? portValue : numericPort;
+  const onListening = () => {
+    console.log(`[Hostinger bootstrap] Diagnostic fallback listening on ${portValue}`);
+  };
+
+  if (typeof listenTarget === 'number') {
+    return app.listen(listenTarget, '0.0.0.0', onListening);
+  }
+
+  return app.listen(listenTarget, onListening);
+}
+
+async function main() {
   if (!fs.existsSync(compiledServer)) {
     runProductionBuild();
   }
@@ -32,11 +47,12 @@ try {
   }
 
   await startCompiledServer();
-} catch (error) {
+}
+
+main().catch((error) => {
   console.error('[Hostinger bootstrap] Failed to start production server:', error);
 
   const app = express();
-  const port = Number(process.env.PORT || 3000);
 
   app.get(/.*/, (_req, res) => {
     res.status(503).send([
@@ -46,7 +62,5 @@ try {
     ].join('\n'));
   });
 
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`[Hostinger bootstrap] Diagnostic fallback listening on port ${port}`);
-  });
-}
+  listen(app);
+});

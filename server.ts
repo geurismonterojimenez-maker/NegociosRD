@@ -12,7 +12,9 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-const PORT = Number(process.env.PORT || 3000);
+const PORT_VALUE = process.env.PORT || "3000";
+const NUMERIC_PORT = Number(PORT_VALUE);
+const LISTEN_TARGET = Number.isNaN(NUMERIC_PORT) ? PORT_VALUE : NUMERIC_PORT;
 
 const CACHE_FILE = path.join(process.cwd(), "news-cache.json");
 const CHECKOUT_PROVIDER = process.env.CHECKOUT_PROVIDER || "demo";
@@ -997,9 +999,15 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[Server] Running on http://0.0.0.0:${PORT} under environment: ${process.env.NODE_ENV || "development"}`);
-  });
+  const onListening = () => {
+    console.log(`[Server] Running on ${PORT_VALUE} under environment: ${process.env.NODE_ENV || "development"}`);
+  };
+
+  if (typeof LISTEN_TARGET === "number") {
+    app.listen(LISTEN_TARGET, "0.0.0.0", onListening);
+  } else {
+    app.listen(LISTEN_TARGET, onListening);
+  }
 }
 
 startServer();
