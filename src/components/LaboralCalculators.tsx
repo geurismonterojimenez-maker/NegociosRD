@@ -302,10 +302,10 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
       )}
 
       {/* Main Dynamic Interactive Grid split: Form vs Live Result Box */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start min-w-0">
         
         {/* Left Inputs Block */}
-        <div className="lg:col-span-5 space-y-6 print:hidden">
+        <div className="lg:col-span-5 space-y-6 print:hidden min-w-0">
           <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
             <span className="p-2 rounded-lg bg-teal-50 text-[#0F766E]">
               <Briefcase size={18} />
@@ -590,7 +590,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
         </div>
 
         {/* Right Main Results Pane */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-6 min-w-0">
           {/* Dynamic Print CSS for Letter / Legal paper support */}
           <style dangerouslySetInnerHTML={{__html: `
             @media print {
@@ -600,7 +600,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
               }
             }
           `}} />
-          <div id="laboral-calculator-print-preview" data-print-kind="report-document" className="bg-[#FAFAFA] border border-gray-200 rounded-2xl p-6 md:p-8 space-y-6">
+          <div id="laboral-calculator-print-preview" data-print-kind="report-document" className="bg-[#FAFAFA] border border-gray-200 rounded-2xl p-6 md:p-8 space-y-6 min-w-0 overflow-hidden">
             <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block flex items-center gap-1.5 border-b pb-2 mb-2 border-gray-200">
               <Sparkles size={13} className="text-teal-600 animate-pulse" />
               Resultado Oficial Estimado
@@ -610,7 +610,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
             {result && (
               <div className="text-center md:text-left py-4">
                 <span className="text-xs text-gray-500 block font-semibold">Monto Acumulado Final</span>
-                <div className="text-3xl md:text-4xl font-extrabold text-[#0F766E] font-sans tracking-tight mt-1">
+                <div className="text-3xl md:text-4xl font-extrabold text-[#0F766E] font-mono tabular-nums tracking-normal mt-1 whitespace-nowrap">
                   RD${' '}
                   {(() => {
                     if ('regaliaAmount' in result) return result.regaliaAmount.toLocaleString('en-US', { minimumFractionDigits: 2 });
@@ -629,7 +629,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                 {/* Secondary data taglines for complex results */}
                 {calc.id === 'horas-extras' && result && 'finalSalaryWithOT' in result && (
                   <p className="text-xs font-semibold text-gray-600 mt-2">
-                    Salario ordinario mensual + horas extras: <strong className="text-gray-900 font-bold">RD$ {result.finalSalaryWithOT.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong>
+                    Salario ordinario mensual + horas extras: <strong className="text-gray-900 font-bold font-mono whitespace-nowrap">RD$ {result.finalSalaryWithOT.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong>
                   </p>
                 )}
 
