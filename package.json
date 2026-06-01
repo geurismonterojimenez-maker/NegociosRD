@@ -2,12 +2,16 @@
   "name": "tu-negocio-rd",
   "private": true,
   "version": "0.0.0",
+  "description": "Tu Negocio RD production Node.js app for Hostinger.",
   "type": "module",
-  "main": "server.js",
+  "main": "app.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node server.js",
+    "start": "node app.js",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

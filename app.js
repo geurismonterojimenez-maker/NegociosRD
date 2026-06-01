@@ -1,3 +1,3 @@
-// Hostinger fallback entry point.
-// Some Node.js installers look for app.js before reading custom settings.
-import './server.js';
+// Hostinger Node.js entry point.
+// Build first with `npm run build`; this file starts the compiled Express app.
+import './dist/server.cjs';

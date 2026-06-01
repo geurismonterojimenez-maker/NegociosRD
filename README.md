@@ -18,3 +18,16 @@ View your app in AI Studio: https://ai.studio/apps/6b4de314-9928-476e-bff8-8204b
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Hostinger Deploy
+
+Recommended settings if Hostinger does not auto-detect the repository:
+
+- Framework: `Other`
+- Node.js: `22.x`
+- Build command: `npm install && npm run build`
+- Output directory: `dist`
+- Entry file: `app.js`
+- Start command: `npm start`
+
+The app is not static-only. It needs the Node.js server for `/api/news`, `/api/rates`, checkout, sitemap, robots and SEO rendering.
