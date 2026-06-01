@@ -667,7 +667,7 @@ export default function App() {
 
   // Simple dialog for "Portal" or "Login"
   const [showPortalModal, setShowPortalModal] = useState(false);
-  const shouldShowAdRail = currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && currentView !== 'admin';
+  const shouldShowAdRail = currentView !== 'precios' && currentView !== 'admin';
 
   // --- CTA Interactive State (Contabilidad Gratis) ---
   const [ctaVentasMes, setCtaVentasMes] = useState<number>(75000);
@@ -983,6 +983,8 @@ export default function App() {
               Documentos RD
             </button>
 
+            <AdSenseBlock variant="nav-inline" className="shrink-0" />
+
             {/* Google Account Profile / Login Button */}
             <div className="hidden md:flex items-center gap-2">
               {firebaseUser ? (
@@ -1145,17 +1147,17 @@ export default function App() {
       )}
 
       {/* 3-Column Responsive AdSense Layout Frame - flex column fallback on mobile and tablets */}
-      <div className="pt-16 flex-grow w-full max-w-[1700px] mx-auto flex flex-col 2xl:grid 2xl:grid-cols-12 min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] lg:overflow-hidden bg-[#FAFAFA]" id="outer-adsense-grid-wrapper">
+      <div className="pt-16 flex-grow w-full max-w-[1920px] mx-auto flex flex-col xl:grid xl:grid-cols-12 min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] lg:overflow-hidden bg-[#FAFAFA]" id="outer-adsense-grid-wrapper">
         
         {/* LEFT AD BANNER (Vertical Skyscraper, visible only on XL widescreen displays) */}
         {shouldShowAdRail && (
-        <aside className="hidden 2xl:flex 2xl:col-span-2 border-r border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="left-adsense-skyscraper-column">
+        <aside className="hidden xl:flex xl:col-span-2 border-r border-gray-200 bg-white p-3 2xl:p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="left-adsense-skyscraper-column">
           <AdSenseBlock variant="skyscraper-left" />
         </aside>
         )}
 
         {/* CENTRAL CORE CONTENT CONTAINER (takes all 12 columns by default; reduces to 8 on XL to fit lateral ad blocks gracefully) */}
-        <div className={`${shouldShowAdRail ? '2xl:col-span-8' : '2xl:col-span-12'} col-span-12 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white min-w-0 lg:h-full lg:overflow-hidden`} id="center-content-ad-hybrid">
+        <div className={`${shouldShowAdRail ? 'xl:col-span-8' : 'xl:col-span-12'} col-span-12 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white min-w-0 lg:h-full lg:overflow-hidden`} id="center-content-ad-hybrid">
           
           {/* SIDEBAR NAVIGATION - Exact Match */}
           <aside className="col-span-3 border-r border-gray-200 bg-white p-6 hidden lg:flex flex-col justify-between lg:h-full lg:overflow-y-auto z-10">
@@ -1506,7 +1508,7 @@ export default function App() {
               <div className="mt-6 shrink-0" id="adsense-slot-1-billboard-calc">
                 <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
               </div>
-              <div className="2xl:hidden mt-6 shrink-0" id="adsense-slot-2-mobile-alternative-calc">
+              <div className="xl:hidden mt-6 shrink-0" id="adsense-slot-2-mobile-alternative-calc">
                 <AdSenseBlock variant="mobile-infeed" className="shadow-xs border border-gray-150" />
               </div>
             </div>
@@ -2036,7 +2038,7 @@ export default function App() {
 
           {/* Ad Slot 3 (Contraparte Móvil): Visible en móviles/tablets para completar las 4 inserciones publicitarias con alta visibilidad */}
           {shouldShowAdRail && (
-          <div className="2xl:hidden mt-6 shrink-0" id="adsense-slot-3-mobile-alternative">
+          <div className="xl:hidden mt-6 shrink-0" id="adsense-slot-3-mobile-alternative">
             <AdSenseBlock variant="results-inline" className="shadow-xs border border-gray-150" />
           </div>
           )}
@@ -2139,7 +2141,7 @@ export default function App() {
 
         {/* RIGHT AD BANNER (Vertical Skyscraper, visible only on XL widescreen displays) */}
         {shouldShowAdRail && (
-        <aside className="hidden 2xl:flex 2xl:col-span-2 border-l border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="right-adsense-skyscraper-column">
+        <aside className="hidden xl:flex xl:col-span-2 border-l border-gray-200 bg-white p-3 2xl:p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="right-adsense-skyscraper-column">
           <AdSenseBlock variant="skyscraper-right" />
         </aside>
         )}

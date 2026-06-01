@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BriefcaseBusiness, Code, Eye, Monitor, Settings, Smartphone, Tablet } from 'lucide-react';
 
 interface AdSenseBlockProps {
-  variant: 'skyscraper-left' | 'skyscraper-right' | 'horizontal-bottom' | 'mobile-infeed' | 'tablet-banner' | 'results-inline';
+  variant: 'skyscraper-left' | 'skyscraper-right' | 'horizontal-bottom' | 'mobile-infeed' | 'tablet-banner' | 'results-inline' | 'nav-inline';
   className?: string;
   userTier?: 'FREE' | 'PRO';
 }
@@ -22,6 +22,30 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
       }
     }
   }, [hasClientId, isDev]);
+
+  if (variant === 'nav-inline') {
+    if (hasClientId && !isDev) {
+      return (
+        <div className={`hidden xl:flex h-10 w-[168px] items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-250 bg-gray-50/70 px-2 text-center ${className}`}>
+          <ins className="adsbygoogle"
+               style={{ display: 'block', width: '150px', height: '32px' }}
+               data-ad-client={adsenseClientId}
+               data-ad-slot="3333333333"
+               data-ad-format="auto"
+               data-full-width-responsive="false" />
+        </div>
+      );
+    }
+
+    return (
+      <div className={`hidden xl:flex h-10 w-[168px] items-center justify-center rounded-lg border border-dashed border-gray-250 bg-gray-50/70 px-3 text-center ${className}`}>
+        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+          <BriefcaseBusiness size={12} className="text-[#0F766E]" />
+          <span>Publicidad</span>
+        </div>
+      </div>
+    );
+  }
 
   if (hasClientId && !isDev) {
     const format = variant === 'mobile-infeed' ? 'fluid' : variant.includes('skyscraper') ? 'vertical' : 'auto';
