@@ -3,6 +3,7 @@ import {
   TrendingDown, TrendingUp, AlertTriangle, CheckCircle, Calculator, 
   Trash2, Plus, Info, RefreshCw, BarChart, DollarSign, PieChart, ShieldAlert, Download, Printer, Zap
 } from 'lucide-react';
+import { printElementById } from '../lib/print';
 
 interface Debt {
   id: string;
@@ -391,7 +392,7 @@ export default function CentroFinanciero() {
               </button>
               <button
                 type="button"
-                onClick={() => window.print()}
+                onClick={() => printElementById('financial-center-print-preview', 'Tu Negocio RD - Diagnostico financiero')}
                 disabled={debts.length === 0}
                 className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-[11px] font-bold text-gray-700 rounded flex items-center gap-1 cursor-pointer disabled:opacity-50 transition"
                 title="Imprimir diagnostico financiero"

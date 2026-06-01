@@ -16,6 +16,7 @@ import {
   calculateCostoEmpleado 
 } from '../lib/calculations/all_new_calculations';
 import { logUsage } from '../lib/firebase';
+import { printElementById } from '../lib/print';
 
 interface LaboralCalculatorsProps {
   calc: CalculatorInfo;
@@ -166,7 +167,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
   };
 
   const handlePrint = () => {
-    window.print();
+    printElementById('laboral-calculator-print-preview', `Tu Negocio RD - ${calc.name}`);
     logUsage(calc.id, `Imprimió reporte de cálculo laboral. Salario base: RD$ ${salaryInput.toLocaleString()}`);
   };
 

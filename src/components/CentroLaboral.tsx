@@ -4,6 +4,7 @@ import {
   Search, CheckCircle, Clock, Award, ShieldAlert, ChevronRight, UserCheck, Briefcase
 } from 'lucide-react';
 import { calculatePrestaciones } from '../lib/calculations/prestaciones';
+import { printElementById } from '../lib/print';
 
 interface Employee {
   id: string;
@@ -278,7 +279,7 @@ export default function CentroLaboral() {
 
   // Print friendly page
   const handlePrintSlip = () => {
-    window.print();
+    printElementById('payslip-print-block', 'Tu Negocio RD - Volante de pago');
   };
 
   // Export payroll and employees to CSV/Excel format

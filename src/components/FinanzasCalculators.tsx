@@ -14,6 +14,7 @@ import {
   calculateRefinancingSavings 
 } from '../lib/calculations/all_new_calculations';
 import { logUsage } from '../lib/firebase';
+import { printElementById } from '../lib/print';
 
 interface FinanzasCalculatorsProps {
   calc: CalculatorInfo;
@@ -772,7 +773,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
               </div>
 
               <button
-                onClick={() => window.print()}
+                onClick={() => printElementById('finanzas-calculator-print-preview', `Tu Negocio RD - ${calc.name}`)}
                 className="inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg bg-white hover:bg-gray-50 text-xs font-semibold cursor-pointer"
                 aria-label="Imprimir Informe de la corrida"
               >

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   X, 
   Plus, 
   Trash2, 
@@ -21,6 +21,7 @@ import {
   FileSignature,
   FileCheck
 } from 'lucide-react';
+import { printElementById } from '../lib/print';
 
 interface ProfessionalPortalProps {
   isOpen: boolean;
@@ -516,7 +517,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
   const it1FinalPaymentDGII = Math.max(0, it1NetTaxLiable - repItRetentions - repItAdvances);
 
   const triggerMockPrint = () => {
-    window.print();
+    const targetId = activeTab === 'exportacion-reportes'
+      ? 'timbrada-report-print-preview'
+      : activeTab === 'contratos-trabajo'
+        ? 'labor-legal-compiled-sheet-preview'
+        : 'timbrada-report-print-preview';
+    printElementById(targetId, 'Tu Negocio RD - Documento profesional');
   };
 
   const exportCurrentReportToCSV = () => {

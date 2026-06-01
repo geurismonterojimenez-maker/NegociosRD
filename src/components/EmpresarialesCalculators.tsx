@@ -11,6 +11,7 @@ import {
   calculateCashFlow 
 } from '../lib/calculations/all_new_calculations';
 import { logUsage } from '../lib/firebase';
+import { printElementById } from '../lib/print';
 
 interface EmpresarialesCalculatorsProps {
   calc: CalculatorInfo;
@@ -699,7 +700,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
                 </div>
 
                 <button
-                  onClick={() => { window.print(); logUsage(calc.id, `Imprimió el documento corporativo. Empresa: ${empresaNombre}`); }}
+                  onClick={() => { printElementById('print-sheet-segment', `Tu Negocio RD - ${calc.name}`); logUsage(calc.id, `Imprimió el documento corporativo. Empresa: ${empresaNombre}`); }}
                   className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold text-gray-950 cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all"
                   aria-label="Imprimir Comprobante corporativo"
                 >
@@ -849,7 +850,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
                 </div>
 
                 <button 
-                  onClick={() => { window.print(); logUsage(calc.id, "Imprimió reporte de matriz de resultado operativo"); }} 
+                  onClick={() => { printElementById('empresariales-math-print-preview', `Tu Negocio RD - ${calc.name}`); logUsage(calc.id, "Imprimió reporte de matriz de resultado operativo"); }} 
                   className="px-3 py-1.5 border rounded-lg hover:bg-gray-50 text-xs font-bold cursor-pointer text-gray-950 inline-flex items-center gap-1"
                   aria-label="Imprimir Reporte Corporativo"
                 >
