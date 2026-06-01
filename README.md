@@ -31,3 +31,13 @@ Recommended settings if Hostinger does not auto-detect the repository:
 - Start command: `npm start`
 
 The app is not static-only. It needs the Node.js server for `/api/news`, `/api/rates`, checkout, sitemap, robots and SEO rendering.
+
+## Firebase Auth Domains
+
+For production login to work, add these domains in Firebase Console:
+
+Authentication > Settings > Authorized domains
+
+- `tunegociord.com`
+- `www.tunegociord.com`
+- `localhost` for local testing

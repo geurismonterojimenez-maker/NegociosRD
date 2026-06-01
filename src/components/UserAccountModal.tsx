@@ -218,7 +218,7 @@ function getAuthErrorMessage(err: any): string {
   }
 
   if (code.includes('auth/unauthorized-domain')) {
-    return 'Este dominio no esta autorizado en Firebase Auth. Para probar localmente agrega "localhost" en Authentication > Settings > Authorized domains.';
+    return 'Este dominio no esta autorizado en Firebase Auth. Agrega tunegociord.com y www.tunegociord.com en Firebase Console > Authentication > Settings > Authorized domains. Para pruebas locales conserva tambien localhost.';
   }
 
   if (code.includes('auth/too-many-requests')) {
