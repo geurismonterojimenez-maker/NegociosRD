@@ -782,6 +782,21 @@ Sello de Recibido Empresa (Fecha y Hora):`;
   };
 
 
+  const documentTitles: Record<typeof docType, string> = {
+    contrato: 'Contrato individual de trabajo',
+    iguala: 'Contrato de iguala profesional',
+    nda: 'Acuerdo de confidencialidad y no divulgacion',
+    comision: 'Contrato laboral de comisionista',
+    mutuo_acuerdo: 'Terminacion laboral por mutuo acuerdo',
+    amonestacion: 'Carta de amonestacion escrita',
+    despido: 'Notificacion de terminacion laboral',
+    dimision: 'Carta formal de dimision',
+  };
+
+  const documentLegalBasis = docType === 'contrato' || docType === 'comision' || docType === 'mutuo_acuerdo' || docType === 'amonestacion' || docType === 'despido' || docType === 'dimision'
+    ? 'Base referencial: Codigo de Trabajo de la Republica Dominicana, Ley 16-92.'
+    : 'Base referencial: obligaciones civiles y comerciales aplicables en Republica Dominicana.';
+
   // Print stylesheet inline simulation style
   const printBlockStyle = "print:absolute print:inset-0 print:bg-white print:text-black print:z-[200] print:p-8 print:block";
 
@@ -1538,8 +1553,9 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                   {/* Styled physical document look */}
                   <div className="bg-[#525659] p-4 sm:p-6 rounded-xl overflow-hidden flex justify-center items-start shadow-inner min-h-[460px] max-h-[500px] overflow-y-auto">
                     <div 
-                      className="bg-white w-full max-w-[550px] p-6 sm:p-8 text-[11px] leading-relaxed font-mono text-gray-800 shadow-2xl border border-gray-300 rounded-xs select-text whitespace-pre-wrap text-left relative"
+                      className="bg-white w-full max-w-[600px] p-7 sm:p-10 text-[12px] leading-relaxed font-serif text-gray-900 shadow-2xl border border-gray-300 rounded-xs select-text text-left relative"
                       id="labor-legal-compiled-sheet-preview"
+                      data-print-kind="legal-document"
                     >
                       <style dangerouslySetInnerHTML={{__html: `
                         @media print {
@@ -1554,9 +1570,23 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                         <span className="text-[9px] bg-red-50 text-red-800 font-bold px-1.5 py-0.5 rounded border border-red-100">CÓDIGO 16-92</span>
                       </div>
                       
-                      {compileDocumentText()}
+                      <header className="legal-document-header border-b-2 border-[#0F766E] pb-4 mb-5 text-center">
+                        <div className="legal-document-brand text-[10px] font-extrabold tracking-[0.18em] uppercase text-[#0F766E] font-sans">
+                          Tu Negocio RD
+                        </div>
+                        <h3 className="legal-document-title text-lg font-bold uppercase tracking-wide text-gray-950 mt-1">
+                          {documentTitles[docType]}
+                        </h3>
+                        <p className="legal-document-meta text-[10px] text-gray-500 font-sans mt-1">
+                          {documentLegalBasis}
+                        </p>
+                      </header>
 
-                      <div className="hidden print:block mt-8 pt-3 border-t border-gray-300 text-[8.5pt] text-gray-600 font-sans print-avoid-break">
+                      <div className="legal-document-body whitespace-pre-wrap text-justify">
+                        {compileDocumentText().replace(/^[^\n]+\n+/, '')}
+                      </div>
+
+                      <div className="legal-document-footer mt-8 pt-3 border-t border-gray-300 text-[8.5pt] text-gray-600 font-sans print-avoid-break">
                         Documento generado por Tu Negocio RD el {new Date().toLocaleDateString('es-DO')}. Revise este borrador con su asesor legal antes de firmar o depositar.
                       </div>
                     </div>
@@ -1980,6 +2010,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                     {/* The Timbrad Sheet */}
                     <div 
                       id="timbrada-report-print-preview"
+                      data-print-kind="report-document"
                       className="bg-white w-full max-w-[580px] p-6 sm:p-8 border border-gray-200 text-gray-800 shadow-2xl rounded-xs text-xs relative select-text text-left"
                     >
                       <style dangerouslySetInnerHTML={{__html: `

@@ -713,7 +713,7 @@ export default function CentroLaboral() {
 
               {/* Dynamic Action 1: Payslip display */}
               {showSlip && slipMath && (
-                <div className="bg-[#FAFAFA] border border-gray-200 rounded-lg p-4 font-mono text-[11px] text-gray-700 space-y-3 relative print:absolute print:inset-0 print:bg-white print:z-50" id="payslip-print-block">
+                <div className="bg-[#FAFAFA] border border-gray-200 rounded-lg p-4 font-mono text-[11px] text-gray-700 space-y-3 relative print:absolute print:inset-0 print:bg-white print:z-50" id="payslip-print-block" data-print-kind="report-document">
                   <style dangerouslySetInnerHTML={{__html: `
                     @media print {
                       @page {

@@ -297,7 +297,7 @@ export default function CentroFinanciero() {
   })();
 
   return (
-    <div className="p-4 md:p-8 space-y-6" id="financial-center-print-preview">
+    <div className="p-4 md:p-8 space-y-6" id="financial-center-print-preview" data-print-kind="report-document">
       
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-5">

@@ -588,7 +588,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
           
           {/* Main Visual document (Cotización/Proforma/Recibo sheet) */}
           {isDocGenerator ? (
-            <div className="bg-[#FCFCFC] border border-gray-300 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm overflow-hidden" id="print-sheet-segment">
+            <div className="bg-[#FCFCFC] border border-gray-300 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm overflow-hidden" id="print-sheet-segment" data-print-kind="report-document">
               
               {/* Receipt Header elements */}
               <div className="flex flex-col md:flex-row md:items-start justify-between border-b pb-5 gap-3">
@@ -728,7 +728,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
             </div>
           ) : (
             // Layout for Mathematical Margins/EvenBreak points calculators
-            <div id="empresariales-math-print-preview" className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-6">
+          <div id="empresariales-math-print-preview" data-print-kind="report-document" className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-6">
               <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block flex items-center gap-1.5 border-b pb-2">
                 <Sparkles size={13} className="text-indigo-600 animate-pulse" />
                 Matriz de Resultado Operativo

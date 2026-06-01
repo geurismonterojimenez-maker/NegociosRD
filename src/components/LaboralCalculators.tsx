@@ -600,7 +600,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
               }
             }
           `}} />
-          <div id="laboral-calculator-print-preview" className="bg-[#FAFAFA] border border-gray-200 rounded-2xl p-6 md:p-8 space-y-6">
+          <div id="laboral-calculator-print-preview" data-print-kind="report-document" className="bg-[#FAFAFA] border border-gray-200 rounded-2xl p-6 md:p-8 space-y-6">
             <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block flex items-center gap-1.5 border-b pb-2 mb-2 border-gray-200">
               <Sparkles size={13} className="text-teal-600 animate-pulse" />
               Resultado Oficial Estimado

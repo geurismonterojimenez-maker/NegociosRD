@@ -631,7 +631,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
               }
             }
           `}} />
-          <div id="finanzas-calculator-print-preview" className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-5">
+          <div id="finanzas-calculator-print-preview" data-print-kind="report-document" className="bg-[#FAFAFA] border rounded-2xl p-6 md:p-8 space-y-5">
             <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block flex items-center gap-1 border-b pb-2">
               <Sparkles size={12} className="text-emerald-600 animate-pulse" />
               Resultado de la corrida financiera
