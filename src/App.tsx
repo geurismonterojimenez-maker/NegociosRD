@@ -499,6 +499,7 @@ function ProUpgradeModal({ isOpen, onClose, onUpgrade, featureName }: ProUpgrade
 }
 
 const PUBLIC_PRO_FEATURES_ENABLED = false;
+const OFFICIAL_ADSENSE_CLIENT_ID = 'ca-pub-6144599865368963';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'contacto' | 'privacidad' | 'terminos' | 'reembolsos' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios' | 'admin' | '404'>('home');
@@ -506,9 +507,9 @@ export default function App() {
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Load Google AdSense library dynamically on mount if VITE_ADSENSE_CLIENT_ID is provided in production
+  // Load Google AdSense library dynamically on mount if it was not already injected in index.html.
   useEffect(() => {
-    const customId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || '' : '';
+    const customId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
     const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
     
     if (customId && customId !== 'ca-pub-XXXXXXXXXXXXXXXX' && customId.startsWith('ca-pub-') && !isDev && typeof window !== 'undefined') {

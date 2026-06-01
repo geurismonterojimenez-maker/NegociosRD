@@ -7,10 +7,12 @@ interface AdSenseBlockProps {
   userTier?: 'FREE' | 'PRO';
 }
 
+const OFFICIAL_ADSENSE_CLIENT_ID = 'ca-pub-6144599865368963';
+
 export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockProps) {
   const [showCode, setShowCode] = useState(false);
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
-  const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || '' : '';
+  const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');
 
   useEffect(() => {
