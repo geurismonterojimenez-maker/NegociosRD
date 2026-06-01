@@ -6,6 +6,60 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+.calculator-results-panel {
+  container-type: inline-size;
+}
+
+.calculator-results-panel .font-mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.calculator-results-panel p[class*="break-words"].font-mono {
+  display: block;
+  font-size: clamp(1.25rem, 4.6cqw, 1.875rem) !important;
+  line-height: 1.08;
+  max-width: 100%;
+}
+
+.calculator-results-panel span[class*="break-words"].font-mono {
+  max-width: 100%;
+}
+
+.calculator-results-panel .flex.justify-between {
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.calculator-results-panel .flex.justify-between > span:first-child {
+  min-width: 0;
+}
+
+.calculator-results-panel .flex.justify-between > span:last-child {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.calculator-results-panel .grid.grid-cols-2 .font-mono,
+.calculator-results-panel .grid.sm\:grid-cols-2 .font-mono,
+.calculator-results-panel .grid.sm\:grid-cols-3 .font-mono {
+  max-width: 100%;
+}
+
+@container (max-width: 520px) {
+  .calculator-results-panel .grid.sm\:grid-cols-2,
+  .calculator-results-panel .grid.sm\:grid-cols-3 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .calculator-results-panel p[class*="break-words"].font-mono {
+    font-size: clamp(1.375rem, 7cqw, 1.875rem) !important;
+  }
+}
+
 /* HIGH-PRECISION CSS FOR BEAUTIFUL PDF DOWNLOAD & PRINT SHEET DESIGNS */
 @media print {
   @page {

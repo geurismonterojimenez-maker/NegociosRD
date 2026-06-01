@@ -952,7 +952,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
         {/* Results Screen - occupies 7 cols on lg */}
         <div className="lg:col-span-7 space-y-6">
           {/* Main Results Graphic Widget in deep primary teal */}
-          <div className="bg-[#0F766E] rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700 min-w-0">
+          <div className="calculator-results-panel bg-[#0F766E] rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700 min-w-0">
             <span className="text-xs font-bold text-teal-200 uppercase tracking-widest mb-5 block flex items-center gap-1.5">
               <Sparkles size={14} className="text-teal-300" />
               Resultado Calculado — República Dominicana
