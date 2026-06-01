@@ -1,5 +1,5 @@
 /**
- * NegocioRD - Dominican Republic Financial, Labor, and Business Calculations Suite (2026)
+ * Tu Negocio RD - Dominican Republic Financial, Labor, and Business Calculations Suite (2026)
  * Strictly calibrated to the DGII, Ministerio de Trabajo, and TSS Dominican frameworks.
  */
 

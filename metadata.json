@@ -1,6 +1,6 @@
 {
-  "name": "NegocioRD",
-  "description": "Plataforma fiscal, laboral y financiera experta para República Dominicana con 20 calculadoras técnicas e informes SEO de la DGII.",
+  "name": "Tu Negocio RD",
+  "description": "Herramientas fiscales, laborales y financieras para Republica Dominicana: ITBIS, ISR, TSS, prestaciones, prestamos y documentos PRO.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

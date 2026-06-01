@@ -1,4 +1,4 @@
-# Security Specification: NegocioRD Firebase Access Controls
+# Security Specification: Tu Negocio RD Firebase Access Controls
 
 ## 1. Data Invariants
 

@@ -229,7 +229,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
   const mathRes = compute();
 
   const handleCopy = () => {
-    let raw = `--- NegocioRD Documento: ${calc.name} ---\n`;
+    let raw = `--- Tu Negocio RD Documento: ${calc.name} ---\n`;
     raw += `Empresa: ${empresaNombre} (RNC: ${empresaRnc})\n`;
     raw += `Cliente: ${clienteNombre}\n`;
     raw += `NCF Número: ${documentNumber}\n`;
@@ -247,7 +247,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
     csv += `Subtotal,,,"${documentTotals.subtotal.toFixed(2)}"\n`;
     csv += `ITBIS 18%,,,"${documentTotals.itbis.toFixed(2)}"\n`;
     csv += `Total Documento,,,"${documentTotals.total.toFixed(2)}"\n`;
-    downloadCsvFile(`NegocioRD_Negocios_${calc.id}.csv`, csv);
+    downloadCsvFile(`tu_negocio_rd_negocios_${calc.id}.csv`, csv);
     logUsage(calc.id, `Exportó líneas del documento corporativo a CSV. Empresa: ${empresaNombre}`);
   };
 
@@ -629,7 +629,7 @@ export default function EmpresarialesCalculators({ calc, onBack }: Empresariales
                 </div>
               </div>
 
-              <p className="text-[10px] text-gray-400 text-center italic mt-4 border-t pt-3">Documento emitido por NegocioRD el {new Date().toLocaleDateString('es-DO')}. Valide RNC, NCF y condiciones comerciales antes de usarlo como soporte definitivo.</p>
+              <p className="text-[10px] text-gray-400 text-center italic mt-4 border-t pt-3">Documento emitido por Tu Negocio RD el {new Date().toLocaleDateString('es-DO')}. Valide RNC, NCF y condiciones comerciales antes de usarlo como soporte definitivo.</p>
 
               {/* Action indicators for sheets block with Paper Size option */}
               <div className="flex flex-wrap items-center gap-3 pt-3 border-t print:hidden">

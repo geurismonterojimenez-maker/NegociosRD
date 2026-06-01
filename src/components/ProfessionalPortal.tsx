@@ -792,7 +792,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
               💼
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold tracking-tight">Portal Corporativo - NegocioRD Pro</h2>
+              <h2 className="text-base sm:text-lg font-bold tracking-tight">Portal Profesional - Tu Negocio RD Pro</h2>
               <p className="text-[10px] text-teal-100 font-medium tracking-wide">ÁREA EXCLUSIVA DE HERRAMIENTAS CORPORATIVAS Y ASESORÍA FISCAL</p>
             </div>
           </div>
@@ -1535,7 +1535,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
                       {compileDocumentText()}
 
                       <div className="hidden print:block mt-8 pt-3 border-t border-gray-300 text-[8.5pt] text-gray-600 font-sans print-avoid-break">
-                        Documento generado por NegocioRD el {new Date().toLocaleDateString('es-DO')}. Revise este borrador con su asesor legal antes de firmar o depositar.
+                        Documento generado por Tu Negocio RD el {new Date().toLocaleDateString('es-DO')}. Revise este borrador con su asesor legal antes de firmar o depositar.
                       </div>
                     </div>
                   </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, HelpCircle, Eye, Code, Smartphone, Tablet, Monitor, Settings } from 'lucide-react';
+import { BriefcaseBusiness, Code, Eye, Monitor, Settings, Smartphone, Tablet } from 'lucide-react';
 
 interface AdSenseBlockProps {
   variant: 'skyscraper-left' | 'skyscraper-right' | 'horizontal-bottom' | 'mobile-infeed' | 'tablet-banner' | 'results-inline';
@@ -9,124 +9,77 @@ interface AdSenseBlockProps {
 
 export default function AdSenseBlock({ variant, className = '', userTier }: AdSenseBlockProps) {
   const [showCode, setShowCode] = useState(false);
-
-  // Check if PRO is active based on props or localStorage
   const isPro = userTier === 'PRO' || (typeof window !== 'undefined' && localStorage.getItem('negociord_user_tier') === 'PRO');
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
 
-  if (isPro) {
-    return null;
-  }
+  if (isPro) return null;
 
-  // Generate real, copyable AdSense responsive code templates based on the variant selected
   const getAdSenseCode = () => {
-    switch (variant) {
-      case 'skyscraper-left':
-      case 'skyscraper-right':
-        return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-<!-- Skyscraper Lateral Adaptable -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-     data-ad-slot="1111111111"
-     data-ad-format="vertical"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`;
-      case 'horizontal-bottom':
-        return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-<!-- Banner Horizontal Adaptable Inferior -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-     data-ad-slot="2222222222"
-     data-ad-format="horizontal"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`;
-      case 'mobile-infeed':
-        return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-<!-- Anuncio InFeed Optimizado para Celulares -->
-<ins class="adsbygoogle"
-     style="display:block; text-align:center;"
-     data-ad-layout="in-article"
-     data-ad-format="fluid"
-     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-     data-ad-slot="3333333333"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>`;
-      case 'tablet-banner':
-      case 'results-inline':
-      default:
-        return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-<!-- Banner Adaptable de Resultados -->
+    const format = variant === 'mobile-infeed' ? 'fluid' : variant.includes('skyscraper') ? 'vertical' : 'auto';
+    return `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
 <ins class="adsbygoogle"
      style="display:block"
      data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
      data-ad-slot="4444444444"
-     data-ad-format="auto"
+     data-ad-format="${format}"
      data-full-width-responsive="true"></ins>
 <script>
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>`;
-    }
   };
 
   const finalShowCode = isDev && showCode;
 
-  // Render Left Skyscraper (Tower, 160x600 or responsive vertical tower)
-  if (variant === 'skyscraper-left') {
+  const DevToggle = ({ label = 'Ver codigo' }: { label?: string }) => (
+    isDev ? (
+      <button
+        type="button"
+        onClick={() => setShowCode(!showCode)}
+        className="text-xs text-gray-400 hover:text-[#0F766E] font-medium inline-flex items-center gap-1 cursor-pointer"
+        aria-label={label}
+      >
+        {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
+      </button>
+    ) : null
+  );
+
+  const CodePreview = () => (
+    <pre className="p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap leading-relaxed border border-gray-800">
+      {getAdSenseCode()}
+    </pre>
+  );
+
+  if (variant === 'skyscraper-left' || variant === 'skyscraper-right') {
     return (
       <div className={`w-full flex flex-col gap-2.5 h-full ${className}`}>
         <div className="flex items-center justify-between px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
           <span className="flex items-center gap-1">
             <Monitor size={10} className="text-teal-600" />
-            AdSense Lateral Izquierdo
+            Publicidad
           </span>
-          {isDev && (
-            <button 
-              type="button"
-              onClick={() => setShowCode(!showCode)} 
-              className="hover:text-[#0F766E] transition-colors cursor-pointer"
-              title="Ver código oficial de AdSense"
-              aria-label="Ver código oficial de AdSense Izquierdo"
-            >
-              {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
-            </button>
-          )}
+          <DevToggle />
         </div>
 
         {finalShowCode ? (
-          <div className="flex-grow p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-auto break-all border border-gray-800 leading-normal max-h-[600px]">
-            <div className="border-b border-gray-800 pb-1.5 mb-2 text-gray-500 font-sans font-bold flex justify-between">
-              <span>CÓDIGO DE INTEGRACIÓN</span>
-              <span className="text-[8px] px-1 bg-gray-800 rounded">HTML/JS</span>
-            </div>
-            {getAdSenseCode()}
-          </div>
+          <CodePreview />
         ) : (
-          <div className="flex-grow bg-gradient-to-b from-[#FAFAFA] to-gray-50/50 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-between p-4 text-center min-h-[550px] transition-all hover:border-[#0F766E]/40 group shadow-xs">
-            <span className="text-[9px] font-mono text-gray-400 bg-white border px-1.5 py-0.5 rounded shadow-2xs">ca-pub-xxxx • 160x600</span>
-            
+          <div className="flex-grow bg-gradient-to-b from-[#FAFAFA] to-gray-50/50 border border-dashed border-gray-250 rounded-xl flex flex-col items-center justify-between p-4 text-center min-h-[520px] transition-all hover:border-[#0F766E]/30 group shadow-xs">
+            <span className="text-[9px] font-semibold text-gray-400 bg-white border border-gray-150 px-2 py-0.5 rounded shadow-2xs">Espacio patrocinado</span>
             <div className="my-auto space-y-3">
-              <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center mx-auto text-teal-600 group-hover:scale-110 transition-transform">
-                🏛️
+              <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center mx-auto text-teal-600 group-hover:scale-105 transition-transform">
+                <BriefcaseBusiness size={18} />
               </div>
               <div>
-                <span className="text-xs font-bold text-gray-700 block tracking-tight">Espacio disponible para Google AdSense</span>
-                <span className="text-[10px] text-gray-400 font-mono block mt-1">Anuncio Vertical Adaptable</span>
+                <span className="text-xs font-bold text-gray-700 block tracking-tight">Contenido patrocinado</span>
+                <span className="text-[10px] text-gray-400 block mt-1">Oferta relevante para negocios de RD</span>
               </div>
               <p className="text-[10px] text-gray-400 leading-relaxed max-w-[130px] mx-auto">
-                Optimizado para mantener altas tasas de click-through rate (CTR) en resoluciones superiores a 1280px.
+                Ubicacion reservada para publicidad discreta en pantallas amplias.
               </p>
             </div>
-
             <div className="w-full bg-white border border-gray-150 rounded-lg p-2 text-[10px] text-gray-400 flex items-center justify-center gap-1">
-              <Settings size={10} className="animate-spin duration-3000 text-teal-600" />
-              <span>Optimización Activa</span>
+              <Settings size={10} className="text-teal-600" />
+              <span>Publicidad discreta</span>
             </div>
           </div>
         )}
@@ -134,103 +87,29 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
     );
   }
 
-  // Render Right Skyscraper (Tower, 160x600 or responsive vertical tower)
-  if (variant === 'skyscraper-right') {
-    return (
-      <div className={`w-full flex flex-col gap-2.5 h-full ${className}`}>
-        <div className="flex items-center justify-between px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
-          <span className="flex items-center gap-1">
-            <Monitor size={10} className="text-teal-600" />
-            AdSense Lateral Derecho
-          </span>
-          {isDev && (
-            <button 
-              type="button"
-              onClick={() => setShowCode(!showCode)} 
-              className="hover:text-[#0F766E] transition-colors cursor-pointer"
-              title="Ver código oficial de AdSense"
-              aria-label="Ver código oficial de AdSense Derecho"
-            >
-              {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
-            </button>
-          )}
-        </div>
-
-        {finalShowCode ? (
-          <div className="flex-grow p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-auto break-all border border-gray-800 leading-normal max-h-[600px]">
-            <div className="border-b border-gray-800 pb-1.5 mb-2 text-gray-500 font-sans font-bold flex justify-between">
-              <span>CÓDIGO DE INTEGRACIÓN</span>
-              <span className="text-[8px] px-1 bg-gray-800 rounded">HTML/JS</span>
-            </div>
-            {getAdSenseCode()}
-          </div>
-        ) : (
-          <div className="flex-grow bg-gradient-to-b from-[#FAFAFA] to-gray-50/50 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-between p-4 text-center min-h-[550px] transition-all hover:border-[#0F766E]/40 group shadow-xs">
-            <span className="text-[9px] font-mono text-gray-400 bg-white border px-1.5 py-0.5 rounded shadow-2xs">ca-pub-xxxx • 160x600</span>
-            
-            <div className="my-auto space-y-3">
-              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center mx-auto text-amber-600 group-hover:scale-110 transition-transform">
-                💼
-              </div>
-              <div>
-                <span className="text-xs font-bold text-gray-700 block tracking-tight">Espacio disponible para Google AdSense</span>
-                <span className="text-[10px] text-gray-400 font-mono block mt-1">Anuncio Vertical Adaptable</span>
-              </div>
-              <p className="text-[10px] text-gray-400 leading-relaxed max-w-[130px] mx-auto">
-                No invasivo. El visitante visualiza ofertas relevantes a finanzas, contabilidad y pymes de RD.
-              </p>
-            </div>
-
-            <div className="w-full bg-white border border-gray-150 rounded-lg p-2 text-[10px] text-gray-400 flex items-center justify-center gap-1">
-              <Settings size={10} className="animate-spin duration-3000 text-amber-600" />
-              <span>Carga Asíncrona Seguro</span>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Render Mobile InFeed (Special phone landscape and portrait block)
   if (variant === 'mobile-infeed') {
     return (
-      <div className={`w-full bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-xs relative overflow-hidden ${className}`}>
-        <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-gray-100">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 select-none">
-            <Smartphone size={10} className="text-[#0F766E]" />
-            <span>AdSense Optimizado para Celulares / Tablets</span>
+      <div className={`w-full max-w-full bg-white border border-gray-200 rounded-2xl p-4 shadow-xs relative overflow-hidden ${className}`}>
+        <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-gray-100 min-w-0">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 select-none min-w-0">
+            <Smartphone size={10} className="text-[#0F766E] shrink-0" />
+            <span className="truncate">Publicidad</span>
           </div>
-          {isDev && (
-            <button
-              type="button"
-              onClick={() => setShowCode(!showCode)} 
-              className="text-xs text-gray-400 hover:text-[#0F766E] font-medium inline-flex items-center gap-1 cursor-pointer"
-            >
-              {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
-              <span className="text-[10px] font-mono">{finalShowCode ? 'Ver preview' : 'Ver código'}</span>
-            </button>
-          )}
+          <DevToggle />
         </div>
 
         {finalShowCode ? (
-          <pre className="p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap leading-relaxed border border-gray-800">
-            {getAdSenseCode()}
-          </pre>
+          <CodePreview />
         ) : (
-          <div className="flex flex-col md:flex-row items-center gap-4 py-2">
-            <div className="w-full md:w-28 h-20 bg-gray-50 border border-dashed border-gray-300 rounded-lg flex flex-col justify-center items-center text-center px-2 select-none">
-              <span className="text-xl">🏬</span>
-              <span className="text-[8px] font-mono text-gray-400 mt-1">Anuncio Adaptable</span>
+          <div className="flex flex-col sm:flex-row items-center gap-4 py-2 min-w-0">
+            <div className="w-full sm:w-28 h-16 bg-gray-50 border border-dashed border-gray-250 rounded-lg flex flex-col justify-center items-center text-center px-2 select-none shrink-0">
+              <BriefcaseBusiness size={18} className="text-[#0F766E]" />
+              <span className="text-[8px] text-gray-400 mt-1">Patrocinado</span>
             </div>
-            <div className="flex-1 space-y-1 text-center md:text-left">
-              <span className="bg-amber-50 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase inline-block">Anuncio por AdSense</span>
-              <h4 className="text-xs md:text-sm font-bold text-gray-800 leading-tight">Software de Facturación Autorizado con Formatos DGII 606 y 607</h4>
-              <p className="text-[11px] text-gray-500 leading-normal">Lleve su contabilidad libre de estrés de forma automatizada y sincronizada con el portal oficial dominicano.</p>
-            </div>
-            <div className="w-full md:w-auto text-right">
-              <button className="w-full md:w-auto px-3.5 py-1.5 bg-[#0F766E]/10 text-[#0F766E] text-[10px] font-bold rounded-lg cursor-not-allowed uppercase tracking-wider">
-                Saber más
-              </button>
+            <div className="flex-1 space-y-1 text-center sm:text-left min-w-0">
+              <span className="bg-amber-50 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase inline-block">Publicidad</span>
+              <h4 className="text-xs sm:text-sm font-bold text-gray-800 leading-tight break-words">Soluciones para contabilidad y cumplimiento en RD</h4>
+              <p className="text-[11px] text-gray-500 leading-normal">Espacio reservado para una oferta relacionada con finanzas, impuestos o pymes.</p>
             </div>
           </div>
         )}
@@ -238,40 +117,23 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
     );
   }
 
-  // Render Horizontal Bottom full-width banner
   if (variant === 'horizontal-bottom') {
     return (
-      <div className={`w-full flex flex-col gap-2 ${className}`}>
+      <div className={`w-full max-w-full flex flex-col gap-2 ${className}`}>
         <div className="flex items-center justify-between px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
           <span className="flex items-center gap-1">
             <Tablet size={10} className="text-teal-600" />
-            AdSense Horizontal Inferior (Responsive)
+            Publicidad
           </span>
-          {isDev && (
-            <button 
-              type="button"
-              onClick={() => setShowCode(!showCode)} 
-              className="hover:text-[#0F766E] transition-colors cursor-pointer text-xs flex items-center gap-1 font-mono hover:underline"
-            >
-              {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
-              <span>{finalShowCode ? 'Ver diseño' : 'Código'}</span>
-            </button>
-          )}
+          <DevToggle />
         </div>
-
         {finalShowCode ? (
-          <pre className="p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap leading-relaxed border border-gray-800">
-            {getAdSenseCode()}
-          </pre>
+          <CodePreview />
         ) : (
-          <div className="p-4 bg-[#FAFAFA] border border-dashed border-gray-300 rounded-xl text-center group transition-all hover:border-[#0F766E]/40 shadow-xs">
-            <div className="flex justify-between items-center text-[8px] font-mono text-gray-400 mb-2">
-              <span>ca-pub-xxxx • 728x90 / 970x90</span>
-              <span className="bg-white border rounded px-1.5 py-0.5">Banner Horizontal Adaptable</span>
-            </div>
-            <div className="h-16 bg-white border border-gray-100 flex flex-col justify-center items-center rounded-lg max-w-4xl mx-auto gap-0.5">
-              <span className="text-xs font-bold text-gray-600">Espacio para anuncio Google AdSense</span>
-              <span className="text-[10px] text-gray-400">Totalmente adaptable para Móviles, Tablets e iPads sin desbordar los contenedores</span>
+          <div className="p-4 bg-[#FAFAFA] border border-dashed border-gray-250 rounded-xl text-center group transition-all hover:border-[#0F766E]/30 shadow-xs overflow-hidden">
+            <div className="h-16 bg-white border border-gray-100 flex flex-col justify-center items-center rounded-lg max-w-4xl mx-auto gap-0.5 px-3">
+              <span className="text-xs font-bold text-gray-600">Contenido patrocinado</span>
+              <span className="text-[10px] text-gray-400">Publicidad adaptable para negocios dominicanos</span>
             </div>
           </div>
         )}
@@ -279,32 +141,19 @@ export default function AdSenseBlock({ variant, className = '', userTier }: AdSe
     );
   }
 
-  // Render inline results banner wrapper
   return (
-    <div className={`w-full flex flex-col gap-2 ${className}`}>
+    <div className={`w-full max-w-full flex flex-col gap-2 ${className}`}>
       <div className="flex items-center justify-between px-1 text-[9px] text-[#9CA3AF] font-bold uppercase tracking-wider select-none">
-        <span>Publicidad Relacionada</span>
-        {isDev && (
-          <button 
-            type="button"
-            onClick={() => setShowCode(!showCode)} 
-            className="hover:text-[#0F766E] transition-colors cursor-pointer"
-            aria-label="Ver código fiscal del anuncio"
-          >
-            {finalShowCode ? <Eye size={12} /> : <Code size={12} />}
-          </button>
-        )}
+        <span>Publicidad</span>
+        <DevToggle />
       </div>
-
       {finalShowCode ? (
-        <pre className="p-3 bg-gray-900 rounded-xl text-[9px] font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap leading-normal border border-gray-800">
-          {getAdSenseCode()}
-        </pre>
+        <CodePreview />
       ) : (
         <div className="p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-center relative overflow-hidden group transition-all hover:border-[#0F766E]/30">
-          <div className="h-16 bg-white border border-gray-100 flex flex-col justify-center items-center rounded-lg text-xs font-medium text-gray-500 gap-0.5">
-            <span className="font-bold text-gray-600">AdSense Adaptable en Resultados</span>
-            <span className="text-[10px] text-gray-400">Anuncio inteligente basado en sus consultas fiscales dominicanas</span>
+          <div className="h-14 bg-white border border-gray-100 flex flex-col justify-center items-center rounded-lg text-xs font-medium text-gray-500 gap-0.5 px-3">
+            <span className="font-bold text-gray-600">Contenido patrocinado</span>
+            <span className="text-[10px] text-gray-400">Oferta relacionada con finanzas, impuestos o pymes</span>
           </div>
         </div>
       )}

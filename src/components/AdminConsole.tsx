@@ -131,7 +131,7 @@ export default function AdminConsole({ firebaseUser, onBack }: AdminConsoleProps
           <div className="space-y-2">
             <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-900">
               <ArrowLeft size={14} />
-              Volver a NegocioRD
+              Volver a Tu Negocio RD
             </button>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl md:text-3xl font-black text-gray-950">Administración y Backend</h1>

@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import tls from "tls";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
@@ -11,12 +12,40 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
 
 const CACHE_FILE = path.join(process.cwd(), "news-cache.json");
 const CHECKOUT_PROVIDER = process.env.CHECKOUT_PROVIDER || "demo";
-const ORIGIN_URL = "https://negociord.com";
+const ORIGIN_URL = (process.env.PUBLIC_SITE_URL || process.env.APP_URL || "https://tunegociord.com").replace(/\/$/, "");
 const DEFAULT_SHARE_IMAGE = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop";
+const INVOICE_FROM_NAME = process.env.INVOICE_FROM_NAME || "Tu Negocio RD";
+const INVOICE_BCC = process.env.INVOICE_BCC || "";
+const INVOICE_REPLY_TO = process.env.INVOICE_REPLY_TO || process.env.GMAIL_USER || "";
+const GOOGLE_PAY_MERCHANT_ID = process.env.GOOGLE_PAY_MERCHANT_ID || "";
+const GOOGLE_PAY_GATEWAY = process.env.GOOGLE_PAY_GATEWAY || "pagosazul";
+
+type BillingCycle = keyof typeof PRO_PLANS;
+type CheckoutProvider = "demo" | "azul" | "azul_google_pay";
+
+function isValidCheckoutProvider(provider: string): provider is CheckoutProvider {
+  return ["demo", "azul", "azul_google_pay"].includes(provider);
+}
+
+function getCheckoutProvider(): CheckoutProvider {
+  return isValidCheckoutProvider(CHECKOUT_PROVIDER) ? CHECKOUT_PROVIDER : "demo";
+}
+
+function isAzulConfigured(): boolean {
+  return Boolean(process.env.AZUL_MERCHANT_ID && process.env.AZUL_AUTH_KEY);
+}
+
+function isGooglePayConfigured(): boolean {
+  return Boolean(isAzulConfigured() && GOOGLE_PAY_MERCHANT_ID);
+}
+
+function isEmailConfigured(): boolean {
+  return Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+}
 
 function escapeHtmlAttribute(value: string): string {
   return value
@@ -51,6 +80,183 @@ const PRO_PLANS = {
     billingCycle: "anual",
   },
 } as const;
+
+function smtpRead(socket: tls.TLSSocket): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const onData = (chunk: Buffer) => {
+      chunks.push(chunk);
+      const text = Buffer.concat(chunks).toString("utf8");
+      const lines = text.trimEnd().split(/\r?\n/);
+      const lastLine = lines[lines.length - 1] || "";
+      if (/^\d{3} /.test(lastLine)) {
+        cleanup();
+        resolve(text);
+      }
+    };
+    const onError = (err: Error) => {
+      cleanup();
+      reject(err);
+    };
+    const cleanup = () => {
+      socket.off("data", onData);
+      socket.off("error", onError);
+    };
+    socket.on("data", onData);
+    socket.on("error", onError);
+  });
+}
+
+async function smtpCommand(socket: tls.TLSSocket, command: string, expectedCodes: number[]) {
+  socket.write(`${command}\r\n`);
+  const response = await smtpRead(socket);
+  const code = Number(response.slice(0, 3));
+  if (!expectedCodes.includes(code)) {
+    throw new Error(`SMTP command failed (${command.split(" ")[0]}): ${response.trim()}`);
+  }
+  return response;
+}
+
+function encodeMailHeader(value: string): string {
+  return `=?UTF-8?B?${Buffer.from(value, "utf8").toString("base64")}?=`;
+}
+
+function escapeMailText(value: unknown): string {
+  return String(value ?? "").replace(/\r?\n/g, " ").trim();
+}
+
+async function sendGmailMessage(options: {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}) {
+  if (!isEmailConfigured()) {
+    return { sent: false, reason: "gmail-not-configured" };
+  }
+
+  const fromEmail = process.env.GMAIL_USER as string;
+  const appPassword = process.env.GMAIL_APP_PASSWORD as string;
+  const recipients = [options.to, ...INVOICE_BCC.split(",").map((email) => email.trim()).filter(Boolean)];
+  const socket = tls.connect(465, "smtp.gmail.com", { servername: "smtp.gmail.com" });
+
+  await new Promise<void>((resolve, reject) => {
+    socket.once("secureConnect", resolve);
+    socket.once("error", reject);
+  });
+
+  try {
+    const greeting = await smtpRead(socket);
+    if (!greeting.startsWith("220")) {
+      throw new Error(`SMTP greeting failed: ${greeting.trim()}`);
+    }
+
+    await smtpCommand(socket, "EHLO tunegociord.com", [250]);
+    await smtpCommand(socket, "AUTH LOGIN", [334]);
+    await smtpCommand(socket, Buffer.from(fromEmail).toString("base64"), [334]);
+    await smtpCommand(socket, Buffer.from(appPassword).toString("base64"), [235]);
+    await smtpCommand(socket, `MAIL FROM:<${fromEmail}>`, [250]);
+    for (const recipient of recipients) {
+      await smtpCommand(socket, `RCPT TO:<${recipient}>`, [250, 251]);
+    }
+    await smtpCommand(socket, "DATA", [354]);
+
+    const message = [
+      `From: ${encodeMailHeader(INVOICE_FROM_NAME)} <${fromEmail}>`,
+      `To: <${options.to}>`,
+      INVOICE_REPLY_TO ? `Reply-To: <${INVOICE_REPLY_TO}>` : "",
+      `Subject: ${encodeMailHeader(options.subject)}`,
+      "MIME-Version: 1.0",
+      'Content-Type: multipart/alternative; boundary="tunegociord-invoice"',
+      "",
+      "--tunegociord-invoice",
+      'Content-Type: text/plain; charset="UTF-8"',
+      "Content-Transfer-Encoding: 8bit",
+      "",
+      options.text,
+      "",
+      "--tunegociord-invoice",
+      'Content-Type: text/html; charset="UTF-8"',
+      "Content-Transfer-Encoding: 8bit",
+      "",
+      options.html,
+      "",
+      "--tunegociord-invoice--",
+      ".",
+      "",
+    ].join("\r\n");
+
+    socket.write(message);
+    const dataResponse = await smtpRead(socket);
+    if (!dataResponse.startsWith("250")) {
+      throw new Error(`SMTP DATA failed: ${dataResponse.trim()}`);
+    }
+
+    await smtpCommand(socket, "QUIT", [221]);
+    return { sent: true };
+  } finally {
+    socket.end();
+  }
+}
+
+async function sendInvoiceEmail(params: {
+  to?: string | null;
+  checkoutReference: string;
+  provider: string;
+  paymentMethodId: string;
+  plan: (typeof PRO_PLANS)[BillingCycle];
+}) {
+  if (!params.to) {
+    return { sent: false, reason: "missing-customer-email" };
+  }
+
+  const invoiceDate = new Date().toLocaleDateString("es-DO", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const cleanProvider = params.provider === "azul_google_pay" ? "Azul + Google Pay" : params.provider.toUpperCase();
+  const subject = `Factura Tu Negocio RD Pro - ${params.checkoutReference}`;
+  const text = [
+    "Factura de compra",
+    `Cliente: ${escapeMailText(params.to)}`,
+    `Plan: ${params.plan.label}`,
+    `Total: ${params.plan.displayAmount} ${params.plan.currency}`,
+    `Fecha: ${invoiceDate}`,
+    `Referencia: ${params.checkoutReference}`,
+    `Metodo: ${cleanProvider}`,
+    "",
+    "Gracias por elegir Tu Negocio RD. Esta factura confirma la solicitud de compra de tu licencia PRO.",
+    "Si no reconoces esta transaccion, responde este correo para soporte.",
+  ].join("\n");
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.5">
+      <h2 style="color:#0F766E;margin-bottom:4px">Factura Tu Negocio RD Pro</h2>
+      <p style="margin-top:0;color:#4B5563">Herramientas que impulsan tu negocio.</p>
+      <table style="border-collapse:collapse;width:100%;max-width:560px">
+        <tr><td style="padding:8px;border-bottom:1px solid #E5E7EB">Cliente</td><td style="padding:8px;border-bottom:1px solid #E5E7EB"><strong>${escapeHtmlAttribute(params.to)}</strong></td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #E5E7EB">Plan</td><td style="padding:8px;border-bottom:1px solid #E5E7EB">${params.plan.label}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #E5E7EB">Total</td><td style="padding:8px;border-bottom:1px solid #E5E7EB">${params.plan.displayAmount} ${params.plan.currency}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #E5E7EB">Fecha</td><td style="padding:8px;border-bottom:1px solid #E5E7EB">${invoiceDate}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #E5E7EB">Referencia</td><td style="padding:8px;border-bottom:1px solid #E5E7EB">${params.checkoutReference}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #E5E7EB">Metodo</td><td style="padding:8px;border-bottom:1px solid #E5E7EB">${cleanProvider}</td></tr>
+      </table>
+      <p style="font-size:12px;color:#6B7280;margin-top:16px">Esta factura confirma la solicitud de compra de tu licencia PRO. Conserva esta referencia para soporte.</p>
+    </div>`;
+
+  try {
+    return await sendGmailMessage({
+      to: params.to,
+      subject,
+      text,
+      html,
+    });
+  } catch (err) {
+    console.error("Invoice email failed:", err);
+    return { sent: false, reason: err instanceof Error ? err.message : String(err) };
+  }
+}
 
 // Helper to load articles from the cached JSON database
 function loadArticles() {
@@ -119,7 +325,7 @@ IMPORTANTE: El campo 'id' debe comenzar con el prefijo "dynamic-" para distingui
       model: "gemini-3.5-flash",
       contents: prompt,
       config: {
-        systemInstruction: "Eres el analista jefe de NegocioRD, un portal experto en finanzas, contabilidad fiscal y leyes laborales dominicanas. Utiliza Google Search Grounding para recopilar y compilar noticias verídicas, confiables y completamente actualizadas al año 2026. Devuelve la salida únicamente en el formato JSON solicitado.",
+        systemInstruction: "Eres el analista jefe de Tu Negocio RD, un portal experto en finanzas, contabilidad fiscal y leyes laborales dominicanas. Utiliza Google Search Grounding para recopilar y compilar noticias verídicas, confiables y completamente actualizadas al año 2026. Devuelve la salida únicamente en el formato JSON solicitado.",
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
@@ -269,7 +475,7 @@ IMPORTANTE: El campo 'id' debe comenzar con el prefijo "dynamic-" para distingui
         contentMarkdown: "### Nuevas Medidas de Impulso para MIPYMES\n\nLa Dirección General de Impuestos Internos (DGII) de la República Dominicana ha emitido una nueva resolución destinada a aliviar la carga de anticipo impositivo para micro, pequeñas y medianas empresas.\n\n#### Beneficios clave:\n- **Eliminación del anticipo del ISR** para deudas acumuladas de microempresas.\n- **Planes de pago flexibles** de hasta 12 meses para deudas fiscales pasadas.\n- **Facilidad de digitalización gratuita** para la adopción ágil de la facturación electrónica.\n\nLas medidas buscan dinamizar los comercios locales y asegurar que el ecosistema empresarial dominicano prosiga su ruta hacia la formalización fiscal.",
         publishDate: new Date().toISOString().split("T")[0],
         readTime: "4 min",
-        author: "Comité Fiscal NegocioRD",
+        author: "Comité Fiscal Tu Negocio RD",
         tags: ["DGII", "MIPYMES", "Anticipos"],
         relatedCalculatorSlug: "calculadora-isr",
         relatedCalculatorName: "Calculadora de Retenciones ISR",
@@ -326,12 +532,33 @@ app.post("/api/rates/refresh", async (req, res) => {
 
 // 5. GET /api/checkout/config - Public checkout capabilities for the frontend
 app.get("/api/checkout/config", (req, res) => {
+  const provider = getCheckoutProvider();
   res.json({
     success: true,
-    provider: CHECKOUT_PROVIDER,
-    mode: CHECKOUT_PROVIDER === "demo" ? "demo" : "live",
+    provider,
+    mode: provider === "demo" ? "demo" : "live-ready",
     plans: PRO_PLANS,
     requiresServerConfirmation: true,
+    invoiceEmailEnabled: isEmailConfigured(),
+    domain: ORIGIN_URL,
+    providers: {
+      demo: {
+        enabled: provider === "demo",
+        label: "Modo demo",
+      },
+      azul: {
+        enabled: provider === "azul" || provider === "azul_google_pay",
+        configured: isAzulConfigured(),
+        label: "Azul",
+      },
+      googlePay: {
+        enabled: provider === "azul_google_pay",
+        configured: isGooglePayConfigured(),
+        label: "Google Pay via Azul",
+        gateway: GOOGLE_PAY_GATEWAY,
+        merchantIdConfigured: Boolean(GOOGLE_PAY_MERCHANT_ID),
+      },
+    },
   });
 });
 
@@ -339,6 +566,7 @@ app.get("/api/checkout/config", (req, res) => {
 app.post("/api/checkout/session", async (req, res) => {
   const { billingCycle, userEmail, paymentMethodId } = req.body || {};
   const plan = PRO_PLANS[billingCycle as keyof typeof PRO_PLANS];
+  const provider = getCheckoutProvider();
 
   if (!plan) {
     return res.status(400).json({
@@ -354,22 +582,60 @@ app.post("/api/checkout/session", async (req, res) => {
     });
   }
 
-  const checkoutReference = `nrd_${plan.billingCycle}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  if (provider !== "demo" && !isAzulConfigured()) {
+    return res.status(503).json({
+      success: false,
+      provider,
+      error: "Azul no esta configurado. Agrega AZUL_MERCHANT_ID y AZUL_AUTH_KEY en las variables de entorno del hosting.",
+    });
+  }
 
-  // Stripe/Azul/CardNet can be wired here when credentials are available. Until then
-  // the server returns a signed local reference so the client does not self-activate.
+  if (provider === "azul_google_pay" && !isGooglePayConfigured()) {
+    return res.status(503).json({
+      success: false,
+      provider,
+      error: "Google Pay no esta configurado. Agrega GOOGLE_PAY_MERCHANT_ID y confirma que Azul habilito Google Pay para tu comercio.",
+    });
+  }
+
+  if (provider !== "demo") {
+    return res.status(501).json({
+      success: false,
+      provider,
+      error: "Azul/Google Pay ya esta preparado en configuracion, pero falta conectar la captura real certificada del comercio antes de activar PRO automaticamente.",
+    });
+  }
+
+  const checkoutPrefix = "tnrd_demo";
+  const checkoutReference = `${checkoutPrefix}_${plan.billingCycle}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const invoice = await sendInvoiceEmail({
+    to: userEmail,
+    checkoutReference,
+    provider,
+    paymentMethodId,
+    plan,
+  });
+
+  // Azul/Google Pay credentials are validated here. The live capture call should be
+  // connected with the certified Azul payload once the merchant receives production credentials.
   res.json({
     success: true,
-    mode: CHECKOUT_PROVIDER === "demo" ? "demo" : "configured",
-    provider: CHECKOUT_PROVIDER,
+    mode: provider === "demo" ? "demo" : "configured",
+    provider,
     checkoutReference,
     status: "authorized",
     userEmail: userEmail || null,
     paymentMethodId,
     plan,
-    message: CHECKOUT_PROVIDER === "demo"
+    invoice,
+    paymentRails: {
+      azulConfigured: isAzulConfigured(),
+      googlePayConfigured: isGooglePayConfigured(),
+      googlePayGateway: GOOGLE_PAY_GATEWAY,
+    },
+    message: provider === "demo"
       ? "Checkout simulado autorizado por el servidor local."
-      : "Checkout autorizado por el proveedor configurado.",
+      : "Checkout preparado para el proveedor configurado.",
   });
 });
 
@@ -377,7 +643,7 @@ app.post("/api/checkout/session", async (req, res) => {
 app.get("/sitemap.xml", (req, res) => {
   const calculatedUrls = CALCULATORS.map(calc => `
   <url>
-    <loc>https://negociord.com/herramientas/${calc.urlSlug}</loc>
+    <loc>${ORIGIN_URL}/herramientas/${calc.urlSlug}</loc>
     <lastmod>2026-05-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -385,7 +651,7 @@ app.get("/sitemap.xml", (req, res) => {
 
   const guideUrls = PROGRAMMATIC_GUIDES.map(guide => `
   <url>
-    <loc>https://negociord.com/guia/${guide.slug}</loc>
+    <loc>${ORIGIN_URL}/guia/${guide.slug}</loc>
     <lastmod>${guide.publishDate}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -402,7 +668,7 @@ app.get("/sitemap.xml", (req, res) => {
     '/precios'
   ].map(path => `
   <url>
-    <loc>https://negociord.com${path}</loc>
+    <loc>${ORIGIN_URL}${path}</loc>
     <lastmod>2026-05-30</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -425,7 +691,7 @@ app.get("/robots.txt", (req, res) => {
 Allow: /
 Disallow: /admin
 Disallow: /api/
-Sitemap: https://negociord.com/sitemap.xml`;
+Sitemap: ${ORIGIN_URL}/sitemap.xml`;
 
   res.header("Content-Type", "text/plain");
   res.status(200).send(robots);
@@ -433,7 +699,7 @@ Sitemap: https://negociord.com/sitemap.xml`;
 
 // Helper to pre-render HTML with unique meta tags, OpenGraph, dynamic canonicals & JSON-LD schemas
 function getPrerenderedHTML(html: string, originalUrl: string): string {
-  let title = "NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.";
+  let title = "Tu Negocio RD - Calculadoras Fiscales, Laborales y Financieras de R.D.";
   let description = "Calculadoras fiscales, laborales y financieras para República Dominicana: ITBIS, ISR, TSS, prestaciones, préstamos, retenciones y documentos PRO.";
   let robots = "index, follow";
   const pathPart = originalUrl.split("?")[0];
@@ -446,7 +712,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     const slug = pathPart.replace("/herramientas/", "");
     const calc = CALCULATORS.find(c => c.urlSlug === slug || c.id === slug);
     if (calc) {
-      title = `${calc.seoTitle} | NegocioRD`;
+      title = `${calc.seoTitle} | Tu Negocio RD`;
       description = calc.seoMetaDescription;
       
       // SoftwareApplication Schema
@@ -525,31 +791,31 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     const slug = pathPart.replace("/guia/", "");
     const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === slug);
     if (guide) {
-      title = `${guide.seoTitle} | NegocioRD`;
+      title = `${guide.seoTitle} | Tu Negocio RD`;
       description = guide.seoMetaDescription;
       type = "article";
     }
   } else if (pathPart === "/nosotros") {
-    title = "Sobre Nosotros | NegocioRD";
-    description = "Conoce al equipo de NegocioRD y nuestro compromiso con proveer herramientas financieras, fiscales y laborales de la más alta confiabilidad en la República Dominicana.";
+    title = "Sobre Nosotros | Tu Negocio RD";
+    description = "Conoce al equipo de Tu Negocio RD y nuestro compromiso con proveer herramientas financieras, fiscales y laborales de la más alta confiabilidad en la República Dominicana.";
   } else if (pathPart === "/contacto") {
-    title = "Contacto | NegocioRD";
-    description = "Contacta a NegocioRD para soporte, alianzas, dudas sobre herramientas fiscales o suscripciones PRO.";
+    title = "Contacto | Tu Negocio RD";
+    description = "Contacta a Tu Negocio RD para soporte, alianzas, dudas sobre herramientas fiscales o suscripciones PRO.";
   } else if (pathPart === "/privacidad") {
-    title = "Politica de Privacidad | NegocioRD";
-    description = "Politica de privacidad de NegocioRD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.";
+    title = "Politica de Privacidad | Tu Negocio RD";
+    description = "Politica de privacidad de Tu Negocio RD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.";
   } else if (pathPart === "/terminos") {
-    title = "Términos de Uso | NegocioRD";
-    description = "Términos de uso de las calculadoras fiscales, laborales y financieras de NegocioRD.";
+    title = "Términos de Uso | Tu Negocio RD";
+    description = "Términos de uso de las calculadoras fiscales, laborales y financieras de Tu Negocio RD.";
   } else if (pathPart === "/reembolsos") {
-    title = "Politica de Reembolsos | NegocioRD";
-    description = "Politica comercial de cancelaciones y reembolsos para planes PRO de NegocioRD.";
+    title = "Politica de Reembolsos | Tu Negocio RD";
+    description = "Politica comercial de cancelaciones y reembolsos para planes PRO de Tu Negocio RD.";
   } else if (pathPart === "/noticias") {
-    title = "Últimas Noticias Financieras y Fiscales de R.D. | NegocioRD";
+    title = "Últimas Noticias Financieras y Fiscales de R.D. | Tu Negocio RD";
     description = "Mantente al día con investigaciones exclusivas usando IA sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.";
   } else if (pathPart === "/admin") {
-    title = "Administración Privada | NegocioRD";
-    description = "Consola interna privada para administración, auditoría y control operativo de NegocioRD.";
+    title = "Administración Privada | Tu Negocio RD";
+    description = "Consola interna privada para administración, auditoría y control operativo de Tu Negocio RD.";
     robots = "noindex, nofollow, noarchive";
   }
 
@@ -561,7 +827,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     homeSchema = jsonLdScript({
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "NegocioRD",
+      "name": "Tu Negocio RD",
       "url": originUrl,
       "inLanguage": "es-DO",
       "description": description,
@@ -573,7 +839,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     }) + jsonLdScript({
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "NegocioRD",
+      "name": "Tu Negocio RD",
       "url": originUrl,
       "logo": DEFAULT_SHARE_IMAGE
     });
@@ -646,11 +912,11 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     "inLanguage": "es-DO",
     "author": {
       "@type": "Organization",
-      "name": "NegocioRD"
+      "name": "Tu Negocio RD"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "NegocioRD"
+      "name": "Tu Negocio RD"
     },
     "mainEntityOfPage": canonicalUrl
   }) : "";

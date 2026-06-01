@@ -64,7 +64,7 @@ Aquellos contribuyentes obligados que emitan comprobantes tradicionales en papel
 Le recomendamos verificar su estatus fiscal y dar seguimiento al timbrado XML inmediato.`,
     publishDate: '2026-05-28',
     readTime: '4 min',
-    author: 'Comité Editorial de Impuestos NegocioRD',
+    author: 'Comité Editorial de Impuestos Tu Negocio RD',
     tags: ['DGII', 'Facturación Electrónica', 'XML', 'Impuestos', 'Ley 512-23'],
     relatedCalculatorSlug: 'calculadora-itbis',
     relatedCalculatorName: 'Calculadora de ITBIS',
@@ -121,7 +121,7 @@ La inflación interanual se ha mantenido oscilando de forma consistente dentro d
 Te invitamos a simular tu financiamiento con nuestra calculadora especializada para prever el presupuesto requerido.`,
     publishDate: '2026-05-10',
     readTime: '3 min',
-    author: 'Departamento de Estudios Macroeconómicos NegocioRD',
+    author: 'Departamento de Estudios Macroeconómicos Tu Negocio RD',
     tags: ['Banco Central', 'Crédito', 'Tasa de Interés', 'Finanzas', 'Hipotecario'],
     relatedCalculatorSlug: 'calculadora-cuota-prestamo',
     relatedCalculatorName: 'Calculadora de Préstamos',
@@ -146,10 +146,10 @@ La TSS define límites de base de cotización de la siguiente manera:
 ### Ejemplo Informativo y Financiero:
 Al incrementarse la base imponible ponderada de referencia, aquellos asalariados corporativos que perciban ingresos extraordinarios (por encima de RD$ 150,000 en adelante) percibirán que su descuento por AFP (2.87%) y SFS (3.04%) se computará calculando sobre un techo superior antes de aplicar el freno definitivo del tope de ley.
 
-Igualmente, la prima patronal aportada (SFS, AFP, SRL e INFOTEP) se expandirá para la empresa correspondiente. Para prever el costo total exacto de su nómina, emplee nuestra Calculadora Completa de la TSS con soporte de topes oficiales actualizados en tiempo real.`,
+Igualmente, la prima patronal aportada (SFS, AFP, SRL e INFOTEP) se expandirá para la empresa correspondiente. Para prever el costo total estimado de su nómina, emplee nuestra Calculadora Completa de la TSS con soporte de topes oficiales actualizados en tiempo real.`,
     publishDate: '2026-05-02',
     readTime: '4 min',
-    author: 'Comité de Auditoría de Nóminas NegocioRD',
+    author: 'Comité de Auditoría de Nóminas Tu Negocio RD',
     tags: ['TSS', 'AFP', 'SFS', 'Nómina', 'Seguridad Social', 'Topes de Ley'],
     relatedCalculatorSlug: 'calculadora-tss',
     relatedCalculatorName: 'Calculadora de la TSS',
@@ -177,7 +177,7 @@ Muchos asalariados estiman su ISR multiplicando directamente la tasa. No obstant
 Para comprobar de forma fidedigna y desglosada si su descuento nómina mensual se calcula de acuerdo con los reglamentos gubernamentales oficiales de República Dominicana, ingrese su salario bruto nominal en nuestro simulador automatizado.`,
     publishDate: '2026-04-20',
     readTime: '5 min',
-    author: 'Cátedra de Finanzas Corporativas NegocioRD',
+    author: 'Cátedra de Finanzas Corporativas Tu Negocio RD',
     tags: ['ISR', 'DGII', 'Renta', 'Impuestos', 'Exenciones'],
     relatedCalculatorSlug: 'calculadora-isr',
     relatedCalculatorName: 'Calculadora del ISR',
@@ -205,7 +205,7 @@ Este régimen beneficia a miles de emprendedores dominicanos eliminando obligaci
 Le animamos a evaluar junto a su consultor tributario la viabilidad de incorporarse al RST de cara a optimizar sus flujos de caja. Para simular de inmediato el impacto del ITBIS en sus transacciones corporativas comunes, pruebe nuestras herramientas de desglose.`,
     publishDate: '2026-04-05',
     readTime: '5 min',
-    author: 'Asociación de Emprendedores NegocioRD',
+    author: 'Asociación de Emprendedores Tu Negocio RD',
     tags: ['RST', 'DGII', 'Impuestos', 'PYMEs', 'Emprendimiento'],
     relatedCalculatorSlug: 'itbis-incluido',
     relatedCalculatorName: 'ITBIS Incluido',
@@ -527,7 +527,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
             <div className="mt-8 p-4 bg-amber-50/40 border border-amber-100 rounded-xl flex items-start gap-3 text-left">
               <span className="text-lg">📋</span>
               <div>
-                <h5 className="text-xs font-bold text-amber-950 uppercase tracking-wider">Aviso Legal para Emprendedores — NegocioRD</h5>
+                <h5 className="text-xs font-bold text-amber-950 uppercase tracking-wider">Aviso Legal para Emprendedores — Tu Negocio RD</h5>
                 <p className="text-[11px] text-amber-800 leading-normal mt-0.5">
                   Recuerde que los retrasos en las declaraciones de ITBIS (día 20 de cada mes) conllevan recargos automáticos establecidos por la DGII de un 10% por el primer mes o fracción y un 4% por meses subsiguientes, más un 1.1% indemnizatorio.
                 </p>
@@ -831,7 +831,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
               <div className="bg-[#0F766E] text-white p-5 rounded-2xl shadow-md border border-teal-700 space-y-4">
                 <div className="flex items-center gap-1.5">
                   <Compass size={18} className="text-teal-300" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-teal-100">Portal Alertas NegocioRD</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-teal-100">Portal Alertas Tu Negocio RD</span>
                 </div>
                 <div>
                   <h4 className="font-bold text-sm leading-snug text-white">Últimas Decisiones de la Suprema Corte</h4>
@@ -860,7 +860,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                     <CheckCircle2 size={14} className="text-[#0F766E] shrink-0 mt-0.5" />
                     <div>
                       <strong className="block font-bold">¡Suscripción confirmada!</strong>
-                      Usted ya es parte del boletín corporativo de NegocioRD.
+                      Usted ya es parte del boletín corporativo de Tu Negocio RD.
                     </div>
                   </div>
                 ) : (

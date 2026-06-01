@@ -55,7 +55,7 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                 {selectedGuide.readTime}
               </span>
               <span>•</span>
-              <span className="font-bold text-[#0F766E]">Redactado por: Comité Fiscal NegocioRD</span>
+              <span className="font-bold text-[#0F766E]">Redactado por: Comité Fiscal Tu Negocio RD</span>
             </div>
           </div>
 
@@ -135,7 +135,7 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                   }}
                   className="w-full py-2.5 bg-white text-[#0F766E] hover:bg-gray-50 text-xs font-bold rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-all shadow active:scale-95"
                 >
-                  Abrir calculadora exacta
+                  Abrir calculadora relacionada
                   <ArrowUpRight size={14} />
                 </button>
               </div>

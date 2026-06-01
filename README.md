@@ -18,3 +18,15 @@ View your app in AI Studio: https://ai.studio/apps/6b4de314-9928-476e-bff8-8204b
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Produccion
+
+Para publicar en Hostinger con backend Express, compila con:
+
+`npm run build`
+
+Y arranca:
+
+`npm start`
+
+La guia completa de variables, dominio `tunegociord.com`, facturas Gmail, Azul y Google Pay esta en [docs/hostinger-produccion.md](docs/hostinger-produccion.md).

@@ -75,6 +75,16 @@ interface UserAccountModalProps {
   initialCheckoutPlan?: Exclude<BillingCycle, 'trial'>;
 }
 
+interface CheckoutConfig {
+  provider: 'demo' | 'azul' | 'azul_google_pay';
+  mode: 'demo' | 'live-ready';
+  invoiceEmailEnabled: boolean;
+  providers?: {
+    azul?: { enabled: boolean; configured: boolean; label: string };
+    googlePay?: { enabled: boolean; configured: boolean; label: string; gateway?: string; merchantIdConfigured?: boolean };
+  };
+}
+
 const PRO_PLAN_PRICES: Record<Exclude<BillingCycle, 'trial'>, { label: string; amount: string; total: string; description: string }> = {
   mensual: {
     label: 'PRO mensual',
@@ -108,7 +118,7 @@ function createLocalDemoUser() {
   return {
     uid: LOCAL_DEMO_UID,
     email: LOCAL_DEMO_EMAIL,
-    displayName: 'NegocioRD Local',
+    displayName: 'Tu Negocio RD Local',
     photoURL: '',
     isLocalDemo: true,
   };
@@ -153,8 +163,19 @@ async function createCheckoutSession(params: {
     checkoutReference: string;
     mode: string;
     provider: string;
+    invoice?: { sent: boolean; reason?: string };
     plan: { displayAmount: string; billingCycle: string };
   };
+}
+
+async function fetchCheckoutConfig(): Promise<CheckoutConfig | null> {
+  try {
+    const response = await fetch('/api/checkout/config');
+    const payload = await response.json().catch(() => null);
+    return response.ok && payload?.success ? payload as CheckoutConfig : null;
+  } catch {
+    return null;
+  }
 }
 
 function getAuthErrorMessage(err: any): string {
@@ -224,6 +245,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   const [cardsLoading, setCardsLoading] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [checkoutPlan, setCheckoutPlan] = useState<Exclude<BillingCycle, 'trial'>>(initialCheckoutPlan);
+  const [checkoutConfig, setCheckoutConfig] = useState<CheckoutConfig | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
   const [localMode, setLocalMode] = useState<boolean>(false);
 
@@ -262,6 +284,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
   useEffect(() => {
     if (isOpen) {
       setCheckoutPlan(initialCheckoutPlan);
+      fetchCheckoutConfig().then(setCheckoutConfig);
     }
   }, [initialCheckoutPlan, isOpen]);
 
@@ -593,15 +616,16 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       await persistSubscriptionState(nextSubscription);
       onTierChange('PRO');
       onSubscriptionChange?.(nextSubscription);
-      triggerToast(`Compra completada: ${plan.label} activo. Ref. ${checkout.checkoutReference}`);
+      triggerToast(`Compra completada: ${plan.label} activo. Ref. ${checkout.checkoutReference}${checkout.invoice?.sent ? ' | Factura enviada.' : ''}`);
       if (!isLocalDemoUser(user)) {
-        await logSubscription(currentSubscription.plan, 'PRO', `Compra simulada completada: ${plan.label}.`, {
+        await logSubscription(currentSubscription.plan, 'PRO', `Compra completada: ${plan.label}.`, {
           subscriptionStatus: nextSubscription.status,
           billingCycle: nextSubscription.billingCycle,
           paymentMethod: nextSubscription.paymentMethod,
           checkoutTotal: plan.total,
           checkoutReference: checkout.checkoutReference,
           checkoutProvider: checkout.provider,
+          invoiceEmailSent: checkout.invoice?.sent || false,
         });
       }
     } catch (err) {
@@ -858,7 +882,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
             🏢
           </div>
           <div>
-            <h3 className="text-xl font-extrabold text-[#111827]">Portal Seguro NegocioRD</h3>
+            <h3 className="text-xl font-extrabold text-[#111827]">Portal Seguro Tu Negocio RD</h3>
             <p className="text-xs text-gray-400">Autenticación Firebase & Consola Integrada de Pagos</p>
           </div>
         </div>
@@ -866,7 +890,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
         {loading ? (
           <div className="py-20 text-center space-y-3">
             <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-xs text-gray-500 font-semibold">Cargando base de datos segura de NegocioRD...</p>
+            <p className="text-xs text-gray-500 font-semibold">Cargando base de datos segura de Tu Negocio RD...</p>
           </div>
         ) : !user ? (
           /* --- EXQUISITE DUAL SIGN IN PANELS (EMAIL/PASSWORD + GOOGLE) --- */
@@ -923,7 +947,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                       type="email"
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
-                      placeholder="ejemplo@negociord.com"
+                      placeholder="ejemplo@tunegociord.com"
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 pl-8 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#0F766E] focus:bg-white"
                       required
                     />
@@ -1418,8 +1442,25 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                   <div className="text-[10px] uppercase tracking-widest font-black text-[#0F766E]">Checkout PRO</div>
                   <h4 className="text-base font-extrabold text-gray-950 mt-1">Completar compra del plan profesional</h4>
                   <p className="text-xs text-gray-500 mt-1 max-w-xl">
-                    Elige el ciclo, selecciona una tarjeta guardada y confirma la activacion. Este entorno registra una compra simulada en Firestore.
+                    Elige el ciclo, selecciona un metodo guardado y confirma la activacion. El backend valida la compra, registra la referencia y envia la factura por correo cuando Gmail esta configurado.
                   </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <span className="px-2 py-1 rounded-md bg-white border border-gray-200 text-[10px] font-black text-gray-600 uppercase">
+                      {checkoutConfig?.provider === 'azul_google_pay' ? 'Azul + Google Pay' : checkoutConfig?.provider === 'azul' ? 'Azul' : 'Modo demo'}
+                    </span>
+                    <span className={`px-2 py-1 rounded-md border text-[10px] font-black uppercase ${
+                      checkoutConfig?.invoiceEmailEnabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700'
+                    }`}>
+                      {checkoutConfig?.invoiceEmailEnabled ? 'Factura por Gmail activa' : 'Factura por Gmail pendiente'}
+                    </span>
+                    {checkoutConfig?.providers?.googlePay?.enabled && (
+                      <span className={`px-2 py-1 rounded-md border text-[10px] font-black uppercase ${
+                        checkoutConfig.providers.googlePay.configured ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'
+                      }`}>
+                        Google Pay {checkoutConfig.providers.googlePay.configured ? 'configurado' : 'pendiente'}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-right min-w-[150px]">
                   <div className="text-[10px] text-gray-400 font-black uppercase">Total</div>
@@ -1454,7 +1495,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                   <div>
                     <div className="text-[10px] uppercase tracking-widest font-black text-gray-400">Metodo de pago</div>
                     <p className="text-xs text-gray-600 mt-1">
-                      {cards.length > 0 ? 'Selecciona la tarjeta para completar la compra.' : 'Registra una tarjeta simulada para continuar.'}
+                      {cards.length > 0 ? 'Selecciona el metodo para completar la compra.' : 'Registra un metodo de pago para continuar.'}
                     </p>
                   </div>
                   <button
@@ -1501,7 +1542,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-t border-gray-100 pt-3">
                   <div className="text-xs text-gray-500">
                     <span className="font-extrabold text-gray-900">{PRO_PLAN_PRICES[checkoutPlan].total}</span>
-                    <span className="block text-[10px]">La licencia queda activa inmediatamente al confirmar.</span>
+                    <span className="block text-[10px]">La licencia queda activa al confirmar la autorizacion del servidor.</span>
                   </div>
                   <button
                     type="button"
@@ -1544,7 +1585,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                     Cancelar
                   </button>
 
-                  <h5 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider text-left">Ingresa un nuevo método de pago simulado</h5>
+                  <h5 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider text-left">Ingresa un nuevo metodo de pago</h5>
 
                   {/* INTERACTIVE FLIPPABLE CREDIT CARD */}
                   <div className="max-w-[340px] mx-auto perspective-1000 mb-6 font-mono">
@@ -1633,7 +1674,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                         
                         <div className="text-[7px] text-gray-400 leading-normal text-left font-sans pt-2 border-t border-white/5 flex gap-1">
                           <span>🔔</span>
-                          <p>Módulo de pago de simulación segura de NegocioRD. Ningún cobro real es aplicado. Versión de demostración premium.</p>
+                          <p>Modulo de pago preparado para Azul y Google Pay. Los cobros reales dependen de las credenciales activas del comercio.</p>
                         </div>
                       </div>
                     </div>
@@ -1737,7 +1778,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                   <span className="text-3xl text-gray-300 block">💳</span>
                   <p className="text-xs font-bold text-gray-650 font-sans">No tienes tarjetas de pago registradas</p>
                   <p className="text-[10px] text-gray-400 leading-relaxed max-w-xs mx-auto font-sans">
-                    Inserta una tarjeta de crédito o débito simulada de prueba para experimentar el flujo de cobros, y habilitar la suscripción de Licencia PRO.
+                    Inserta una tarjeta de crédito o débito para experimentar el flujo de cobros, y habilitar la suscripción de Licencia PRO cuando el proveedor este activo.
                   </p>
                 </div>
               ) : (
@@ -1791,7 +1832,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
               <div className="text-xs">
                 <span className="font-extrabold text-[#0F766E] leading-relaxed block">Sobre la seguridad de la información fiscal:</span>
                 <p className="text-gray-500 leading-relaxed mt-1">
-                  Ningún dato real de tarjetas reales es solicitado u almacenado externamente. El procesamiento es un modelo formativo seguro para simular las gestiones de impuestos y planillas formales ante la DGII dominicana.
+                  No guardamos CVV ni datos sensibles completos. El procesamiento real debe realizarse mediante Azul y Google Pay con credenciales de comercio activas.
                 </p>
               </div>
             </div>

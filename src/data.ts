@@ -25,7 +25,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     id: 'itbis-incluido',
     name: 'ITBIS Incluido',
     shortDescription: 'Extrae el valor neto de un total con ITBIS.',
-    description: 'Desglosa de manera exacta el valor neto de un precio final que ya incluye el ITBIS (18% o 16%), mostrándote el impuesto retenido o cobrado.',
+    description: 'Desglosa con detalle el valor neto de un precio final que ya incluye el ITBIS (18% o 16%), mostrándote el impuesto retenido o cobrado.',
     category: 'impuestos',
     tags: ['ITBIS', 'Desglose', 'Precio'],
     urlSlug: 'itbis-incluido',
@@ -78,7 +78,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['Mora', 'Recargos', 'Interés', 'DGII'],
     urlSlug: 'calculadora-recargos-dgii',
     seoTitle: 'Calculadora de Recargos, Mora e Intereses DGII — RD',
-    seoMetaDescription: '¿Pagaste tarde tus impuestos? Calcula de forma exacta las penalidades de la DGII aplicables: 10% de recargo por mora inicial, 4% mensual y 1.1% de interés.',
+    seoMetaDescription: '¿Pagaste tarde tus impuestos? Calcula con base documentada las penalidades de la DGII aplicables: 10% de recargo por mora inicial, 4% mensual y 1.1% de interés.',
     hasFaq: true
   },
 
@@ -99,7 +99,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     id: 'afp-empleado',
     name: 'Calculadora AFP',
     shortDescription: 'Aporte de AFP de empleados (2.87%).',
-    description: 'Calcula el descuento mensual exacto correspondiente a la AFP (2.87%) sobre el salario imponible, aplicando el tope legal de 20 salarios mínimos nacionales.',
+    description: 'Calcula el descuento mensual estimado correspondiente a la AFP (2.87%) sobre el salario imponible, aplicando el tope legal de 20 salarios mínimos nacionales.',
     category: 'laboral',
     tags: ['AFP', 'TSS', 'Pensiones', 'Empleado'],
     urlSlug: 'calculadora-afp',
@@ -116,14 +116,14 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['SFS', 'TSS', 'Salud', 'Empleado'],
     urlSlug: 'calculadora-sfs',
     seoTitle: 'Calculadora SFS Empleado RD — Seguro Familiar de Salud',
-    seoMetaDescription: 'Conoce exactamente el descuento del 3.04% para el seguro de salud familiar en RD. Calcula el monto en base a tu sueldo ordinario y el tope TSS correspondiente.',
+    seoMetaDescription: 'Conoce con detalle el descuento del 3.04% para el seguro de salud familiar en RD. Calcula el monto en base a tu sueldo ordinario y el tope TSS correspondiente.',
     hasFaq: true
   },
   {
     id: 'tss-completa',
     name: 'Calculadora TSS',
     shortDescription: 'Desglose detallado de aportes de empleado y empleador.',
-    description: 'Permite simular el costo exacto de la Seguridad Social para ambas partes: empleado (2.87% AFP, 3.04% SFS) y empleador (7.10% AFP, 7.09% SFS, 1.2% SRL, 1.0% INFOTEP).',
+    description: 'Permite simular el costo estimado de la Seguridad Social para ambas partes: empleado (2.87% AFP, 3.04% SFS) y empleador (7.10% AFP, 7.09% SFS, 1.2% SRL, 1.0% INFOTEP).',
     category: 'laboral',
     tags: ['TSS', 'Patronal', 'SRL', 'INFOTEP', 'Costo'],
     urlSlug: 'calculadora-tss',
@@ -297,12 +297,12 @@ export const CALCULATORS: CalculatorInfo[] = [
     id: 'salario-por-hora',
     name: 'Salario por Hora',
     shortDescription: 'Desglosa tu tarifa por hora a partir del sueldo.',
-    description: 'Calcula el valor exacto de tus horas ordinarias y salario diario basándose en los divisores legales de RD (23.83 para mensuales, 11.91 para quincenales, etc.).',
+    description: 'Calcula el valor estimado de tus horas ordinarias y salario diario basándose en los divisores legales de RD (23.83 para mensuales, 11.91 para quincenales, etc.).',
     category: 'laboral',
     tags: ['Salario Diario', 'Salario por Hora', 'Tarifa'],
     urlSlug: 'calculadora-salario-por-hora',
     seoTitle: 'Calculadora de Salario por Hora en República Dominicana',
-    seoMetaDescription: 'Conoce el valor exacto de tus horas de trabajo con los divisores oficiales de la TSS y el Código de Trabajo dominicano.',
+    seoMetaDescription: 'Conoce el valor estimado de tus horas de trabajo con los divisores oficiales de la TSS y el Código de Trabajo dominicano.',
     hasFaq: true
   },
   {
@@ -314,7 +314,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['Quincena', 'Nómina', 'Quincenal', 'Retenciones'],
     urlSlug: 'calculadora-salario-quincenal',
     seoTitle: 'Calculadora de Salario Quincenal RD — Desglose de Nómina',
-    seoMetaDescription: 'Descubre los deducciones de AFP y SFS quincenales en la nómina dominicana para conocer tu sueldo quincenal neto exacto.',
+    seoMetaDescription: 'Descubre los deducciones de AFP y SFS quincenales en la nómina dominicana para conocer tu sueldo quincenal neto estimado.',
     hasFaq: true
   },
   {
@@ -400,7 +400,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['Interés Simple', 'Rendimientos', 'Finanzas Básicas'],
     urlSlug: 'calculadora-interes-simple',
     seoTitle: 'Calculadora de Interés Simple en RD — Fórmulas Financieras',
-    seoMetaDescription: 'Calcula de forma exacta intereses nominales ganados en tus certificados de depósitos o inversiones simples a tasa fija anual dominicana.',
+    seoMetaDescription: 'Calcula con base documentada intereses nominales estimados en tus certificados de depósitos o inversiones simples a tasa fija anual dominicana.',
     hasFaq: true
   },
   {
@@ -577,7 +577,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     id: 'margen-neto',
     name: 'Margen Neto Corporativo',
     shortDescription: 'Mide la rentabilidad real final de tu empresa.',
-    description: 'Descuenta costos fijos, variables y operativos para conocer el dividendo exacto de ganancia para los socios.',
+    description: 'Descuenta costos fijos, variables y operativos para conocer el dividendo estimado de ganancia para los socios.',
     category: 'negocios',
     tags: ['Margen Neto', 'Rentabilidad', 'Contabilidad'],
     urlSlug: 'calculadora-margen-neto',
@@ -606,7 +606,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['ROI', 'Inversión', 'Retorno', 'Rendimiento'],
     urlSlug: 'calculadora-roi',
     seoTitle: 'Calculadora de ROI RD — Retorno Rentabilidad de Inversión',
-    seoMetaDescription: 'Mide con exactitud el porcentaje de rendimiento neto generado de tus campañas comerciales con nuestra calculadora técnica.',
+    seoMetaDescription: 'Mide con claridad el porcentaje de rendimiento neto generado de tus campañas comerciales con nuestra calculadora técnica.',
     hasFaq: true
   },
   {
@@ -732,7 +732,7 @@ El término de la relación laboral genera obligaciones y derechos económicos e
 ### Conceptos Clave de la Liquidación dominicana
 
 #### 1. El Salario Diario Promedio
-Todos los cálculos del Ministerio de Trabajo se basan en el salario diario del trabajador. Si cobras mensual, el código de trabajo define que el mes comercial tiene exactamente **23.83 días laborables**.
+Todos los cálculos del Ministerio de Trabajo se basan en el salario diario del trabajador. Si cobras mensual, el Código de Trabajo usa **23.83 días laborables** como divisor de referencia.
 
 $$\\text{Salario Diario} = \\frac{\\text{Salario Mensual Bruto}}{23.83}$$
 
@@ -756,7 +756,7 @@ Indemnización por la pérdida del empleo, calculada de la siguiente manera:
 Consideremos un empleado con un salario bruto mensual de **RD$ 30,000.00** que ingresó el **15 de marzo de 2024** y fue desahuciado por su jefe el **15 de marzo de 2026** sin aviso previo y sin haber tomado sus vacaciones correspondientes al último año.
 
 1. **Salario Diario:** $30,000 / 23.83 =$ **RD$ 1,258.91**
-2. **Tiempo de Servicio:** 2 años exactos.
+2. **Tiempo de Servicio:** 2 años completos.
 3. **Preaviso:** Omitido por el empleador (28 días de salario)
    - $1,258.91 \\times 28 =$ **RD$ 35,249.48**
 4. **Cesantía:** 2 años de servicio imponible (21 días por cada año = 42 días en total)
@@ -787,7 +787,7 @@ Consideremos un empleado con un salario bruto mensual de **RD$ 30,000.00** que i
     imageAlt: 'Nómina dominicana y deducciones de sueldo TSS',
     contentMarkdown: `## Guía Paso a Paso: Del Salario Bruto al Salario Neto
 
-¿Quieres saber exactamente cómo se desvanece de tu salario bruto la porción destinada a la seguridad social y al gobierno de la República Dominicana? En esta guía te explicamos, con el máximo rigor, cómo realizar este cálculo manualmente paso a paso.
+¿Quieres entender con claridad cómo se desvanece de tu salario bruto la porción destinada a la seguridad social y al gobierno de la República Dominicana? En esta guía te explicamos, con el máximo rigor, cómo realizar este cálculo manualmente paso a paso.
 
 ---
 

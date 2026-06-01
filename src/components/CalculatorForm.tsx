@@ -885,7 +885,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="w-full mt-2 flex items-center justify-between px-3.5 py-2.5 border border-gray-200 hover:border-[#0F766E] rounded-xl text-xs font-bold text-gray-500 hover:text-[#0F766E] uppercase tracking-wider bg-[#F9FAFB] transition-all cursor-pointer shadow-xs active:scale-98"
+                className="w-full mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-3.5 py-2.5 border border-gray-200 hover:border-[#0F766E] rounded-xl text-xs font-bold text-gray-500 hover:text-[#0F766E] uppercase tracking-wider bg-[#F9FAFB] transition-all cursor-pointer shadow-xs active:scale-98 text-left"
               >
                 <span>{showAdvanced ? '▲ Ocultar opciones avanzadas' : '⚙️ Ver opciones de ley avanzadas'}</span>
                 <span className="text-[10px]">{showAdvanced ? 'Muestra menos campos' : 'Tasa, periodos, preaviso...'}</span>
@@ -897,7 +897,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
         {/* Results Screen - occupies 7 cols on lg */}
         <div className="lg:col-span-7 space-y-6">
           {/* Main Results Graphic Widget in deep primary teal */}
-          <div className="bg-[#0F766E] rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700">
+          <div className="bg-[#0F766E] rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700 min-w-0">
             <span className="text-xs font-bold text-teal-200 uppercase tracking-widest mb-5 block flex items-center gap-1.5">
               <Sparkles size={14} className="text-teal-300" />
               Resultado Calculado — República Dominicana
@@ -908,35 +908,35 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             {/* 1 & 2 & 3. ITBIS results */}
             {(calc.id === 'itbis-calc' || calc.id === 'itbis-excluido' || calc.id === 'itbis-incluido') && calculatedResults && (
               <div>
-                <div className="grid grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5">
-                  <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">Total ITBIS ({itbisRateInput * 100}%)</p>
-                    <p className="text-3xl font-extrabold font-mono text-white mt-1">
+                    <p className="text-2xl md:text-3xl font-extrabold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ {calculatedResults.itbisAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-teal-200 font-semibold uppercase">
                       {calc.id === 'itbis-incluido' ? 'Monto Neto Base' : 'Monto total final'}
                     </p>
-                    <p className="text-3xl font-bold font-mono text-white mt-1">
+                    <p className="text-2xl md:text-3xl font-bold font-mono text-white mt-1 break-words tabular-nums">
                       RD$ { (calc.id === 'itbis-incluido' ? calculatedResults.baseAmount : calculatedResults.totalWithItbis).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-3.5 text-sm">
-                  <div className="flex justify-between border-b border-teal-600/30 pb-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 border-b border-teal-600/30 pb-2">
                     <span className="text-teal-100">Monto base neto:</span>
-                    <span className="font-semibold font-mono text-white">RD$ {calculatedResults.baseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold font-mono text-white break-words">RD$ {calculatedResults.baseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between border-b border-teal-600/30 pb-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 border-b border-teal-600/30 pb-2">
                     <span className="text-teal-100">ITBIS recaudado ({itbisRateInput * 100}%):</span>
-                    <span className="font-semibold font-mono text-white">RD$ {calculatedResults.itbisAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold font-mono text-white break-words">RD$ {calculatedResults.itbisAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between pt-1.5 font-bold text-base text-white">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 pt-1.5 font-bold text-base text-white">
                     <span>Total consolidado:</span>
-                    <span className="font-mono text-teal-200">RD$ {calculatedResults.totalWithItbis.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-mono text-teal-200 break-words">RD$ {calculatedResults.totalWithItbis.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>
@@ -1457,7 +1457,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
           <div className="my-4 p-4 bg-teal-50/40 border border-teal-100 rounded-xl flex items-start gap-3">
             <span className="text-lg">💡</span>
             <div>
-              <h5 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Aviso de Validación NegocioRD 2026</h5>
+              <h5 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Aviso de Validación Tu Negocio RD 2026</h5>
               <p className="text-[11px] text-teal-800 leading-normal mt-0.5">
                 Estimación basada en tasas oficiales y topes vigentes documentados de la DGII Dominicana y la TSS (salario base RD$ 23,223.00). Por favor, consulta las fuentes oficiales antes de tomar decisiones legales, fiscales o laborales definitivas. Puedes exportar estos resultados en CSV o imprimir en PDF usando los botones dedicados superiores.
               </p>
@@ -1530,7 +1530,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
                 {/* Default fallback */}
                 {(!('explanation' in (calculatedResults || {})) && !('calculationSteps' in (calculatedResults || {})) && !('desgloseExplicativo' in (calculatedResults || {}))) && (
                   <p>
-                    Cálculo realizado de conformidad con los coeficientes exactos declarados periódicamente por las entidades oficiales supervisoras dominicanas (DGII, TSS y Ministerio de Trabajo).
+                    Cálculo orientativo basado en coeficientes documentados por entidades oficiales dominicanas (DGII, TSS y Ministerio de Trabajo).
                   </p>
                 )}
                 
@@ -1612,7 +1612,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTie
             <h3 className="text-base font-bold text-gray-900">Errores comunes a evitar</h3>
             <ul className="list-disc pl-5 mt-2 space-y-2">
               <li><strong>Ignorar topes de cotización:</strong> Muchos contribuyentes omiten que la Tesorería de la Seguridad Social (TSS) tiene límites máximos cotizables para salud y pensiones, por lo que a salarios elevados no se les debe deducir porcentajes planos ilimitados.</li>
-              <li><strong>No actualizar las escalas móviles:</strong> Si bien las escalas del ISR para asalariados de la DGII permanecieron congeladas desde 2017 por disposición legal, es indispensable aplicarlas con exactitud sobre los ingresos anuales acumulados totales.</li>
+              <li><strong>No actualizar las escalas móviles:</strong> Si bien las escalas del ISR para asalariados de la DGII permanecieron congeladas desde 2017 por disposición legal, es indispensable aplicarlas con cuidado sobre los ingresos anuales acumulados totales.</li>
               <li><strong>Tratamiento erróneo de comisiones:</strong> En el marco laboral dominicano, las comisiones y horas ordinarias fijas forman parte integrada del salario computable para fines de prestaciones del desahucio.</li>
             </ul>
 

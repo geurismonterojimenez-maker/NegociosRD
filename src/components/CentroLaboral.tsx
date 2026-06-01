@@ -304,7 +304,7 @@ export default function CentroLaboral() {
       `Salario promedio,${avgSalary.toFixed(2)}`,
       `Fecha de emision,${new Date().toLocaleDateString('es-DO')}`,
     ];
-    downloadCsvFile("nomina_colaboradores_negociord.csv", [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows].join('\n'));
+    downloadCsvFile("nomina_colaboradores_tu_negocio_rd.csv", [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows].join('\n'));
   };
 
   return (
@@ -721,7 +721,7 @@ export default function CentroLaboral() {
                     }
                   `}} />
                   <div className="border-b border-dashed border-gray-300 pb-2 text-center">
-                    <span className="font-bold text-xs uppercase tracking-widest block">NegocioRD</span>
+                    <span className="font-bold text-xs uppercase tracking-widest block">Tu Negocio RD</span>
                     <span className="text-[9px] text-gray-400 font-sans block">VOLANTE DE PAGO OFICIAL</span>
                   </div>
 

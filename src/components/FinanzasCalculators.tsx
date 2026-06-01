@@ -227,7 +227,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
         csv += `${r.period},${r.cuota.toFixed(2)},${r.interes.toFixed(2)},${r.abono.toFixed(2)},${r.restante.toFixed(2)}\n`;
       });
     }
-    downloadCsvFile(`NegocioRD_Finanzas_${calc.id}.csv`, csv);
+    downloadCsvFile(`tu_negocio_rd_finanzas_${calc.id}.csv`, csv);
     logUsage(calc.id, `Exportó resultados financieros a un archivo CSV. Principal: RD$ ${principalInput.toLocaleString()}`);
   };
 
@@ -682,7 +682,7 @@ export default function FinanzasCalculators({ calc, onBack }: FinanzasCalculator
                 </div>
 
                 <div className="pt-3 border-t border-gray-150/70 text-[10px] text-gray-500 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 print-avoid-break">
-                  <span>Emitido por NegocioRD el {new Date().toLocaleDateString('es-DO')}</span>
+                  <span>Emitido por Tu Negocio RD el {new Date().toLocaleDateString('es-DO')}</span>
                   <span>Referencia: NRD-FIN-{calc.id.toUpperCase()}</span>
                 </div>
               </div>

@@ -21,9 +21,6 @@ import {
   subscriptionNeedsRefresh,
   subscriptionStateForFirestore,
 } from './config/subscription';
-import CalculatorsList from './components/CalculatorsList';
-import CalculatorForm from './components/CalculatorForm';
-import GuidesView from './components/GuidesView';
 import AdSenseBlock from './components/AdSenseBlock';
 import { isAdminEmail } from './config/admin';
 import { logSubscription } from './lib/firebase';
@@ -65,34 +62,34 @@ const injectSchema = (schemaObj: any) => {
   document.head.appendChild(script);
 };
 
-export const PUBLIC_SITE_URL = "https://negociord.com";
+export const PUBLIC_SITE_URL = (import.meta.env.VITE_PUBLIC_SITE_URL || "https://tunegociord.com").replace(/\/$/, "");
 const DEFAULT_SHARE_IMAGE = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop";
 
 const TRUST_PAGES = {
   contacto: {
-    title: 'Contacto | NegocioRD',
-    description: 'Contacta a NegocioRD para soporte, alianzas, dudas sobre herramientas fiscales o suscripciones PRO.',
+    title: 'Contacto | Tu Negocio RD',
+    description: 'Contacta a Tu Negocio RD para soporte, alianzas, dudas sobre herramientas fiscales o suscripciones PRO.',
     heading: 'Contacto y soporte',
-    body: 'Para soporte de cuenta, consultas sobre calculadoras o alianzas profesionales, escribe a soporte@negociord.com. Respondemos solicitudes operativas y comerciales en horario laboral de Republica Dominicana.',
+    body: 'Para soporte de cuenta, consultas sobre calculadoras o alianzas profesionales, escribe a soporte@tunegociord.com. Respondemos solicitudes operativas y comerciales en horario laboral de Republica Dominicana.',
     bullets: ['Soporte para suscripciones PRO', 'Correcciones de datos o fuentes oficiales', 'Alianzas con contadores, firmas y pymes'],
   },
   privacidad: {
-    title: 'Politica de Privacidad | NegocioRD',
-    description: 'Politica de privacidad de NegocioRD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.',
+    title: 'Politica de Privacidad | Tu Negocio RD',
+    description: 'Politica de privacidad de Tu Negocio RD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.',
     heading: 'Politica de privacidad',
-    body: 'NegocioRD recoge solo la informacion necesaria para autenticacion, administracion de cuenta, seguridad operativa y mejora de herramientas. Las tarjetas en modo local son simuladas; una pasarela real debera procesar datos sensibles fuera de nuestros servidores.',
+    body: 'Tu Negocio RD recoge solo la informacion necesaria para autenticacion, administracion de cuenta, seguridad operativa y mejora de herramientas. Las tarjetas en modo local son simuladas; una pasarela real debera procesar datos sensibles fuera de nuestros servidores.',
     bullets: ['No vendemos datos personales', 'Los calculos introducidos se tratan como informacion operativa del usuario', 'El acceso PRO se valida por estado de suscripcion y registro de cuenta'],
   },
   terminos: {
-    title: 'Términos de Uso | NegocioRD',
-    description: 'Términos de uso de las calculadoras fiscales, laborales y financieras de NegocioRD.',
+    title: 'Términos de Uso | Tu Negocio RD',
+    description: 'Términos de uso de las calculadoras fiscales, laborales y financieras de Tu Negocio RD.',
     heading: 'Términos de uso',
-    body: 'Las herramientas de NegocioRD son de apoyo informativo y no sustituyen asesoria contable, fiscal, financiera o legal individualizada. El usuario debe validar resultados criticos contra fuentes oficiales y documentacion propia.',
+    body: 'Las herramientas de Tu Negocio RD son de apoyo informativo y no sustituyen asesoria contable, fiscal, financiera o legal individualizada. El usuario debe validar resultados criticos contra fuentes oficiales y documentacion propia.',
     bullets: ['Uso permitido para calculos internos y educativos', 'No garantizamos decision administrativa de DGII, TSS o Ministerio de Trabajo', 'El usuario es responsable de verificar datos antes de presentar declaraciones'],
   },
   reembolsos: {
-    title: 'Politica de Reembolsos | NegocioRD',
-    description: 'Politica comercial de cancelaciones y reembolsos para planes PRO de NegocioRD.',
+    title: 'Politica de Reembolsos | Tu Negocio RD',
+    description: 'Politica comercial de cancelaciones y reembolsos para planes PRO de Tu Negocio RD.',
     heading: 'Cancelaciones y reembolsos',
     body: 'Las suscripciones PRO pueden cancelarse desde el portal de cuenta. Cuando exista pasarela real, los reembolsos se revisaran segun fecha de compra, uso del servicio y reglas del proveedor de pago.',
     bullets: ['Cancelacion disponible desde el portal de cuenta', 'Modo demo no realiza cargos reales', 'Pagos reales deberan emitir referencia y recibo de compra'],
@@ -107,8 +104,11 @@ const SOURCE_SUMMARY = [
 ];
 
 const AdminConsole = React.lazy(() => import('./components/AdminConsole'));
+const CalculatorsList = React.lazy(() => import('./components/CalculatorsList'));
+const CalculatorForm = React.lazy(() => import('./components/CalculatorForm'));
 const CentroFinanciero = React.lazy(() => import('./components/CentroFinanciero'));
 const CentroLaboral = React.lazy(() => import('./components/CentroLaboral'));
+const GuidesView = React.lazy(() => import('./components/GuidesView'));
 const NewsSection = React.lazy(() => import('./components/NewsSection'));
 const ProfessionalPortal = React.lazy(() => import('./components/ProfessionalPortal'));
 const UserAccountModal = React.lazy(() => import('./components/UserAccountModal'));
@@ -253,11 +253,11 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
       "inLanguage": "es-DO",
       "author": {
         "@type": "Organization",
-        "name": "NegocioRD"
+        "name": "Tu Negocio RD"
       },
       "publisher": {
         "@type": "Organization",
-        "name": "NegocioRD"
+        "name": "Tu Negocio RD"
       },
       "mainEntityOfPage": canonicalUrl
     });
@@ -265,7 +265,7 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
     injectSchema({
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "NegocioRD",
+      "name": "Tu Negocio RD",
       "url": PUBLIC_SITE_URL,
       "inLanguage": "es-DO",
       "potentialAction": {
@@ -365,7 +365,7 @@ function PremiumFeaturePaywall({ title, description, benefits, onUpgrade }: Payw
         {/* Exclusive Benefits Grid */}
         <div className="w-full max-w-lg bg-gradient-to-b from-gray-50 to-white rounded-2xl border border-gray-150 p-6 text-left mb-8 block font-semibold text-gray-800">
           <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest block mb-4">
-            ¿Qué incluye la Licencia PRO de NegocioRD?
+            ¿Qué incluye la Licencia PRO de Tu Negocio RD?
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
             {benefits.map((b, idx) => (
@@ -389,6 +389,21 @@ function PremiumFeaturePaywall({ title, description, benefits, onUpgrade }: Payw
           <p className="text-[10px] text-gray-400 leading-normal">
             Navegación libre de publicidad. Los datos introducidos se sincronizan automáticamente en tu navegador usando almacenamiento seguro encriptado de Firebase.
           </p>
+        </div>
+        <div className="w-full max-w-4xl mt-10 grid grid-cols-1 md:grid-cols-3 gap-3 text-left">
+          {[
+            ['1', 'Configura datos', 'Registra empleados, deudas o escenarios con campos guiados y validaciones claras.'],
+            ['2', 'Genera reportes', 'Obtiene resumenes exportables para revision interna, clientes o soporte contable.'],
+            ['3', 'Trabaja sin ruido', 'Interfaz privada, sin anuncios laterales y preparada para uso recurrente profesional.'],
+          ].map(([step, heading, copy]) => (
+            <div key={step} className="rounded-xl border border-gray-200 bg-white/80 p-4 shadow-xs">
+              <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-100 text-[#0F766E] flex items-center justify-center text-xs font-black mb-3">
+                {step}
+              </div>
+              <h4 className="text-sm font-extrabold text-gray-950 mb-1">{heading}</h4>
+              <p className="text-[11px] text-gray-500 leading-relaxed">{copy}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -421,7 +436,7 @@ function ProUpgradeModal({ isOpen, onClose, onUpgrade, featureName }: ProUpgrade
           </div>
 
           <span className="px-3 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-extrabold rounded-full uppercase tracking-wider inline-block mb-3">
-            NegocioRD Licencias Premium
+            Tu Negocio RD Licencias Premium
           </span>
 
           <h3 className="text-2xl font-extrabold text-[#111827] mb-2">
@@ -767,22 +782,22 @@ export default function App() {
         updateMetaTags(guide.seoTitle, guide.seoMetaDescription, `/guia/${selectedGuideSlug}`, 'article');
       }
     } else if (currentView === 'nosotros') {
-      updateMetaTags("Sobre Nosotros | NegocioRD", "Conoce al equipo de NegocioRD y nuestro compromiso con proveer herramientas de cálculo y consultoría fiscal confiables en República Dominicana.", "/nosotros", "website");
+      updateMetaTags("Sobre Nosotros | Tu Negocio RD", "Conoce al equipo de Tu Negocio RD y nuestro compromiso con proveer herramientas de cálculo y consultoría fiscal confiables en República Dominicana.", "/nosotros", "website");
     } else if (currentView in TRUST_PAGES) {
       const page = TRUST_PAGES[currentView as keyof typeof TRUST_PAGES];
       updateMetaTags(page.title, page.description, `/${currentView}`, "website");
     } else if (currentView === 'news') {
-      updateMetaTags("Últimas Noticias Financieras y Fiscales de R.D. | NegocioRD", "Mantente al día con investigaciones exclusivas sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.", "/noticias", "website");
+      updateMetaTags("Últimas Noticias Financieras y Fiscales de R.D. | Tu Negocio RD", "Mantente al día con investigaciones exclusivas sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.", "/noticias", "website");
     } else if (currentView === 'centro-laboral') {
-      updateMetaTags("Centro Laboral RD - Asistencia & Prestaciones | NegocioRD", "Herramientas de cálculo especializadas y guías de asistencia laboral de conformidad con el Código de Trabajo dominicano.", "/centro-laboral", "website");
+      updateMetaTags("Centro Laboral RD - Asistencia & Prestaciones | Tu Negocio RD", "Herramientas de cálculo especializadas y guías de asistencia laboral de conformidad con el Código de Trabajo dominicano.", "/centro-laboral", "website");
     } else if (currentView === 'centro-financiero') {
-      updateMetaTags("Centro Financiero RD - Amortizaciones & Tasas | NegocioRD", "Simuladores profesionales de créditos, amortizaciones francesas y divisores legales dominicanos.", "/centro-financiero", "website");
+      updateMetaTags("Centro Financiero RD - Amortizaciones & Tasas | Tu Negocio RD", "Simuladores profesionales de créditos, amortizaciones francesas y divisores legales dominicanos.", "/centro-financiero", "website");
     } else if (currentView === 'precios') {
-      updateMetaTags("Planes y Precios PRO | NegocioRD", "Membresía simple de NegocioRD: Navegación libre de publicidad, historial ampliado, exportación ilimitada y recursos exclusivos para contadores de RD.", "/precios", "website");
+      updateMetaTags("Planes y Precios PRO | Tu Negocio RD", "Membresía simple de Tu Negocio RD: Navegación libre de publicidad, historial ampliado, exportación ilimitada y recursos exclusivos para contadores de RD.", "/precios", "website");
     } else if (currentView === 'admin') {
-      updateMetaTags("Administración Privada | NegocioRD", "Consola interna privada para administración y backend de NegocioRD.", "/admin", "website", undefined, "noindex, nofollow");
+      updateMetaTags("Administración Privada | Tu Negocio RD", "Consola interna privada para administración y backend de Tu Negocio RD.", "/admin", "website", undefined, "noindex, nofollow");
     } else {
-      updateMetaTags("NegocioRD - Calculadoras Fiscales, Laborales y Financieras de R.D.", "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.", "/", "website");
+      updateMetaTags("Tu Negocio RD - Calculadoras Fiscales, Laborales y Financieras de R.D.", "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.", "/", "website");
     }
   }, [currentView, activeCalculator, selectedGuideSlug]);
 
@@ -856,7 +871,7 @@ export default function App() {
   const isAdminUser = authReady && isAdminEmail(firebaseUser?.email);
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen text-[#111827] font-sans antialiased flex flex-col justify-between selection:bg-teal-50 selection:text-[#0F766E]">
+    <div className="bg-[#FAFAFA] min-h-screen text-[#111827] font-sans antialiased flex flex-col justify-between selection:bg-teal-50 selection:text-[#0F766E] overflow-x-hidden">
       
       {/* 1. Header component styled under Geometric Balance (exact match) */}
       <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200">
@@ -868,16 +883,16 @@ export default function App() {
             className="flex items-center gap-3 cursor-pointer group select-none hover:opacity-90 transition-opacity"
             id="header-logo-brand"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#0F766E] flex items-center justify-center font-bold text-white text-base">
-              N
+            <div className="w-8 h-8 rounded-lg bg-[#0F766E] flex items-center justify-center font-bold text-white text-xs">
+              TN
             </div>
             <span className="text-xl font-bold tracking-tight text-[#111827] group-hover:text-[#0F766E] transition-colors">
-              NegocioRD
+              Tu Negocio RD
             </span>
           </div>
 
           {/* Integrated Dynamic Search Bar inside Header */}
-          <div className="relative flex-1 max-w-md mx-6 md:mx-10 hidden sm:block">
+          <div className="relative flex-1 max-w-sm mx-5 hidden md:block">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
               <Search className="h-4 w-4" />
             </div>
@@ -896,7 +911,7 @@ export default function App() {
           </div>
 
           {/* Nav links - hidden on mobile/tablet screens (< lg) */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#6B7280]">
+          <nav className="hidden lg:flex items-center gap-4 text-sm font-medium text-[#6B7280]">
             <button 
               onClick={() => { navigateTo('/'); setSearchFilter(''); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
@@ -908,18 +923,10 @@ export default function App() {
             <button 
               onClick={() => { navigateTo('/centro-laboral'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
-                currentView === 'centro-laboral' ? 'text-[#0F766E] font-semibold' : ''
+                currentView === 'centro-laboral' || currentView === 'centro-financiero' ? 'text-[#0F766E] font-semibold' : ''
               }`}
             >
-              Centro Laboral RD
-            </button>
-            <button 
-              onClick={() => { navigateTo('/centro-financiero'); }}
-              className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
-                currentView === 'centro-financiero' ? 'text-[#0F766E] font-semibold' : ''
-              }`}
-            >
-              Centro Financiero RD
+              Centro PRO
             </button>
             <button 
               onClick={() => { navigateTo('/guia/como-calcular-itbis'); }}
@@ -927,7 +934,7 @@ export default function App() {
                 currentView === 'blog' ? 'text-[#0F766E] font-semibold' : ''
               }`}
             >
-              Guías y Blog
+              Guías
             </button>
             <button 
               onClick={() => { navigateTo('/noticias'); }}
@@ -936,14 +943,6 @@ export default function App() {
               }`}
             >
               Noticias
-            </button>
-            <button 
-              onClick={() => navigateTo('/nosotros')}
-              className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
-                currentView === 'nosotros' ? 'text-[#0F766E] font-semibold' : ''
-              }`}
-            >
-              Nosotros
             </button>
             <button 
               onClick={() => navigateTo('/precios')}
@@ -1005,7 +1004,7 @@ export default function App() {
             </div>
 
             {/* Live Interactive Tier Selector */}
-            <div className="flex items-center gap-2 border-l border-gray-200 pl-4 h-6 hidden sm:flex">
+            <div className="items-center gap-2 border-l border-gray-200 pl-4 h-6 hidden 2xl:flex">
               {userTier === 'FREE' ? (
                 <button
                   onClick={activateProDemo}
@@ -1189,15 +1188,17 @@ export default function App() {
       )}
 
       {/* 3-Column Responsive AdSense Layout Frame - flex column fallback on mobile and tablets */}
-      <div className="pt-16 flex-grow w-full max-w-[1700px] mx-auto flex flex-col xl:grid xl:grid-cols-12 min-h-[calc(100vh-4rem)] bg-[#FAFAFA]" id="outer-adsense-grid-wrapper">
+      <div className="pt-16 flex-grow w-full max-w-[1700px] mx-auto flex flex-col 2xl:grid 2xl:grid-cols-12 min-h-[calc(100vh-4rem)] bg-[#FAFAFA]" id="outer-adsense-grid-wrapper">
         
         {/* LEFT AD BANNER (Vertical Skyscraper, visible only on XL widescreen displays) */}
-        <aside className="hidden xl:flex xl:col-span-2 border-r border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="left-adsense-skyscraper-column">
+        {userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && (
+        <aside className="hidden 2xl:flex 2xl:col-span-2 border-r border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="left-adsense-skyscraper-column">
           <AdSenseBlock variant="skyscraper-left" />
         </aside>
+        )}
 
         {/* CENTRAL CORE CONTENT CONTAINER (takes all 12 columns by default; reduces to 8 on XL to fit lateral ad blocks gracefully) */}
-        <div className="col-span-12 xl:col-span-8 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white" id="center-content-ad-hybrid">
+        <div className={`${userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' ? '2xl:col-span-8' : '2xl:col-span-12'} col-span-12 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white min-w-0`} id="center-content-ad-hybrid">
           
           {/* SIDEBAR NAVIGATION - Exact Match */}
           <aside className="col-span-3 border-r border-gray-200 bg-white p-6 hidden lg:flex flex-col justify-between sticky top-16 h-[calc(100vh-4rem)] self-start z-10">
@@ -1301,7 +1302,7 @@ export default function App() {
         </aside>
 
         {/* WORKSPACE AREA - occupies col-span-9 on desktop, col-span-12 on smaller displays */}
-        <div className="col-span-12 lg:col-span-9 p-4 md:p-8 flex flex-col bg-[#FAFAFA]" id="main-workspace-balance">
+        <div className="col-span-12 lg:col-span-9 p-4 md:p-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden" id="main-workspace-balance">
           
           {currentView === 'home' && (
             <div className="space-y-6 animate-in fade-in duration-150">
@@ -1318,7 +1319,7 @@ export default function App() {
                     Calculadoras de República Dominicana
                   </h1>
                   <p className="text-gray-550 text-xs md:text-sm leading-relaxed mb-6">
-                    Estime sueldos netos, deducciones TSS (AFP/SFS), prestaciones laborales, ITBIS y préstamos bancarios de forma exacta bajo la normativa oficial vigente.
+                    Estime sueldos netos, deducciones TSS (AFP/SFS), prestaciones laborales, ITBIS y préstamos bancarios con tasas oficiales documentadas.
                   </p>
                 </div>
 
@@ -1332,15 +1333,10 @@ export default function App() {
                     type="text" 
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
-                    placeholder="Buscar entre las 20 herramientas de cálculo (ej. ITBIS, Liquidación, ISR)..."
+                    placeholder="Buscar herramienta: ITBIS, liquidación, ISR..."
                     className="w-full h-11 pl-11 pr-4 bg-white border border-gray-250 rounded-xl focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] outline-none text-xs text-[#111827] shadow-xs"
                   />
                 </div>
-              </div>
-
-              {/* Ad Slot 1: Billboard Superior (Horizontal) - Blends elegantly in-page without intrusive frames */}
-              <div className="shrink-0" id="adsense-slot-1-billboard">
-                <AdSenseBlock variant="results-inline" className="border border-gray-200 bg-gray-50/20" />
               </div>
 
               <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
@@ -1375,15 +1371,21 @@ export default function App() {
 
               {/* MAIN DYNAMIC DIRECTORY COMPONENT */}
               <div className="bg-white rounded-2xl border border-gray-250/80 shadow-xs overflow-hidden">
-                <CalculatorsList 
-                  onSelectCalculator={handleSelectCalculator}
-                  searchFilter={searchFilter}
-                  setSearchFilter={setSearchFilter}
-                  activeCategory={activeCategory}
-                  setActiveCategory={setActiveCategory}
-                  userTier={userTier}
-                  onProRequired={handleProRequired}
-                />
+                <React.Suspense fallback={<LazyFallback label="Cargando directorio..." />}>
+                  <CalculatorsList 
+                    onSelectCalculator={handleSelectCalculator}
+                    searchFilter={searchFilter}
+                    setSearchFilter={setSearchFilter}
+                    activeCategory={activeCategory}
+                    setActiveCategory={setActiveCategory}
+                    userTier={userTier}
+                    onProRequired={handleProRequired}
+                  />
+                </React.Suspense>
+              </div>
+
+              <div className="shrink-0" id="adsense-slot-1-billboard">
+                <AdSenseBlock variant="results-inline" className="border border-gray-200 bg-gray-50/20" />
               </div>
 
               {/* SIMULADOR FISCAL EXPRESS (COMPRESSED WIDGET DESIGN) */}
@@ -1494,7 +1496,7 @@ export default function App() {
               ) : (
                 <PremiumFeaturePaywall 
                   title="Centro Laboral de Recursos Humanos (TSS)"
-                  description="Gestiona la nómina de tu personal, calcula retenciones TSS individuales en lote, monitorea horas extras trabajadas y lleva un control de asistencia fidedigno desde un panel consolidado."
+                  description="Administra nómina, retenciones TSS, ausencias y reportes laborales desde un panel privado preparado para trabajo recurrente."
                   benefits={[
                     "Cálculo automático de aportaciones SFS, AFP y Riesgos Laborales por colaborador",
                     "Registro persistente de ausencias, amonestaciones y primas salariales",
@@ -1517,7 +1519,7 @@ export default function App() {
               ) : (
                 <PremiumFeaturePaywall 
                   title="Centro de Planificación Financiera y Pasivos"
-                  description="Consolida múltiples obligaciones financieras bajo tasas y metodologías de cooperativas y bancos dominicanos (APAP, Banreservas, Banco Popular). Simule pagos recurrentes para liquidar anticipadamente deudas pasivas."
+                  description="Organiza deudas, pagos recurrentes y escenarios de amortización para comparar decisiones financieras con más claridad."
                   benefits={[
                     "Gráficos interactivos de amortización y distribución de intereses",
                     "Simulador bento de deudas consolidadas con ponderación de deudas",
@@ -1542,32 +1544,35 @@ export default function App() {
                 <span className="text-gray-400">{activeCalculator.name}</span>
               </div>
               
-              {/* Ad Slots below header/breadcrumb */}
-              <div className="mb-6 shrink-0" id="adsense-slot-1-billboard-calc">
+              <React.Suspense fallback={<LazyFallback label="Cargando calculadora..." />}>
+                <CalculatorForm 
+                  calc={activeCalculator} 
+                  onBack={() => { navigateTo('/'); }} 
+                  onNavigateToCalc={(slug) => handleNavigateToCalcBySlug(slug)}
+                  userTier={userTier}
+                  onProRequired={handleProRequired}
+                />
+              </React.Suspense>
+
+              <div className="mt-6 shrink-0" id="adsense-slot-1-billboard-calc">
                 <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
               </div>
-              <div className="xl:hidden mb-6 shrink-0" id="adsense-slot-2-mobile-alternative-calc">
+              <div className="2xl:hidden mt-6 shrink-0" id="adsense-slot-2-mobile-alternative-calc">
                 <AdSenseBlock variant="mobile-infeed" className="shadow-xs border border-gray-150" />
               </div>
-              
-              <CalculatorForm 
-                calc={activeCalculator} 
-                onBack={() => { navigateTo('/'); }} 
-                onNavigateToCalc={(slug) => handleNavigateToCalcBySlug(slug)}
-                userTier={userTier}
-                onProRequired={handleProRequired}
-              />
             </div>
           )}
 
           {/* CONTEXT SEO BLOG VIEWS */}
           {currentView === 'blog' && (
             <div className="animate-in fade-in duration-150">
-              <GuidesView 
-                onBackToHome={() => { navigateTo('/'); }} 
-                onNavigateToCalcBySlug={handleNavigateToCalcBySlug}
-                initialSelectedGuideSlug={selectedGuideSlug}
-              />
+              <React.Suspense fallback={<LazyFallback label="Cargando guia..." />}>
+                <GuidesView 
+                  onBackToHome={() => { navigateTo('/'); }} 
+                  onNavigateToCalcBySlug={handleNavigateToCalcBySlug}
+                  initialSelectedGuideSlug={selectedGuideSlug}
+                />
+              </React.Suspense>
             </div>
           )}
 
@@ -1589,17 +1594,17 @@ export default function App() {
               <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 shadow-xs space-y-6">
                 <h1 className="text-2xl md:text-3xl font-bold text-[#111827] border-b pb-4 flex items-center gap-2">
                   <Info size={24} className="text-[#0F766E]" />
-                  Acerca de NegocioRD
+                  Acerca de Tu Negocio RD
                 </h1>
                 <p className="text-[#6B7280] leading-relaxed text-sm">
-                  <strong>NegocioRD</strong> se fundó con una visión tajante en el mercado dominicano: erradicar las hojas de cálculo confusas y los portales gubernamentales desactualizados, convirtiéndose en el estándar de oro de cálculo fiscal, laboral y bancario para la República Dominicana.
+                  <strong>Tu Negocio RD</strong> ayuda a profesionales y negocios dominicanos a resolver cálculos fiscales, laborales y financieros sin depender de hojas sueltas o fórmulas difíciles de auditar.
                 </p>
                 <p className="text-[#6B7280] leading-relaxed text-sm">
-                  Nuestra plataforma ha sido minuciosamente programada para reflejar los marcos reales estipulados por la Dirección General de Impuestos Internos (DGII), el Ministerio de Trabajo y la Tesorería de la Seguridad Social (TSS). No toleramos aproximaciones vagas ni valores estáticos de prueba: todos los límites salariales, topes impositivos de salud y pensiones, y coeficientes divisionarios son actualizados de forma fidedigna.
+                  La plataforma documenta tasas, topes y referencias de entidades como DGII, Ministerio de Trabajo y TSS para que cada resultado sea más fácil de revisar antes de tomar una decisión.
                 </p>
                 <div className="bg-teal-50/50 p-4 rounded-xl border border-teal-100 text-[#0F766E] space-y-2 text-xs leading-relaxed">
                   <span className="font-bold text-base block">Nuestro Compromiso</span>
-                  <p className="text-gray-600">Proporcionar simulaciones de préstamo amortizado (método francés) al igual que las calculadoras que utilizan APAP y Banreservas, brindando una experiencia visual impecable que honra el diseño industrial más alto al nivel de Stripe, Linear y Vercel.</p>
+                  <p className="text-gray-600">Ofrecer herramientas claras, rápidas y verificables para cálculos frecuentes de impuestos, nómina, préstamos y gestión financiera en República Dominicana.</p>
                 </div>
 
                 <div className="pt-4 flex flex-wrap gap-4">
@@ -1641,7 +1646,7 @@ export default function App() {
                   ))}
                 </ul>
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 leading-relaxed">
-                  NegocioRD ofrece herramientas de apoyo informativo. Para decisiones fiscales, laborales o financieras definitivas, valida con la institucion oficial correspondiente o con tu asesor profesional.
+                  Tu Negocio RD ofrece herramientas de apoyo informativo. Para decisiones fiscales, laborales o financieras definitivas, valida con la institucion oficial correspondiente o con tu asesor profesional.
                 </div>
               </div>
             </div>
@@ -1650,26 +1655,23 @@ export default function App() {
           {/* PRECIOS VIEWS */}
           {currentView === 'precios' && (
             <div className="animate-in fade-in duration-200 py-4 max-w-5xl mx-auto w-full">
-              <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-md space-y-10 relative overflow-hidden">
-                <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-teal-500/5 blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
-
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 md:p-10 shadow-md space-y-8 md:space-y-10 relative overflow-hidden">
                 <div className="text-center space-y-4 max-w-3xl mx-auto">
                   <span className="px-3.5 py-1 bg-amber-50 text-amber-700 text-xs font-black rounded-full uppercase tracking-widest inline-block border border-amber-200 animate-pulse">
                     🏆 MEMBRESÍA PROFESIONAL
                   </span>
-                  <h1 className="text-3xl md:text-5xl font-black text-[#111827] tracking-tight leading-none">
+                  <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-[#111827] tracking-tight leading-tight md:leading-none">
                     Invierte en Precisión, <span className="text-[#0F766E]">Duplica tu Velocidad</span>
                   </h1>
-                  <p className="text-gray-550 text-sm md:text-base leading-relaxed">
+                  <p className="text-gray-550 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
                     Sustituya hojas de cálculo rústicas y errores manuales por simuladores de alto estándar con soporte oficial de normativas DGII, TSS y Código Laboral de RD.
                   </p>
 
                   {/* Period Selector Toggle */}
-                  <div className="inline-flex items-center gap-2 p-1 bg-gray-100 rounded-2xl border border-gray-200/50 mt-4 select-none">
+                  <div className="inline-flex w-full max-w-xs sm:max-w-none sm:w-auto items-center gap-2 p-1 bg-gray-100 rounded-2xl border border-gray-200/50 mt-4 select-none">
                     <button
                       onClick={() => setBillingCycle('mensual')}
-                      className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         billingCycle === 'mensual' 
                           ? 'bg-[#0F766E] text-white shadow-sm' 
                           : 'text-gray-500 hover:text-gray-800'
@@ -1679,7 +1681,7 @@ export default function App() {
                     </button>
                     <button
                       onClick={() => setBillingCycle('anual')}
-                      className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                         billingCycle === 'anual' 
                           ? 'bg-[#0F766E] text-white shadow-sm' 
                           : 'text-gray-500 hover:text-gray-800'
@@ -1694,21 +1696,21 @@ export default function App() {
                 </div>
 
                 {/* DYNAMIC PRICING CARDS */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2 md:pt-4 items-stretch min-w-0">
                   
                   {/* Plan 1: Free */}
-                  <div className="border border-gray-200/80 rounded-2xl p-6 bg-[#FAFAFA]/75 flex flex-col justify-between hover:border-gray-300 transition-all shadow-xs">
+                  <div className="border border-gray-200/80 rounded-2xl p-5 sm:p-6 bg-[#FAFAFA]/75 flex flex-col justify-between hover:border-gray-300 transition-all shadow-xs min-w-0">
                     <div>
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start gap-3">
                         <div>
                           <h3 className="font-extrabold text-base text-gray-900">Básico Gratuito</h3>
                           <p className="text-[10px] text-gray-450 mt-0.5">Para consultas esporádicas.</p>
                         </div>
-                        <span className="text-xs text-gray-400 font-extrabold uppercase">Free</span>
+                        <span className="text-xs text-gray-400 font-extrabold uppercase shrink-0">Free</span>
                       </div>
                       
                       <div className="my-6">
-                        <span className="text-4xl font-black text-gray-950 tracking-tight">RD$ 0</span>
+                        <span className="text-4xl font-black text-gray-950 tracking-tight break-words">RD$ 0</span>
                         <span className="text-xs text-gray-400 block mt-1">/ para siempre</span>
                       </div>
 
@@ -1744,8 +1746,8 @@ export default function App() {
                   </div>
 
                   {/* Plan 2: Pro Mensual - DESTACADO */}
-                  <div className="border-2 border-[#0F766E] rounded-2xl p-6 bg-white flex flex-col justify-between shadow-lg relative overflow-hidden ring-4 ring-[#0F766E]/5 hover:scale-[1.01] transition-all">
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[8px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  <div className="border-2 border-[#0F766E] rounded-2xl p-5 sm:p-6 bg-white flex flex-col justify-between shadow-lg relative overflow-hidden ring-4 ring-[#0F766E]/5 hover:scale-[1.01] transition-all min-w-0">
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[8px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm hidden sm:block">
                       Recomendado
                     </div>
                     <div>
@@ -1757,7 +1759,7 @@ export default function App() {
                       </div>
                       
                       <div className="my-6">
-                        <span className="text-4xl font-black text-gray-950 tracking-tight">
+                        <span className="text-4xl font-black text-gray-950 tracking-tight break-words">
                           {billingCycle === 'mensual' ? 'RD$ 495' : 'RD$ 329'}
                         </span>
                         <span className="text-xs text-gray-400 font-semibold"> / mes</span>
@@ -1809,18 +1811,18 @@ export default function App() {
                   </div>
 
                   {/* Plan 3: Pro Anual */}
-                  <div className="border border-gray-200 rounded-2xl p-6 bg-[#FAFAFA]/75 flex flex-col justify-between hover:border-gray-300 transition-all shadow-xs">
+                  <div className="border border-gray-200 rounded-2xl p-5 sm:p-6 bg-[#FAFAFA]/75 flex flex-col justify-between hover:border-gray-300 transition-all shadow-xs min-w-0">
                     <div>
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start gap-3">
                         <div>
                           <h3 className="font-extrabold text-base text-gray-900">PRO Licencia Corporativa</h3>
                           <p className="text-[10px] text-gray-450 mt-0.5">Soporte premium para bufetes de asesores.</p>
                         </div>
-                        <span className="text-[9px] bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded-md font-black uppercase border border-emerald-200">Ahorra más</span>
+                        <span className="text-[9px] bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded-md font-black uppercase border border-emerald-200 shrink-0 hidden sm:inline">Ahorra más</span>
                       </div>
                       
                       <div className="my-6">
-                        <span className="text-4xl font-black text-gray-950 tracking-tight">RD$ 3,950</span>
+                        <span className="text-4xl font-black text-gray-950 tracking-tight break-words">RD$ 3,950</span>
                         <span className="text-xs text-gray-400"> / año</span>
                         <span className="block text-[10px] text-emerald-600 font-extrabold tracking-wide mt-1">
                           Equivale a RD$ 329 mensuales (Ahórrate RD$ 1,990 al año)
@@ -1871,7 +1873,7 @@ export default function App() {
                         Simulador de Productividad Financiera
                       </span>
                       <h4 className="font-extrabold text-[#111827] text-lg">
-                        ¿Cuál es tu retorno económico con NegocioRD PRO?
+                        ¿Cuál es tu retorno económico con Tu Negocio RD Pro?
                       </h4>
                     </div>
                     <div className="text-xs text-gray-400 font-medium max-w-xs sm:text-right leading-tight">
@@ -2055,7 +2057,7 @@ export default function App() {
                   La calculadora, guía o sección que busca no existe, ha sido movida o está fuera de servicio temporalmente.
                 </p>
                 <div className="bg-gray-50 p-4 rounded-xl text-left border border-gray-100">
-                  <span className="text-xs font-bold text-gray-750 block mb-2">Herramientas populares de NegocioRD:</span>
+                  <span className="text-xs font-bold text-gray-750 block mb-2">Herramientas populares de Tu Negocio RD:</span>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <button onClick={() => navigateTo('/herramientas/calculadora-itbis')} className="flex items-center gap-1.5 text-[#0F766E] hover:underline font-semibold text-left cursor-pointer">
                       ✦ Calculadora de ITBIS
@@ -2084,24 +2086,30 @@ export default function App() {
           )}
 
           {/* Ad Slot 3 (Contraparte Móvil): Visible en móviles/tablets para completar las 4 inserciones publicitarias con alta visibilidad */}
-          <div className="xl:hidden mt-6 shrink-0" id="adsense-slot-3-mobile-alternative">
+          {userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && (
+          <div className="2xl:hidden mt-6 shrink-0" id="adsense-slot-3-mobile-alternative">
             <AdSenseBlock variant="results-inline" className="shadow-xs border border-gray-150" />
           </div>
+          )}
 
         </div>
       </div>
 
         {/* RIGHT AD BANNER (Vertical Skyscraper, visible only on XL widescreen displays) */}
-        <aside className="hidden xl:flex xl:col-span-2 border-l border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="right-adsense-skyscraper-column">
+        {userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && (
+        <aside className="hidden 2xl:flex 2xl:col-span-2 border-l border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="right-adsense-skyscraper-column">
           <AdSenseBlock variant="skyscraper-right" />
         </aside>
+        )}
 
       </div>
 
       {/* 2. Publicidad Segura - Adsense horizontal placeholder */}
+      {userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && (
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-6 w-full" id="adsense-bottom-section">
         <AdSenseBlock variant="horizontal-bottom" />
       </section>
+      )}
 
       {/* 3. Footer styled neatly matching design */}
       <footer className="w-full bg-white border-t border-gray-200 py-12 text-sm text-[#6B7280] z-20">
@@ -2109,13 +2117,13 @@ export default function App() {
           
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded-md bg-[#0F766E] flex items-center justify-center font-bold text-white text-xs">
-                N
+              <div className="w-6 h-6 rounded-md bg-[#0F766E] flex items-center justify-center font-bold text-white text-[10px]">
+                TN
               </div>
-              <span className="text-base font-bold text-[#111827]">NegocioRD</span>
+              <span className="text-base font-bold text-[#111827]">Tu Negocio RD</span>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Empoderando al ecosistema contable, empresarial y asalariado ordinario dominicano con simuladores y cálculos completamente precisos y actualizados.
+              Herramientas dominicanas para calcular, planificar y tomar mejores decisiones de negocio con fuentes documentadas.
             </p>
           </div>
 
@@ -2175,7 +2183,7 @@ export default function App() {
                 className="bg-gray-50 border border-gray-300 rounded px-2 text-xs flex-grow outline-none focus:ring-1 focus:ring-[#0F766E] focus:bg-white transition-all"
               />
               <button 
-                onClick={() => alert('¡Gracias por inscribirse a NegocioRD!')}
+                onClick={() => alert('¡Gracias por inscribirse a Tu Negocio RD!')}
                 className="bg-[#0F766E] text-white text-xs font-bold px-3 py-1.5 rounded hover:opacity-90 cursor-pointer shadow-xs active:scale-95 transition-all"
               >
                 Inscribir
@@ -2186,7 +2194,7 @@ export default function App() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 md:px-10 mt-12 pt-6 border-t border-gray-200 text-center text-xs text-gray-400">
-          <p>© 2026 NegocioRD. Todos los derechos reservados de conformidad con la Ley de Propiedad Intelectual de la República Dominicana.</p>
+          <p>© 2026 Tu Negocio RD. Todos los derechos reservados de conformidad con la Ley de Propiedad Intelectual de la República Dominicana.</p>
         </div>
       </footer>
 

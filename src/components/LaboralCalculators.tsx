@@ -141,7 +141,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
 
   // Handling visual actions
   const handleCopyText = () => {
-    let copyText = `--- NegocioRD: ${calc.name} Generado ---\n`;
+    let copyText = `--- Tu Negocio RD: ${calc.name} Generado ---\n`;
     if (result) {
       if ('regaliaAmount' in result) {
         copyText += `Regalía Pascual Estimada: RD$ ${result.regaliaAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n`;
@@ -696,7 +696,7 @@ export default function LaboralCalculators({ calc, onBack }: LaboralCalculatorsP
                 </div>
 
                 <div className="pt-3 border-t border-gray-150/70 text-[10px] text-gray-500 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 print-avoid-break">
-                  <span>Emitido por NegocioRD el {new Date().toLocaleDateString('es-DO')}</span>
+                  <span>Emitido por Tu Negocio RD el {new Date().toLocaleDateString('es-DO')}</span>
                   <span>Referencia: NRD-LAB-{calc.id.toUpperCase()}</span>
                 </div>
 

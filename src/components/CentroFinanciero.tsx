@@ -181,7 +181,7 @@ export default function CentroFinanciero() {
       consolidationScenario ? `Ahorro mensual estimado,${consolidationScenario.monthlySaving}` : '',
     ].filter(Boolean);
     const csvContent = [headers.join(','), ...rows.map(r => r.join(',')), ...summaryRows].join('\n');
-    downloadCsvFile("mis_deudas_negociord.csv", csvContent);
+    downloadCsvFile("mis_deudas_tu_negocio_rd.csv", csvContent);
   };
 
   // Snowball vs Avalanche simulation engine
@@ -703,7 +703,7 @@ export default function CentroFinanciero() {
                 <div className="p-2.5 bg-gray-50 border rounded text-[11px] text-gray-650 font-sans flex gap-1.5 leading-snug">
                   <Info size={14} className="text-[#0F766E] shrink-0 mt-0.5" />
                   <span>
-                    <strong>Veredicto NegocioRD:</strong> Alud le ahorra <span className="font-bold font-mono text-gray-900">RD$ {(strategySimulation.snowballInterest - strategySimulation.avalancheInterest).toLocaleString()}</span> de intereses adicionales comparado con Bola de Nieve. Sin embargo, Bola de Nieve es excelente si requiere motivaciones rápidas.
+                    <strong>Veredicto Tu Negocio RD:</strong> Alud le ahorra <span className="font-bold font-mono text-gray-900">RD$ {(strategySimulation.snowballInterest - strategySimulation.avalancheInterest).toLocaleString()}</span> de intereses adicionales comparado con Bola de Nieve. Sin embargo, Bola de Nieve es excelente si requiere motivaciones rápidas.
                   </span>
                 </div>
 
@@ -719,7 +719,7 @@ export default function CentroFinanciero() {
         </div>
 
         <div className="hidden print:flex border-t border-gray-200 pt-3 text-[10px] text-gray-500 justify-between gap-4 print-avoid-break">
-        <span>Diagnostico financiero generado por NegocioRD</span>
+        <span>Diagnostico financiero generado por Tu Negocio RD</span>
         <span>Emitido: {new Date().toLocaleDateString('es-DO')} | DTI: {dtiRatio.toFixed(1)}%</span>
       </div>
 

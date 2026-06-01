@@ -18,7 +18,7 @@ export async function logUsage(calculatorId: string, description: string): Promi
     await setDoc(doc(db, 'usageLogs', logId), {
       id: logId,
       uid: currentUser.uid,
-      email: currentUser.email || 'anonimo@negociord.com',
+      email: currentUser.email || 'anonimo@tunegociord.com',
       calculatorId,
       description,
       timestamp: new Date().toISOString()
@@ -43,7 +43,7 @@ export async function logSubscription(
     await setDoc(doc(db, 'subscriptionLogs', logId), {
       id: logId,
       uid: currentUser.uid,
-      email: currentUser.email || 'anonimo@negociord.com',
+      email: currentUser.email || 'anonimo@tunegociord.com',
       previousTier,
       newTier,
       reason,
