@@ -7,24 +7,21 @@ interface AdSenseBlockProps {
   userTier?: 'FREE' | 'PRO';
 }
 
-export default function AdSenseBlock({ variant, className = '', userTier }: AdSenseBlockProps) {
+export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockProps) {
   const [showCode, setShowCode] = useState(false);
-  const isPro = userTier === 'PRO' || (typeof window !== 'undefined' && localStorage.getItem('negociord_user_tier') === 'PRO');
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
   const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || '' : '';
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');
 
   useEffect(() => {
-    if (hasClientId && !isDev && !isPro) {
+    if (hasClientId && !isDev) {
       try {
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
       } catch (e) {
         console.warn("AdSense push warning (expected if script is still loading/blocked): ", e);
       }
     }
-  }, [hasClientId, isPro, isDev]);
-
-  if (isPro) return null;
+  }, [hasClientId, isDev]);
 
   if (hasClientId && !isDev) {
     const format = variant === 'mobile-infeed' ? 'fluid' : variant.includes('skyscraper') ? 'vertical' : 'auto';

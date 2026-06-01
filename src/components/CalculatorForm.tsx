@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CalculatorInfo, FaqItem, checkIsProCalculator } from '../types';
+import { CalculatorInfo, FaqItem } from '../types';
 import { TAX_RATES } from '../config/tax-rates';
 import { calculateItbisExcluido, calculateItbisIncluido } from '../lib/calculations/itbis';
 import { calculateIsrAsalariado } from '../lib/calculations/isr';
@@ -22,9 +22,8 @@ interface CalculatorFormProps {
   onProRequired?: (featureName: string) => void;
 }
 
-export default function CalculatorForm({ calc, onBack, onNavigateToCalc, userTier = 'FREE', onProRequired }: CalculatorFormProps) {
-  const isProCalculator = checkIsProCalculator(calc.id);
-  const isLocked = isProCalculator && userTier === 'FREE';
+export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRequired }: CalculatorFormProps) {
+  const isLocked = false;
 
   if (isLocked) {
     return (

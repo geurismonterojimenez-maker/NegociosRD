@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { CALCULATORS, CATEGORIES } from '../data';
-import { CalculatorInfo, CalculatorCategory, checkIsProCalculator } from '../types';
+import { CalculatorInfo, CalculatorCategory } from '../types';
 import { Search, Sparkles, Receipt, Users, Landmark, Landmark as Piggy, TrendingUp, Info, HelpCircle } from 'lucide-react';
 
 interface CalculatorsListProps {
@@ -18,9 +18,7 @@ export default function CalculatorsList({
   searchFilter,
   setSearchFilter,
   activeCategory,
-  setActiveCategory,
-  userTier = 'FREE',
-  onProRequired
+  setActiveCategory
 }: CalculatorsListProps) {
 
   // Suggestion chips handler
@@ -200,9 +198,6 @@ export default function CalculatorsList({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCalculators.map((calc) => {
-            const isProCalculator = checkIsProCalculator(calc.id);
-            const isLocked = isProCalculator && userTier === 'FREE';
-
             const handleClick = () => {
               onSelectCalculator(calc);
             };
@@ -211,11 +206,7 @@ export default function CalculatorsList({
               <div 
                 key={calc.id}
                 onClick={handleClick}
-                className={`bg-white border rounded-xl p-5 hover:shadow-xs cursor-pointer transition-all flex flex-col justify-between min-h-[190px] h-auto group ${
-                  isLocked 
-                    ? 'border-amber-200 bg-[#FFFDF9] hover:border-amber-400' 
-                    : 'border-gray-200 hover:border-[#0F766E]'
-                }`}
+                className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-xs hover:border-[#0F766E] cursor-pointer transition-all flex flex-col justify-between min-h-[190px] h-auto group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -227,11 +218,6 @@ export default function CalculatorsList({
                     }`}>
                       {calc.category}
                     </span>
-                    {isLocked && (
-                      <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[8px] font-bold rounded-md uppercase tracking-tight">
-                        🔒 PRO
-                      </span>
-                    )}
                   </div>
                   <h3 className="font-bold text-sm text-[#111827] group-hover:text-[#0F766E] transition-colors mb-1.5">
                     {calc.name}
@@ -251,7 +237,7 @@ export default function CalculatorsList({
                     ))}
                   </div>
                   <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold">
-                    {isLocked ? 'Desbloquear 🔒' : 'Calcular →'}
+                    Calcular →
                   </span>
                 </div>
               </div>

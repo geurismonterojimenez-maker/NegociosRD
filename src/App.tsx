@@ -68,17 +68,17 @@ const DEFAULT_SHARE_IMAGE = "https://images.unsplash.com/photo-1554224155-8d04cb
 const TRUST_PAGES = {
   contacto: {
     title: 'Contacto | Tu Negocio RD',
-    description: 'Contacta a Tu Negocio RD para soporte, alianzas, dudas sobre herramientas fiscales o suscripciones PRO.',
+    description: 'Contacta a Tu Negocio RD para soporte, alianzas y dudas sobre herramientas fiscales, laborales y financieras.',
     heading: 'Contacto y soporte',
     body: 'Para soporte de cuenta, consultas sobre calculadoras o alianzas profesionales, escribe a servicioalcliente@tunegociord.com. Respondemos solicitudes operativas y comerciales en horario laboral de Republica Dominicana.',
-    bullets: ['Soporte para suscripciones PRO', 'Correcciones de datos o fuentes oficiales', 'Alianzas con contadores, firmas y pymes'],
+    bullets: ['Soporte para herramientas y cuenta', 'Correcciones de datos o fuentes oficiales', 'Alianzas con contadores, firmas y pymes'],
   },
   privacidad: {
     title: 'Politica de Privacidad | Tu Negocio RD',
-    description: 'Politica de privacidad de Tu Negocio RD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.',
+    description: 'Politica de privacidad de Tu Negocio RD sobre autenticacion, datos de cuenta y uso de herramientas.',
     heading: 'Politica de privacidad',
     body: 'Tu Negocio RD recoge solo la informacion necesaria para autenticacion, administracion de cuenta, seguridad operativa y mejora de herramientas. Las tarjetas en modo local son simuladas; una pasarela real debera procesar datos sensibles fuera de nuestros servidores.',
-    bullets: ['No vendemos datos personales', 'Los calculos introducidos se tratan como informacion operativa del usuario', 'El acceso PRO se valida por estado de suscripcion y registro de cuenta'],
+    bullets: ['No vendemos datos personales', 'Los calculos introducidos se tratan como informacion operativa del usuario', 'La autenticacion protege el acceso de cuenta y administra preferencias'],
   },
   terminos: {
     title: 'Términos de Uso | Tu Negocio RD',
@@ -89,9 +89,9 @@ const TRUST_PAGES = {
   },
   reembolsos: {
     title: 'Politica de Reembolsos | Tu Negocio RD',
-    description: 'Politica comercial de cancelaciones y reembolsos para planes PRO de Tu Negocio RD.',
+    description: 'Politica comercial de cancelaciones y reembolsos para servicios digitales de Tu Negocio RD.',
     heading: 'Cancelaciones y reembolsos',
-    body: 'Las suscripciones PRO pueden cancelarse desde el portal de cuenta. Cuando exista pasarela real, los reembolsos se revisaran segun fecha de compra, uso del servicio y reglas del proveedor de pago.',
+    body: 'Cuando exista pasarela real, las cancelaciones y reembolsos se revisaran segun fecha de compra, uso del servicio y reglas del proveedor de pago.',
     bullets: ['Cancelacion disponible desde el portal de cuenta', 'Modo demo no realiza cargos reales', 'Pagos reales deberan emitir referencia y recibo de compra'],
   },
 } as const;
@@ -498,6 +498,8 @@ function ProUpgradeModal({ isOpen, onClose, onUpgrade, featureName }: ProUpgrade
   );
 }
 
+const PUBLIC_PRO_FEATURES_ENABLED = false;
+
 export default function App() {
   const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'contacto' | 'privacidad' | 'terminos' | 'reembolsos' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios' | 'admin' | '404'>('home');
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
@@ -534,7 +536,9 @@ export default function App() {
     }
     return createDefaultSubscriptionState();
   });
-  const userTier = getTierFromSubscription(subscriptionState.status);
+  const subscriptionTier = getTierFromSubscription(subscriptionState.status);
+  const userTier: 'FREE' | 'PRO' = PUBLIC_PRO_FEATURES_ENABLED ? subscriptionTier : 'FREE';
+  const featureAccessTier: 'FREE' | 'PRO' = PUBLIC_PRO_FEATURES_ENABLED ? subscriptionTier : 'PRO';
 
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -663,6 +667,7 @@ export default function App() {
 
   // Simple dialog for "Portal" or "Login"
   const [showPortalModal, setShowPortalModal] = useState(false);
+  const shouldShowAdRail = currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && currentView !== 'admin';
 
   // --- CTA Interactive State (Contabilidad Gratis) ---
   const [ctaVentasMes, setCtaVentasMes] = useState<number>(75000);
@@ -810,8 +815,6 @@ export default function App() {
       updateMetaTags("Centro Laboral RD - Asistencia & Prestaciones | Tu Negocio RD", "Herramientas de cálculo especializadas y guías de asistencia laboral de conformidad con el Código de Trabajo dominicano.", "/centro-laboral", "website");
     } else if (currentView === 'centro-financiero') {
       updateMetaTags("Centro Financiero RD - Amortizaciones & Tasas | Tu Negocio RD", "Simuladores profesionales de créditos, amortizaciones francesas y divisores legales dominicanos.", "/centro-financiero", "website");
-    } else if (currentView === 'precios') {
-      updateMetaTags("Planes y Precios PRO | Tu Negocio RD", "Membresía simple de Tu Negocio RD: Navegación libre de publicidad, historial ampliado, exportación ilimitada y recursos exclusivos para contadores de RD.", "/precios", "website");
     } else if (currentView === 'admin') {
       updateMetaTags("Administración Privada | Tu Negocio RD", "Consola interna privada para administración y backend de Tu Negocio RD.", "/admin", "website", undefined, "noindex, nofollow");
     } else {
@@ -944,7 +947,7 @@ export default function App() {
                 currentView === 'centro-laboral' || currentView === 'centro-financiero' ? 'text-[#0F766E] font-semibold' : ''
               }`}
             >
-              Centro PRO
+              Centros RD
             </button>
             <button 
               onClick={() => { navigateTo('/guia/como-calcular-itbis'); }}
@@ -977,7 +980,7 @@ export default function App() {
               onClick={() => setShowPortalModal(true)}
               className="px-4 py-1.5 bg-[#0F766E] text-white rounded-md text-xs font-semibold hover:opacity-95 transition-opacity hidden md:inline-block cursor-pointer active:scale-95"
             >
-              Acceso Profesional
+              Documentos RD
             </button>
 
             {/* Google Account Profile / Login Button */}
@@ -1135,7 +1138,7 @@ export default function App() {
               className="w-full text-center py-2.5 bg-[#0F766E] text-white rounded-md text-sm font-semibold hover:opacity-95 transition-all cursor-pointer active:scale-95 shadow-xs"
               id="mob-nav-expertBtn"
             >
-              Acceso Profesional
+              Documentos RD
             </button>
           </div>
         </div>
@@ -1145,14 +1148,14 @@ export default function App() {
       <div className="pt-16 flex-grow w-full max-w-[1700px] mx-auto flex flex-col 2xl:grid 2xl:grid-cols-12 min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] lg:overflow-hidden bg-[#FAFAFA]" id="outer-adsense-grid-wrapper">
         
         {/* LEFT AD BANNER (Vertical Skyscraper, visible only on XL widescreen displays) */}
-        {userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && (
+        {shouldShowAdRail && (
         <aside className="hidden 2xl:flex 2xl:col-span-2 border-r border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="left-adsense-skyscraper-column">
           <AdSenseBlock variant="skyscraper-left" />
         </aside>
         )}
 
         {/* CENTRAL CORE CONTENT CONTAINER (takes all 12 columns by default; reduces to 8 on XL to fit lateral ad blocks gracefully) */}
-        <div className={`${userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' ? '2xl:col-span-8' : '2xl:col-span-12'} col-span-12 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white min-w-0 lg:h-full lg:overflow-hidden`} id="center-content-ad-hybrid">
+        <div className={`${shouldShowAdRail ? '2xl:col-span-8' : '2xl:col-span-12'} col-span-12 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white min-w-0 lg:h-full lg:overflow-hidden`} id="center-content-ad-hybrid">
           
           {/* SIDEBAR NAVIGATION - Exact Match */}
           <aside className="col-span-3 border-r border-gray-200 bg-white p-6 hidden lg:flex flex-col justify-between lg:h-full lg:overflow-y-auto z-10">
@@ -1435,7 +1438,7 @@ export default function App() {
           {/* CENTRO LABORAL (RH) */}
           {currentView === 'centro-laboral' && (
             <div className="animate-in fade-in duration-150">
-              {userTier === 'PRO' ? (
+              {featureAccessTier === 'PRO' ? (
                 <React.Suspense fallback={<LazyFallback label="Cargando Centro Laboral..." />}>
                   <CentroLaboral />
                 </React.Suspense>
@@ -1458,7 +1461,7 @@ export default function App() {
           {/* CENTRO FINANCIERO (DEUDAS/COMPARATIVAS) */}
           {currentView === 'centro-financiero' && (
             <div className="animate-in fade-in duration-150">
-              {userTier === 'PRO' ? (
+              {featureAccessTier === 'PRO' ? (
                 <React.Suspense fallback={<LazyFallback label="Cargando Centro Financiero..." />}>
                   <CentroFinanciero />
                 </React.Suspense>
@@ -1495,7 +1498,7 @@ export default function App() {
                   calc={activeCalculator} 
                   onBack={() => { navigateTo('/'); }} 
                   onNavigateToCalc={(slug) => handleNavigateToCalcBySlug(slug)}
-                  userTier={userTier}
+                  userTier={featureAccessTier}
                   onProRequired={handleProRequired}
                 />
               </React.Suspense>
@@ -1599,7 +1602,7 @@ export default function App() {
           )}
 
           {/* PRECIOS VIEWS */}
-          {currentView === 'precios' && (
+          {PUBLIC_PRO_FEATURES_ENABLED && currentView === 'precios' && (
             <div className="animate-in fade-in duration-200 py-4 max-w-5xl mx-auto w-full">
               <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 md:p-10 shadow-md space-y-8 md:space-y-10 relative overflow-hidden">
                 <div className="text-center space-y-4 max-w-3xl mx-auto">
@@ -2032,14 +2035,14 @@ export default function App() {
           )}
 
           {/* Ad Slot 3 (Contraparte Móvil): Visible en móviles/tablets para completar las 4 inserciones publicitarias con alta visibilidad */}
-          {userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && (
+          {shouldShowAdRail && (
           <div className="2xl:hidden mt-6 shrink-0" id="adsense-slot-3-mobile-alternative">
             <AdSenseBlock variant="results-inline" className="shadow-xs border border-gray-150" />
           </div>
           )}
 
           {/* 2. Publicidad Segura - Adsense horizontal placeholder rendered inside scrollable workspace */}
-          {userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && (
+          {shouldShowAdRail && (
           <section className="max-w-7xl mx-auto px-4 py-6 w-full mt-6" id="adsense-bottom-section">
             <AdSenseBlock variant="horizontal-bottom" />
           </section>
@@ -2135,7 +2138,7 @@ export default function App() {
       </div>
 
         {/* RIGHT AD BANNER (Vertical Skyscraper, visible only on XL widescreen displays) */}
-        {userTier !== 'PRO' && currentView !== 'precios' && currentView !== 'centro-laboral' && currentView !== 'centro-financiero' && (
+        {shouldShowAdRail && (
         <aside className="hidden 2xl:flex 2xl:col-span-2 border-l border-gray-200 bg-white p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="right-adsense-skyscraper-column">
           <AdSenseBlock variant="skyscraper-right" />
         </aside>
@@ -2148,18 +2151,20 @@ export default function App() {
         <ProfessionalPortal 
           isOpen={showPortalModal} 
           onClose={() => setShowPortalModal(false)} 
-          userTier={userTier}
+          userTier={featureAccessTier}
           onUpgrade={activateProDemo}
         />
       </React.Suspense>
 
       {/* Trial Activation Pro Modal */}
-      <ProUpgradeModal 
-        isOpen={showUpgradeModal} 
-        onClose={() => setShowUpgradeModal(false)} 
-        onUpgrade={activateProDemo}
-        featureName={targetedProFeature}
-      />
+      {PUBLIC_PRO_FEATURES_ENABLED && (
+        <ProUpgradeModal 
+          isOpen={showUpgradeModal} 
+          onClose={() => setShowUpgradeModal(false)} 
+          onUpgrade={activateProDemo}
+          featureName={targetedProFeature}
+        />
+      )}
 
       {/* Dynamic Firebase-Backed Google Auth and Payments Portal Modal */}
       <React.Suspense fallback={null}>

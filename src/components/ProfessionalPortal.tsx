@@ -55,6 +55,7 @@ export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE',
   const [activeTab, setActiveTab] = useState<'itbis-ncf' | 'contratos-trabajo' | 'exportacion-reportes' | 'retenciones-recargos'>('itbis-ncf');
   const [notification, setNotification] = useState<string | null>(null);
   const [printSize, setPrintSize] = useState<'letter' | 'legal'>('letter');
+  const hasFullDocumentAccess = userTier === 'FREE' || userTier === 'PRO';
 
   const showToast = (msg: string) => {
     setNotification(msg);
@@ -69,7 +70,7 @@ export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE',
           🔒
         </div>
         <span className="px-2.5 py-0.5 bg-amber-100 text-amber-850 text-[9px] font-extrabold rounded-full uppercase tracking-wider inline-block mb-3">
-          Suscripción PRO Exclusiva
+          Herramienta disponible
         </span>
         <h4 className="text-xl font-bold text-gray-900 mb-2">{featureTitle}</h4>
         <p className="text-xs text-gray-500 leading-relaxed mb-5 max-w-sm mx-auto">{desc}</p>
@@ -87,7 +88,7 @@ export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE',
           onClick={onUpgrade}
           className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
         >
-          <span>💎 Activar prueba PRO</span>
+          <span>Continuar</span>
         </button>
       </div>
     );
@@ -864,8 +865,8 @@ Sello de Recibido Empresa (Fecha y Hora):`;
           >
             <FileSignature size={14} className="text-amber-550" />
             <span>2. Contratos RD</span>
-            <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tight flex items-center gap-0.5">
-              {userTier === 'FREE' ? '🔒 PRO' : '💎 PRO'}
+            <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black uppercase tracking-tight flex items-center gap-0.5">
+              Disponible
             </span>
           </button>
 
@@ -880,8 +881,8 @@ Sello de Recibido Empresa (Fecha y Hora):`;
           >
             <Printer size={14} className="text-amber-550" />
             <span>3. Hojas Timbradas</span>
-            <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black tracking-tight uppercase flex items-center gap-0.5">
-              {userTier === 'FREE' ? '🔒 PRO' : '💎 PRO'}
+            <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black tracking-tight uppercase flex items-center gap-0.5">
+              Disponible
             </span>
           </button>
 
@@ -896,8 +897,8 @@ Sello de Recibido Empresa (Fecha y Hora):`;
           >
             <Coins size={14} className="text-amber-550" />
             <span>4. Calculadoras DGII</span>
-            <span className="text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black tracking-tight uppercase flex items-center gap-0.5">
-              {userTier === 'FREE' ? '🔒 PRO' : '💎 PRO'}
+            <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-black tracking-tight uppercase flex items-center gap-0.5">
+              Disponible
             </span>
           </button>
         </div>
@@ -1099,7 +1100,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
 
           {/* TAB 2: GENERADOR DE CONTRATOS Y DOCUMENTOS LEGALES (CÓDIGO DE TRABAJO DE RD) */}
           {activeTab === 'contratos-trabajo' && (
-            userTier === 'FREE' ? (
+            !hasFullDocumentAccess ? (
               renderTabPaywall(
                 "Redactor y Generador de Contratos Laborales (Ley 16-92)",
                 "Crea de forma interactiva contratos de trabajo por tiempo indefinido, definido o por labor determinada, listos con firmas de conformidad y cláusulas alineadas al Código de Trabajo dominicano (Ley 16-92).",
@@ -1641,7 +1642,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
 
           {/* TAB 3: HOJAS TIMBRADAS DE REPORTES PRO Y EXPORTACIONES */}
           {activeTab === 'exportacion-reportes' && (
-            userTier === 'FREE' ? (
+            !hasFullDocumentAccess ? (
               renderTabPaywall(
                 "Exportación de Reportes y Hojas Timbradas Corporativas",
                 "Personaliza reportes de cálculo de prestaciones, nóminas y deudas con el nombre, dirección, rastro RNC y logotipo de tu empresa. Imprime en formato formal (.letter / .legal) o exporta a Microsoft Excel sin sellos de prueba.",
@@ -2471,7 +2472,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
             onClick={onClose}
             className="w-full sm:w-auto px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200 text-xs font-bold rounded-lg cursor-pointer transition-all active:scale-95 text-center"
           >
-            Cerrar Portal Pro
+            Cerrar Portal
           </button>
         </div>
 

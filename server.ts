@@ -666,8 +666,7 @@ app.get("/sitemap.xml", (req, res) => {
     '/contacto',
     '/privacidad',
     '/terminos',
-    '/reembolsos',
-    '/precios'
+    '/reembolsos'
   ].map(path => `
   <url>
     <loc>${ORIGIN_URL}${path}</loc>
@@ -702,7 +701,7 @@ Sitemap: ${ORIGIN_URL}/sitemap.xml`;
 // Helper to pre-render HTML with unique meta tags, OpenGraph, dynamic canonicals & JSON-LD schemas
 function getPrerenderedHTML(html: string, originalUrl: string): string {
   let title = "Tu Negocio RD - Calculadoras Fiscales, Laborales y Financieras de R.D.";
-  let description = "Calculadoras fiscales, laborales y financieras para República Dominicana: ITBIS, ISR, TSS, prestaciones, préstamos, retenciones y documentos PRO.";
+  let description = "Calculadoras fiscales, laborales y financieras para República Dominicana: ITBIS, ISR, TSS, prestaciones, préstamos, retenciones y documentos empresariales.";
   let robots = "index, follow";
   const pathPart = originalUrl.split("?")[0];
   let type: 'article' | 'website' = 'website';
@@ -802,16 +801,16 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     description = "Conoce al equipo de Tu Negocio RD y nuestro compromiso con proveer herramientas financieras, fiscales y laborales de la más alta confiabilidad en la República Dominicana.";
   } else if (pathPart === "/contacto") {
     title = "Contacto | Tu Negocio RD";
-    description = "Contacta a Tu Negocio RD para soporte, alianzas, dudas sobre herramientas fiscales o suscripciones PRO.";
+    description = "Contacta a Tu Negocio RD para soporte, alianzas y dudas sobre herramientas fiscales, laborales y financieras.";
   } else if (pathPart === "/privacidad") {
     title = "Politica de Privacidad | Tu Negocio RD";
-    description = "Politica de privacidad de Tu Negocio RD sobre autenticacion, datos de cuenta, suscripciones y uso de herramientas.";
+    description = "Politica de privacidad de Tu Negocio RD sobre autenticacion, datos de cuenta y uso de herramientas.";
   } else if (pathPart === "/terminos") {
     title = "Términos de Uso | Tu Negocio RD";
     description = "Términos de uso de las calculadoras fiscales, laborales y financieras de Tu Negocio RD.";
   } else if (pathPart === "/reembolsos") {
     title = "Politica de Reembolsos | Tu Negocio RD";
-    description = "Politica comercial de cancelaciones y reembolsos para planes PRO de Tu Negocio RD.";
+    description = "Politica comercial de cancelaciones y reembolsos para servicios digitales de Tu Negocio RD.";
   } else if (pathPart === "/noticias") {
     title = "Últimas Noticias Financieras y Fiscales de R.D. | Tu Negocio RD";
     description = "Mantente al día con investigaciones exclusivas usando IA sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.";
@@ -941,7 +940,6 @@ function isValidRoute(originalUrl: string): boolean {
     "/reembolsos",
     "/centro-laboral",
     "/centro-financiero",
-    "/precios",
     "/admin"
   ];
   
