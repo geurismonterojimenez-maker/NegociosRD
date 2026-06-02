@@ -48,8 +48,8 @@ if (typeof window !== 'undefined') {
   });
 }
 
-// OPTIMIZATION 4 - Component memoization to fully bypass render cycles when typing
-const MemoizedCalculatorsList = React.memo(function CalculatorsList({
+// OPTIMIZATION 4 - Standalone Component
+export default function CalculatorsList({
   onSelectCalculator,
   searchFilter,
   setSearchFilter,
@@ -285,9 +285,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
       )}
     </div>
   );
-});
-
-export default MemoizedCalculatorsList;
+}
 
 export function getCalculatorCardStyle(category: string): string {
   return category === 'impuestos' ? 'text-teal-600' : 'text-amber-600';
