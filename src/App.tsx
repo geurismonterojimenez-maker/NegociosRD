@@ -664,17 +664,26 @@ export default function App() {
     await syncSubscriptionState(createActiveSubscriptionState(billingCycle, subscriptionState.paymentMethod || 'demo-card'), 'Renovación de suscripción PRO.');
   };
 
-  const handleProRequired = (featureName: string) => {
+  const handleProRequired = useCallback((featureName: string) => {
     setTargetedProFeature(featureName);
     setShowUpgradeModal(true);
-  };
+  }, []);
 
   const activateProDemo = () => activateProTrial('Prueba PRO activada desde la vista interactiva.');
   const deactivateProDemo = () => resetSubscriptionToFree();
 
-  // Search state
+  // Search state (searchQuery is real-time for inputs; searchFilter is debounced for results list)
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  // Debouncing effect for search filter (FASE 2)
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearchFilter(searchQuery);
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Home FAQ open state indices
   const [openFaqIndices, setOpenFaqIndices] = useState<number[]>([0]); // first one open by default
@@ -838,7 +847,7 @@ export default function App() {
   }, [currentView, activeCalculator, selectedGuideSlug]);
 
   // Switch to a calculator view
-  const handleSelectCalculator = (calc: CalculatorInfo) => {
+  const handleSelectCalculator = useCallback((calc: CalculatorInfo) => {
     try {
       const saved = localStorage.getItem('recent_calculators_ids');
       const recentIds: string[] = saved ? JSON.parse(saved) : [];
@@ -848,10 +857,10 @@ export default function App() {
       console.warn(e);
     }
     navigateTo('/herramientas/' + calc.urlSlug);
-  };
+  }, []);
 
   // Navigating by slug string
-  const handleNavigateToCalcBySlug = (slug: string) => {
+  const handleNavigateToCalcBySlug = useCallback((slug: string) => {
     const cleanSlug = slug.toLowerCase().replace('calculadora-', '').replace('-dgii', '');
     const calc = CALCULATORS.find(c => {
       const cId = c.id.toLowerCase().replace('calculadora-', '').replace('-dgii', '');
@@ -869,20 +878,22 @@ export default function App() {
       }
       navigateTo('/herramientas/' + calc.urlSlug);
     }
-  };
+  }, []);
 
   // Switch to a guide view
-  const handleSelectGuide = (slug: string) => {
+  const handleSelectGuide = useCallback((slug: string) => {
     navigateTo('/guia/' + slug);
-  };
+  }, []);
 
-  const toggleFaq = (idx: number) => {
-    if (openFaqIndices.includes(idx)) {
-      setOpenFaqIndices(openFaqIndices.filter(i => i !== idx));
-    } else {
-      setOpenFaqIndices([...openFaqIndices, idx]);
-    }
-  };
+  const toggleFaq = useCallback((idx: number) => {
+    setOpenFaqIndices(prev => {
+      if (prev.includes(idx)) {
+        return prev.filter(i => i !== idx);
+      } else {
+        return [...prev, idx];
+      }
+    });
+  }, []);
 
   // Highlight Featured Tools
   const featuredTools = useMemo(() => {
@@ -894,15 +905,15 @@ export default function App() {
     );
   }, []);
 
-  // Global Header search input updates searchFilter & returns to Home view to list matching calculators
-  const handleGlobalSearchChange = (val: string) => {
-    setSearchFilter(val);
+  // Global Header search input updates searchQuery & returns to Home view to list matching calculators
+  const handleGlobalSearchChange = useCallback((val: string) => {
+    setSearchQuery(val);
     if (currentView !== 'home') {
       setCurrentView('home');
       setActiveCalculator(null);
       setSelectedGuideSlug(null);
     }
-  };
+  }, [currentView]);
 
   const isAdminUser = authReady && isAdminEmail(firebaseUser?.email);
 
@@ -915,7 +926,7 @@ export default function App() {
           
           {/* Logo brand */}
           <div 
-            onClick={() => { navigateTo('/'); setSearchFilter(''); }} 
+            onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); }} 
             className="flex items-center gap-3 cursor-pointer group select-none hover:opacity-90 transition-opacity"
             id="header-logo-brand"
           >
@@ -936,7 +947,7 @@ export default function App() {
             <input 
               id="global-header-search"
               type="text" 
-              value={searchFilter}
+              value={searchQuery}
               onChange={(e) => handleGlobalSearchChange(e.target.value)}
               className="block w-full pl-9 pr-12 py-1.5 border border-gray-200 rounded-md bg-[#F3F4F6] text-sm text-[#111827] placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
               placeholder="Buscar calculadora o guía..."
@@ -949,7 +960,7 @@ export default function App() {
           {/* Nav links - hidden on mobile/tablet screens (< lg) */}
           <nav className="hidden lg:flex items-center gap-4 text-sm font-medium text-[#6B7280]">
             <button 
-              onClick={() => { navigateTo('/'); setSearchFilter(''); }}
+              onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -1066,7 +1077,7 @@ export default function App() {
               <input 
                 id="mobile-search-nav"
                 type="text" 
-                value={searchFilter}
+                value={searchQuery}
                 onChange={(e) => handleGlobalSearchChange(e.target.value)}
                 className="block w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg bg-[#F3F4F6] text-sm text-[#111827] placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
                 placeholder="Buscar calculadora o guía..."
@@ -1075,7 +1086,7 @@ export default function App() {
 
             <div className="flex flex-col gap-1 font-medium text-gray-600">
               <button 
-                onClick={() => { navigateTo('/'); setSearchFilter(''); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-home"
               >
@@ -1297,8 +1308,8 @@ export default function App() {
                   <input 
                     id="search-input-header"
                     type="text" 
-                    value={searchFilter}
-                    onChange={(e) => setSearchFilter(e.target.value)}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Buscar herramienta: ITBIS, liquidación, ISR..."
                     className="w-full h-11 pl-11 pr-4 bg-white border border-gray-250 rounded-xl focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] outline-none text-xs text-[#111827] shadow-xs"
                   />
@@ -1341,7 +1352,7 @@ export default function App() {
                   <CalculatorsList 
                     onSelectCalculator={handleSelectCalculator}
                     searchFilter={searchFilter}
-                    setSearchFilter={setSearchFilter}
+                    setSearchFilter={setSearchQuery}
                     activeCategory={activeCategory}
                     setActiveCategory={setActiveCategory}
                     userTier={userTier}
