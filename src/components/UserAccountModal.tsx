@@ -102,7 +102,7 @@ const PRO_PLAN_PRICES: Record<Exclude<BillingCycle, 'trial'>, { label: string; a
 };
 
 const LOCAL_DEMO_UID = 'local-demo-user';
-const LOCAL_DEMO_EMAIL = ADMIN_EMAIL;
+const LOCAL_DEMO_EMAIL = 'demo@tunegociord.com';
 const LOCAL_PAYMENT_METHODS_KEY = 'negociord_local_payment_methods';
 const FIREBASE_PROJECT_ID = 'tactical-mediator-407pf';
 const FIREBASE_AUTH_SETTINGS_URL = `https://console.firebase.google.com/project/${FIREBASE_PROJECT_ID}/authentication/settings`;
@@ -518,47 +518,12 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
     } catch (err) {
       console.error("Google Sign-In Error:", err);
       if (isUnauthorizedDomainError(err)) {
-        activateLocalDemoAccount();
+        setCredentialsError(
+          "Este dominio no está autorizado para Google Sign-In en Firebase (auth/unauthorized-domain). El administrador de la web debe registrar 'tunegociord.com' en la consola de Firebase (Autenticación -> Dominios autorizados). Mientras tanto, puedes registrarte o ingresar usando Correo y Contraseña en esta misma ventana."
+        );
         return;
       }
       setCredentialsError(getAuthErrorMessage(err));
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Instant Automated Admin Sign-in (handles jeuri905)
-  const handleAutoLoginJeuri = () => {
-    setActionLoading(true);
-    try {
-      const autoUser = {
-        uid: 'jeuri905-auto',
-        email: ADMIN_EMAIL, // 'jeuri905@gmail.com'
-        displayName: 'Jeuri Perdomo (jeuri905)',
-        photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop',
-        isLocalDemo: true,
-      };
-      
-      localStorage.removeItem('negociord_logged_out');
-      localStorage.setItem('negociord_local_user', JSON.stringify(autoUser));
-      
-      const nextSubscription = createActiveSubscriptionState('anual', 'demo-card');
-      localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextSubscription));
-      localStorage.setItem('negociord_user_tier', 'PRO');
-      
-      // Notify callbacks
-      onTierChange('PRO');
-      onSubscriptionChange?.(nextSubscription);
-
-      setLocalMode(true);
-      setUser(autoUser);
-      setCredentialsError(null);
-      setCards(loadLocalPaymentMethods());
-      
-      triggerToast('¡Sesión iniciada automáticamente como jeuri905!');
-      onClose();
-    } catch (err) {
-      console.error("Auto Login Error:", err);
     } finally {
       setActionLoading(false);
     }
@@ -937,30 +902,6 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
           </div>
         ) : !user ? (
           <>
-            {/* BRAND NEW: AUTO-LOGIN FOR JEURI905 ACCORDING TO USER INTENT/REQUEST */}
-            <div className="p-4 bg-teal-50/50 border border-teal-500/20 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 animate-in fade-in duration-250">
-              <div className="space-y-1 flex-grow">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
-                  </span>
-                  <span className="text-[10px] font-black text-[#0F766E] uppercase tracking-wider">Acceso Instantáneo Autorizado</span>
-                </div>
-                <h5 className="text-xs font-black text-gray-800">¿Quieres entrar de forma automática sin usar Google?</h5>
-                <p className="text-[10px] text-gray-450 leading-relaxed max-w-xl">
-                  Inicia sesión automáticamente con la cuenta de administrador <span className="font-bold text-[#0F766E]">jeuri905@gmail.com</span> con todas las funcionalidades PRO activadas. Ideal para dispositivos sin tu cuenta de Google registrada.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleAutoLoginJeuri}
-                className="px-4 py-2 bg-[#0F766E] hover:bg-opacity-95 text-white font-black text-xs rounded-xl cursor-pointer active:scale-95 shadow-xs transition-all flex items-center gap-1.5 whitespace-nowrap self-start sm:self-auto"
-              >
-                <span>⚡ Auto-Iniciar Sesión</span>
-              </button>
-            </div>
-
             {/* --- EXQUISITE DUAL SIGN IN PANELS (EMAIL/PASSWORD + GOOGLE) --- */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 py-4 min-w-0">
             
