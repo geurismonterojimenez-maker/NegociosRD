@@ -12,7 +12,7 @@ const ADSENSE_SLOT_BY_VARIANT: Record<AdSenseBlockProps['variant'], string> = {
   'skyscraper-left': '3312679766',
   'skyscraper-right': '1999598095',
   'horizontal-bottom': '2943190273',
-  'mobile-infeed': '2222222222',
+  'mobile-infeed': '3210783582',
   'tablet-banner': '4444444444',
   'results-inline': '5429752815',
   'nav-inline': '5539918084'
