@@ -983,6 +983,12 @@ export default function App() {
     navigateTo('/guia/' + slug);
   }, []);
 
+  const handleGuideLinkClick = useCallback((event: React.MouseEvent<HTMLAnchorElement>, slug: string) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
+    handleSelectGuide(slug);
+  }, [handleSelectGuide]);
+
   const toggleFaq = useCallback((idx: number) => {
     setOpenFaqIndices(prev => {
       if (prev.includes(idx)) {
@@ -2179,7 +2185,7 @@ export default function App() {
 
           {/* 3. Footer styled neatly matching design rendered inside scrollable workspace */}
           <footer className="w-full bg-white border-t border-gray-200 py-12 text-sm text-[#6B7280] z-20 mt-8 rounded-2xl border border-gray-150 shadow-xs">
-            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
               
               <div className="space-y-4">
                 <LogoFull size={28} textClass="text-base font-bold" />
@@ -2192,29 +2198,29 @@ export default function App() {
                 <h4 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Guías de cálculo SEO</h4>
                 <ul className="space-y-2 text-xs">
                   <li>
-                    <button onClick={() => handleSelectGuide('como-calcular-itbis')} className="hover:text-[#0F766E] transition-colors cursor-pointer text-left">
+                    <a href="/guia/como-calcular-itbis" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-itbis')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
                       Como calcular el ITBIS en RD
-                    </button>
+                    </a>
                   </li>
                   <li>
-                    <button onClick={() => handleSelectGuide('como-calcular-prestaciones')} className="hover:text-[#0F766E] transition-colors cursor-pointer text-left">
+                    <a href="/guia/como-calcular-prestaciones" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-prestaciones')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
                       Como calcular prestaciones laborales
-                    </button>
+                    </a>
                   </li>
                   <li>
-                    <button onClick={() => handleSelectGuide('como-calcular-salario-neto')} className="hover:text-[#0F766E] transition-colors cursor-pointer text-left">
+                    <a href="/guia/como-calcular-salario-neto" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-salario-neto')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
                       Cómo calcular salario neto
-                    </button>
+                    </a>
                   </li>
                   <li>
-                    <button onClick={() => handleSelectGuide('como-calcular-vacaciones')} className="hover:text-[#0F766E] transition-colors cursor-pointer text-left">
+                    <a href="/guia/como-calcular-vacaciones" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-vacaciones')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
                       Desglose de vacaciones pagadas
-                    </button>
+                    </a>
                   </li>
                   <li>
-                    <button onClick={() => handleSelectGuide('como-calcular-regalia')} className="hover:text-[#0F766E] transition-colors cursor-pointer text-left">
+                    <a href="/guia/como-calcular-regalia" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-regalia')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
                       Salario de navidad / regalías
-                    </button>
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -2232,7 +2238,7 @@ export default function App() {
                 </ul>
               </div>
 
-              <div>
+              <div className="hidden">
                 <label htmlFor="footer-email-monitoring" className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3 block cursor-pointer">Monitoreo De Cambios</label>
                 <p className="text-xs text-gray-450 mb-3 leading-relaxed">Inscríbase para recibir alertas de cambios en las normativas del ISR o de retenciones de salud.</p>
                 <div className="flex gap-1.5">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PROGRAMMATIC_GUIDES } from '../data';
 import { GuidePage } from '../types';
 import { BookOpen, Calendar, Clock, ArrowLeft, ArrowUpRight, DollarSign } from 'lucide-react';
@@ -17,6 +17,14 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
     }
     return null;
   });
+
+  useEffect(() => {
+    if (!initialSelectedGuideSlug) {
+      setSelectedGuide(null);
+      return;
+    }
+    setSelectedGuide(PROGRAMMATIC_GUIDES.find(g => g.slug === initialSelectedGuideSlug) || null);
+  }, [initialSelectedGuideSlug]);
 
   // Action helper to load a related calculator
   const handleCalcClick = (urlSlug: string) => {
