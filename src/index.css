@@ -335,3 +335,82 @@
     print-color-adjust: exact !important;
   }
 }
+
+/* Precise 3-Column AdSense Responsive Layout Framework */
+.site-shell {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.content-shell {
+  width: 100%;
+  min-width: 0;
+}
+
+.desktop-ad {
+  display: none;
+}
+
+.nav-ad-container {
+  display: none !important;
+}
+
+@media (min-width: 1456px) {
+  .site-shell {
+    max-width: 1456px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1040px) 160px;
+    gap: 24px;
+    align-items: start;
+    justify-content: center;
+  }
+
+  .content-shell {
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+
+  .desktop-ad {
+    display: block !important;
+    width: 160px;
+    min-height: 600px;
+    border: 1px dashed #CBD5E1;
+    border-radius: 14px;
+    background: #F8FAFC;
+    position: sticky;
+    top: 96px;
+    overflow: hidden;
+  }
+
+  .nav-ad-container {
+    display: flex !important;
+  }
+}
+
+/* Responsive adjustment for #header-logo-brand (under 640px) */
+#header-logo-brand {
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+#header-logo-brand svg {
+  width: 30.6px !important;
+  height: 30.6px !important;
+}
+
+@media (min-width: 640px) {
+  #header-logo-brand {
+    padding: 0;
+    border-radius: 0;
+  }
+
+  #header-logo-brand svg {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}
+
+

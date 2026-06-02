@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { CALCULATORS, CATEGORIES } from '../data';
 import { CalculatorInfo } from '../types';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import Fuse from 'fuse.js';
 
 interface CalculatorsListProps {
@@ -92,6 +92,21 @@ export default function CalculatorsList({
       console.warn(e);
     }
   }, []);
+
+  const [isExpanded, setIsExpanded] = useState(false);
+  const INITIAL_COUNT = 6;
+
+  // Reset expansion when category or search changes to show clean top results first
+  React.useEffect(() => {
+    setIsExpanded(false);
+  }, [activeCategory, searchFilter]);
+
+  const displayedCalculators = useMemo(() => {
+    if (isExpanded) {
+      return filteredCalculators;
+    }
+    return filteredCalculators.slice(0, INITIAL_COUNT);
+  }, [filteredCalculators, isExpanded]);
 
   const recentCalcsOfUser = useMemo(() => {
     if (recentCalcIds.length === 0) return [];
@@ -239,48 +254,72 @@ export default function CalculatorsList({
           </button>
         </div>
       ) : (
-        /* Natively responsive grid: preserves dynamic auto-wrap heights perfectly */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-250">
-          {filteredCalculators.map((calc) => (
-            <div 
-              key={calc.id}
-              onClick={() => onSelectCalculator(calc)}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-[#0F766E] cursor-pointer transition-all flex flex-col justify-between min-h-[190px] h-auto group overflow-hidden"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`px-2 py-0.5 font-bold rounded text-[9px] uppercase tracking-wider ${
-                    calc.category === 'impuestos' ? 'text-teal-700 bg-teal-50' :
-                    calc.category === 'laboral' ? 'text-amber-700 bg-amber-50' :
-                    calc.category === 'finanzas' ? 'text-blue-700 bg-blue-50' :
-                    'text-indigo-700 bg-indigo-50'
-                  }`}>
-                    {calc.category}
+        <div className="space-y-8">
+          {/* Natively responsive grid: preserves dynamic auto-wrap heights perfectly */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-250">
+            {displayedCalculators.map((calc) => (
+              <div 
+                key={calc.id}
+                onClick={() => onSelectCalculator(calc)}
+                className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-[#0F766E] cursor-pointer transition-all flex flex-col justify-between min-h-[190px] h-auto group overflow-hidden"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`px-2 py-0.5 font-bold rounded text-[9px] uppercase tracking-wider ${
+                      calc.category === 'impuestos' ? 'text-teal-700 bg-teal-50' :
+                      calc.category === 'laboral' ? 'text-amber-700 bg-amber-50' :
+                      calc.category === 'finanzas' ? 'text-blue-700 bg-blue-50' :
+                      'text-indigo-700 bg-indigo-50'
+                    }`}>
+                      {calc.category}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-sm text-[#111827] group-hover:text-[#0F766E] transition-colors mb-1.5">
+                    {calc.name}
+                  </h3>
+                  <p className="text-xs text-[#6B7280] line-clamp-3 leading-relaxed">
+                    {calc.description}
+                  </p>
+                </div>
+
+                {/* Tags and Action footer */}
+                <div className="flex flex-wrap gap-1 pt-4 items-center justify-between text-[11px] font-semibold text-[#0F766E] border-t border-gray-50 mt-3">
+                  <div className="flex flex-wrap gap-1">
+                    {calc.tags.slice(0, 2).map((tag, tIdx) => (
+                      <span key={tIdx} className="text-[9px] font-medium text-gray-400">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="opacity-80 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all text-[11px] font-bold flex items-center gap-0.5">
+                    Calcular <span>→</span>
                   </span>
                 </div>
-                <h3 className="font-bold text-sm text-[#111827] group-hover:text-[#0F766E] transition-colors mb-1.5">
-                  {calc.name}
-                </h3>
-                <p className="text-xs text-[#6B7280] line-clamp-3 leading-relaxed">
-                  {calc.description}
-                </p>
               </div>
+            ))}
+          </div>
 
-              {/* Tags and Action footer */}
-              <div className="flex flex-wrap gap-1 pt-4 items-center justify-between text-[11px] font-semibold text-[#0F766E] border-t border-gray-50 mt-3">
-                <div className="flex flex-wrap gap-1">
-                  {calc.tags.slice(0, 2).map((tag, tIdx) => (
-                    <span key={tIdx} className="text-[9px] font-medium text-gray-400">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-                <span className="opacity-80 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all text-[11px] font-bold flex items-center gap-0.5">
-                  Calcular <span>→</span>
-                </span>
-              </div>
+          {filteredCalculators.length > INITIAL_COUNT && (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white hover:border-[#0F766E] hover:text-[#0F766E] text-xs font-bold text-gray-755 shadow-xs hover:shadow-sm transition-all cursor-pointer group"
+              >
+                {isExpanded ? (
+                  <>
+                    <span>Mostrar menos herramientas</span>
+                    <ChevronUp size={14} className="group-hover:-translate-y-0.5 transition-transform" />
+                  </>
+                ) : (
+                  <>
+                    <span>Mostrar más herramientas</span>
+                    <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
+                  </>
+                )}
+              </button>
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

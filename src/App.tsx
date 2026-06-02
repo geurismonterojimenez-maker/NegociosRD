@@ -960,7 +960,7 @@ export default function App() {
           </div>
 
           {/* Integrated Dynamic Search Bar inside Header */}
-          <div className="relative flex-1 max-w-sm mx-5 hidden md:block">
+          <div className="relative flex-1 lg:max-w-[160px] xl:max-w-sm mx-3 xl:mx-5 hidden md:block">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
               <Search className="h-4 w-4" />
             </div>
@@ -979,7 +979,7 @@ export default function App() {
           </div>
 
           {/* Nav links - hidden on mobile/tablet screens (< lg) */}
-          <nav className="hidden lg:flex items-center gap-4 text-sm font-medium text-[#6B7280]">
+          <nav className="hidden lg:flex items-center gap-2 xl:gap-4 text-xs xl:text-sm font-medium text-[#6B7280]">
             <button 
               onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
@@ -1025,12 +1025,12 @@ export default function App() {
             )}
             <button 
               onClick={() => setShowPortalModal(true)}
-              className="px-4 py-1.5 bg-[#0F766E] text-white rounded-md text-xs font-semibold hover:opacity-95 transition-opacity hidden md:inline-block cursor-pointer active:scale-95"
+              className="lg:px-2 px-4 py-1.5 bg-[#0F766E] text-white rounded-md text-xs font-semibold hover:opacity-95 transition-opacity hidden md:inline-block cursor-pointer active:scale-95"
             >
               Documentos RD
             </button>
 
-            <AdSenseBlock variant="nav-inline" className="shrink-0" />
+            <AdSenseBlock variant="nav-inline" className="shrink-0 nav-ad-container" />
 
             {/* Google Account Profile / Login Button */}
             <div className="hidden md:flex items-center gap-2">
@@ -1052,7 +1052,7 @@ export default function App() {
                       {firebaseUser.displayName ? firebaseUser.displayName[0].toUpperCase() : 'U'}
                     </div>
                   )}
-                  <span className="text-[11px] font-bold text-gray-750 max-w-[80px] truncate">
+                  <span className="text-[11px] font-bold text-gray-750 max-w-[80px] truncate hidden xl:inline-block">
                     {firebaseUser.displayName?.split(' ')[0]}
                   </span>
                 </button>
@@ -1193,18 +1193,25 @@ export default function App() {
         </div>
       )}
 
-      {/* 3-Column Responsive AdSense Layout Frame - flex column fallback on mobile and tablets */}
-      <div className="pt-16 flex-grow w-full max-w-[1920px] mx-auto flex flex-col 2xl:grid 2xl:grid-cols-12 min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] lg:overflow-hidden bg-[#FAFAFA]" id="outer-adsense-grid-wrapper">
+      {/* 3-Column Responsive AdSense Layout Frame - Centered Grid Framework matching requirements with precise column structure */}
+      <div 
+        className={`pt-16 flex-grow w-full ${
+          shouldShowAdRail 
+            ? 'site-shell' 
+            : 'max-w-[1040px] mx-auto px-5'
+        } min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] bg-[#FAFAFA]`} 
+        id="outer-adsense-grid-wrapper"
+      >
         
-        {/* LEFT AD BANNER (Vertical Skyscraper, visible only on 2XL widescreen displays) */}
+        {/* LEFT AD BANNER (Vertical Skyscraper, visible from 1456px) */}
         {shouldShowAdRail && (
-        <aside className="hidden 2xl:flex 2xl:col-span-2 border-r border-gray-200 bg-white p-3 2xl:p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="left-adsense-skyscraper-column">
+        <aside className="desktop-ad" id="left-adsense-skyscraper-column">
           <AdSenseBlock variant="skyscraper-left" />
         </aside>
         )}
 
-        {/* CENTRAL CORE CONTENT CONTAINER (takes all 12 columns by default; reduces to 8 on 2XL to fit lateral ad blocks gracefully) */}
-        <div className={`${shouldShowAdRail ? '2xl:col-span-8' : '2xl:col-span-12'} col-span-12 flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white min-w-0 lg:h-full lg:overflow-hidden`} id="center-content-ad-hybrid">
+        {/* CENTRAL CORE CONTENT CONTAINER (flexible width, grows to fill standard viewport layout while leaving side ads stable) */}
+        <div className="content-shell flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white lg:h-full lg:overflow-hidden" id="center-content-ad-hybrid">
           
           {/* SIDEBAR NAVIGATION - Exact Match */}
           <aside className="min-[1700px]:col-span-2 border-r border-gray-200 bg-white p-4 xl:p-5 hidden min-[1700px]:flex flex-col justify-between lg:h-full lg:overflow-y-auto z-10">
@@ -2189,9 +2196,9 @@ export default function App() {
         </div>
       </div>
 
-        {/* RIGHT AD BANNER (Vertical Skyscraper, visible only on 2XL widescreen displays) */}
+        {/* RIGHT AD BANNER (Vertical Skyscraper, visible from 1456px) */}
         {shouldShowAdRail && (
-        <aside className="hidden 2xl:flex 2xl:col-span-2 border-l border-gray-200 bg-white p-3 2xl:p-4 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-y-auto" id="right-adsense-skyscraper-column">
+        <aside className="desktop-ad" id="right-adsense-skyscraper-column">
           <AdSenseBlock variant="skyscraper-right" />
         </aside>
         )}
