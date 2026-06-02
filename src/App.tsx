@@ -22,6 +22,7 @@ import {
   subscriptionStateForFirestore,
 } from './config/subscription';
 import AdSenseBlock from './components/AdSenseBlock';
+import { LogoSymbol, LogoFull, LogoComplete } from './components/Logo';
 import { isAdminEmail } from './config/admin';
 import { logSubscription } from './lib/firebase';
 import { TAX_RATES_REGISTRY } from './config/tax-rates';
@@ -952,15 +953,10 @@ export default function App() {
           {/* Logo brand */}
           <div 
             onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); }} 
-            className="flex items-center gap-3 cursor-pointer group select-none hover:opacity-90 transition-opacity"
+            className="flex items-center gap-3 cursor-pointer select-none hover:opacity-90 transition-opacity"
             id="header-logo-brand"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#0F766E] flex items-center justify-center font-bold text-white text-xs">
-              TN
-            </div>
-            <span className="text-xl font-bold tracking-tight text-[#111827] group-hover:text-[#0F766E] transition-colors">
-              Tu Negocio RD
-            </span>
+            <LogoFull size={34} textClass="text-xl font-black" />
           </div>
 
           {/* Integrated Dynamic Search Bar inside Header */}
@@ -2103,12 +2099,7 @@ export default function App() {
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
               
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-md bg-[#0F766E] flex items-center justify-center font-bold text-white text-[10px]">
-                    TN
-                  </div>
-                  <span className="text-base font-bold text-[#111827]">Tu Negocio RD</span>
-                </div>
+                <LogoFull size={28} textClass="text-base font-bold" />
                 <p className="text-xs text-gray-400 leading-relaxed">
                   Herramientas dominicanas para calcular, planificar y tomar mejores decisiones de negocio con fuentes documentadas.
                 </p>

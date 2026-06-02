@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LogoSymbol, LogoFull, LogoComplete } from './Logo';
 import { 
   signInWithPopup, 
   signOut, 
@@ -885,9 +886,9 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
           <X size={18} />
         </button>
 
-        <div className="mb-6 flex items-start gap-2.5 pr-10 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center border border-teal-200 text-lg shrink-0">
-            🏢
+        <div className="mb-6 flex items-start gap-3 pr-10 min-w-0">
+          <div className="shrink-0 bg-gray-50 p-1.5 rounded-xl border border-gray-150">
+            <LogoSymbol size={32} />
           </div>
           <div className="min-w-0">
             <h3 className="text-lg sm:text-xl font-extrabold text-[#111827] leading-tight">Portal Seguro Tu Negocio RD</h3>
