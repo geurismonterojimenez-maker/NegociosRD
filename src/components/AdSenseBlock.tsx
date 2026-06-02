@@ -15,7 +15,7 @@ const ADSENSE_SLOT_BY_VARIANT: Record<AdSenseBlockProps['variant'], string> = {
   'mobile-infeed': '2222222222',
   'tablet-banner': '4444444444',
   'results-inline': '5429752815',
-  'nav-inline': '3333333333'
+  'nav-inline': '5539918084'
 };
 
 export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockProps) {
