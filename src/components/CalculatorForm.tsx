@@ -179,7 +179,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
 
   // --- CALCULATION RESULTS EVALUATION ---
 
-  const calculatedResults = useMemo(() => {
+  const calculatedResults: any = useMemo(() => {
     switch (calc.id) {
       case 'itbis-calc':
       case 'itbis-excluido':
