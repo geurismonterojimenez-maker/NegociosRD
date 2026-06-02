@@ -1030,6 +1030,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 <img 
                   src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
                   alt="Google Logo" 
+                  width="20"
+                  height="20"
+                  loading="lazy"
+                  decoding="async"
                   className="w-5 h-5 pointer-events-none"
                 />
                 <span>Entrar con Google</span>
@@ -1063,6 +1067,10 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                   <img 
                     src={user.photoURL} 
                     alt="Photo avatar" 
+                    width="48"
+                    height="48"
+                    loading="lazy"
+                    decoding="async"
                     className="w-12 h-12 rounded-full border-2 border-[#0F766E]"
                     referrerPolicy="no-referrer"
                   />

@@ -1,7 +1,4 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from './lib/firebase';
 import { CALCULATORS, CATEGORIES, HOME_FAQS, PROGRAMMATIC_GUIDES } from './data';
 import { CalculatorInfo } from './types';
 import {
@@ -24,7 +21,6 @@ import {
 import AdSenseBlock from './components/AdSenseBlock';
 import { LogoSymbol, LogoFull, LogoComplete } from './components/Logo';
 import { isAdminEmail } from './config/admin';
-import { logSubscription } from './lib/firebase';
 import { TAX_RATES_REGISTRY } from './config/tax-rates';
 import { 
   Search, 
@@ -501,6 +497,39 @@ function ProUpgradeModal({ isOpen, onClose, onUpgrade, featureName }: ProUpgrade
 
 const PUBLIC_PRO_FEATURES_ENABLED = false;
 const OFFICIAL_ADSENSE_CLIENT_ID = 'ca-pub-6144599865368963';
+const GTM_CONTAINER_ID = 'GTM-MQNRDGPW';
+
+type IdleHandle = number;
+
+declare global {
+  interface Window {
+    dataLayer?: Array<Record<string, unknown>>;
+  }
+}
+
+function runWhenIdle(callback: () => void, timeout = 1500): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const idleWindow = window as Window & {
+    requestIdleCallback?: (cb: IdleRequestCallback, opts?: IdleRequestOptions) => IdleHandle;
+    cancelIdleCallback?: (handle: IdleHandle) => void;
+  };
+  if (typeof idleWindow.requestIdleCallback === 'function') {
+    const handle = idleWindow.requestIdleCallback(callback, { timeout });
+    return () => idleWindow.cancelIdleCallback?.(handle);
+  }
+  const handle = window.setTimeout(callback, Math.min(timeout, 1200));
+  return () => window.clearTimeout(handle);
+}
+
+function loadScriptOnce(id: string, src: string, attrs: Record<string, string> = {}) {
+  if (typeof document === 'undefined' || document.getElementById(id)) return;
+  const script = document.createElement('script');
+  script.id = id;
+  script.async = true;
+  script.src = src;
+  Object.entries(attrs).forEach(([key, value]) => script.setAttribute(key, value));
+  document.head.appendChild(script);
+}
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'contacto' | 'privacidad' | 'terminos' | 'reembolsos' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios' | 'admin' | '404'>('home');
@@ -510,24 +539,45 @@ export default function App() {
   const [footerEmail, setFooterEmail] = useState('');
   const [footerEmailStatus, setFooterEmailStatus] = useState<'idle' | 'error' | 'success'>('idle');
 
-  // Load Google AdSense library dynamically on mount if it was not already injected in index.html.
+  // Load monetization and analytics after the initial interactive path.
   useEffect(() => {
     const customId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
     const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
-    
-    if (customId && customId !== 'ca-pub-XXXXXXXXXXXXXXXX' && customId.startsWith('ca-pub-') && !isDev && typeof window !== 'undefined') {
-      const existingScript = document.querySelector('script[src*="adsbygoogle.js"]');
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${customId}`;
-        script.crossOrigin = 'anonymous';
-        document.head.appendChild(script);
-        console.log(`[Google AdSense] Inicializado con el ID: ${customId}`);
-      }
-    }
+
+    if (typeof window === 'undefined' || isDev) return;
+
+    let cancelIdleLoad = () => {};
+    const thirdPartyTimer = window.setTimeout(() => {
+      cancelIdleLoad = runWhenIdle(() => {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        loadScriptOnce('gtm-runtime', `https://www.googletagmanager.com/gtm.js?id=${GTM_CONTAINER_ID}`);
+
+        if (customId && customId !== 'ca-pub-XXXXXXXXXXXXXXXX' && customId.startsWith('ca-pub-')) {
+          loadScriptOnce(
+            'adsbygoogle-runtime',
+            `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${customId}`,
+            { crossorigin: 'anonymous' }
+          );
+        }
+      }, 2500);
+    }, 12000);
+
+    return () => {
+      window.clearTimeout(thirdPartyTimer);
+      cancelIdleLoad();
+    };
   }, []);
 
+  useEffect(() => {
+    return runWhenIdle(() => {
+      const connection = (navigator as any).connection;
+      if (connection?.saveData) return;
+      void import('./components/CentroLaboral');
+      void import('./components/CentroFinanciero');
+      void import('./components/GuidesView');
+    }, 9000);
+  }, []);
   // High-End Premium Interactive pricing & ROI estimator states
   const [billingCycle, setBillingCycle] = useState<'mensual' | 'anual'>('mensual');
   const [roiCalculos, setRoiCalculos] = useState<number>(35);
@@ -563,58 +613,75 @@ export default function App() {
   const [subscriptionBusy, setSubscriptionBusy] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (current) => {
-      if (current) {
-        setFirebaseUser(current);
-        setAuthReady(true);
-        localStorage.removeItem('negociord_local_user');
-        // Sync user subscription state with Firestore
-        try {
-          const userDocRef = doc(db, 'users', current.uid);
-          const docSnap = await getDoc(userDocRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            const normalized = normalizeSubscriptionState({
-              ...data,
-              role: data.role,
-            });
-            const refreshed = subscriptionNeedsRefresh(normalized)
-              ? expireSubscriptionState(normalized)
-              : normalized;
-            setSubscriptionState(refreshed);
-            localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(refreshed));
-            localStorage.setItem('negociord_user_tier', refreshed.plan);
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
 
-            if (
-              refreshed.status !== data.subscriptionStatus ||
-              refreshed.plan !== data.role ||
-              refreshed.endsAt !== data.subscriptionEndsAt ||
-              refreshed.trialEndsAt !== data.subscriptionTrialEndsAt
-            ) {
-              await setDoc(userDocRef, subscriptionStateForFirestore(refreshed), { merge: true });
+    const startAuth = async () => {
+      try {
+        const [{ onAuthStateChanged }, { doc, getDoc, setDoc }, firebase] = await Promise.all([
+          import('firebase/auth'),
+          import('firebase/firestore'),
+          import('./lib/firebase'),
+        ]);
+
+        if (cancelled) return;
+        unsubscribe = onAuthStateChanged(firebase.auth, async (current) => {
+          if (current) {
+            setFirebaseUser(current);
+            setAuthReady(true);
+            localStorage.removeItem('negociord_local_user');
+            try {
+              const userDocRef = doc(firebase.db, 'users', current.uid);
+              const docSnap = await getDoc(userDocRef);
+              if (docSnap.exists()) {
+                const data = docSnap.data();
+                const normalized = normalizeSubscriptionState({
+                  ...data,
+                  role: data.role,
+                });
+                const refreshed = subscriptionNeedsRefresh(normalized)
+                  ? expireSubscriptionState(normalized)
+                  : normalized;
+                setSubscriptionState(refreshed);
+                localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(refreshed));
+                localStorage.setItem('negociord_user_tier', refreshed.plan);
+
+                if (
+                  refreshed.status !== data.subscriptionStatus ||
+                  refreshed.plan !== data.role ||
+                  refreshed.endsAt !== data.subscriptionEndsAt ||
+                  refreshed.trialEndsAt !== data.subscriptionTrialEndsAt
+                ) {
+                  await setDoc(userDocRef, subscriptionStateForFirestore(refreshed), { merge: true });
+                }
+              }
+            } catch (err) {
+              console.error("Error reading synced tier from Firestore:", err);
             }
-          }
-        } catch (err) {
-          console.error("Error reading synced tier from Firestore:", err);
-        }
-      } else {
-        const storedLocal = localStorage.getItem('negociord_local_user');
-
-        if (storedLocal) {
-          try {
-            setFirebaseUser(JSON.parse(storedLocal));
-          } catch {
+          } else {
             setFirebaseUser(null);
+            const fallback = parseStoredSubscriptionState(localStorage.getItem('negociord_subscription_state'));
+            setSubscriptionState(fallback);
+            setAuthReady(true);
           }
-        } else {
-          setFirebaseUser(null);
-          const fallback = parseStoredSubscriptionState(localStorage.getItem('negociord_subscription_state'));
-          setSubscriptionState(fallback);
-        }
-        setAuthReady(true);
+        });
+      } catch (error) {
+        console.error('Error loading Firebase Auth:', error);
+        if (!cancelled) setAuthReady(true);
       }
-    });
-    return () => unsubscribe();
+    };
+
+    const isPrivateAuthRoute = typeof window !== 'undefined' && window.location.pathname === '/admin';
+    const cancelStart = isPrivateAuthRoute ? (() => {
+      void startAuth();
+      return () => {};
+    })() : runWhenIdle(() => void startAuth(), 7000);
+
+    return () => {
+      cancelled = true;
+      cancelStart();
+      unsubscribe?.();
+    };
   }, []);
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -641,9 +708,14 @@ export default function App() {
       localStorage.setItem('negociord_user_tier', safeState.plan);
 
       if (firebaseUser?.uid) {
-        await setDoc(doc(db, 'users', firebaseUser.uid), subscriptionStateForFirestore(safeState), { merge: true });
+        const [{ doc, setDoc }, firebase] = await Promise.all([
+          import('firebase/firestore'),
+          import('./lib/firebase'),
+        ]);
+        await setDoc(doc(firebase.db, 'users', firebaseUser.uid), subscriptionStateForFirestore(safeState), { merge: true });
       }
       if (firebaseUser) {
+        const { logSubscription } = await import('./lib/firebase');
         await logSubscription(
           previousTier,
           safeState.plan,
@@ -1044,6 +1116,10 @@ export default function App() {
                     <img 
                       src={firebaseUser.photoURL} 
                       alt="Avatar" 
+                      width="22"
+                      height="22"
+                      loading="lazy"
+                      decoding="async"
                       className="w-5.5 h-5.5 rounded-full border border-teal-600"
                       referrerPolicy="no-referrer"
                     />
@@ -1168,7 +1244,7 @@ export default function App() {
                   className="w-full text-center py-2.5 border border-teal-500/50 bg-teal-50/20 text-[#0F766E] rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                 >
                   {firebaseUser.photoURL && (
-                    <img src={firebaseUser.photoURL} alt="User" className="w-5 h-5 rounded-full border border-teal-600" referrerPolicy="no-referrer" />
+                    <img src={firebaseUser.photoURL} alt="User" width="20" height="20" loading="lazy" decoding="async" className="w-5 h-5 rounded-full border border-teal-600" referrerPolicy="no-referrer" />
                   )}
                   <span>Mi Perfil: {firebaseUser.displayName?.split(' ')[0]} 👤</span>
                 </button>
@@ -2206,14 +2282,16 @@ export default function App() {
       </div>
 
       {/* Professional Portal Workspace (ITBIS NCF Desglose + Retenciones & Recargos DGII Calculators) */}
-      <React.Suspense fallback={null}>
-        <ProfessionalPortal 
-          isOpen={showPortalModal} 
-          onClose={() => setShowPortalModal(false)} 
-          userTier={featureAccessTier}
-          onUpgrade={activateProDemo}
-        />
-      </React.Suspense>
+      {showPortalModal && (
+        <React.Suspense fallback={null}>
+          <ProfessionalPortal 
+            isOpen={showPortalModal} 
+            onClose={() => setShowPortalModal(false)} 
+            userTier={featureAccessTier}
+            onUpgrade={activateProDemo}
+          />
+        </React.Suspense>
+      )}
 
       {/* Trial Activation Pro Modal */}
       {PUBLIC_PRO_FEATURES_ENABLED && (
@@ -2226,28 +2304,30 @@ export default function App() {
       )}
 
       {/* Dynamic Firebase-Backed Google Auth and Payments Portal Modal */}
-      <React.Suspense fallback={null}>
-        <UserAccountModal
-          isOpen={showAccountModal}
-          onClose={() => setShowAccountModal(false)}
-          userTier={userTier}
-          subscriptionState={subscriptionState}
-          initialCheckoutPlan={pendingCheckoutPlan}
-          onTierChange={(newTier) => {
-            const nextState = newTier === 'PRO'
-              ? createActiveSubscriptionState(subscriptionState.billingCycle === 'anual' ? 'anual' : 'mensual', subscriptionState.paymentMethod || 'demo-card')
-              : createDefaultSubscriptionState();
-            setSubscriptionState(nextState);
-            localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
-            localStorage.setItem('negociord_user_tier', newTier);
-          }}
-          onSubscriptionChange={(nextState) => {
-            setSubscriptionState(nextState);
-            localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
-            localStorage.setItem('negociord_user_tier', nextState.plan);
-          }}
-        />
-      </React.Suspense>
+      {showAccountModal && (
+        <React.Suspense fallback={null}>
+          <UserAccountModal
+            isOpen={showAccountModal}
+            onClose={() => setShowAccountModal(false)}
+            userTier={userTier}
+            subscriptionState={subscriptionState}
+            initialCheckoutPlan={pendingCheckoutPlan}
+            onTierChange={(newTier) => {
+              const nextState = newTier === 'PRO'
+                ? createActiveSubscriptionState(subscriptionState.billingCycle === 'anual' ? 'anual' : 'mensual', subscriptionState.paymentMethod || 'demo-card')
+                : createDefaultSubscriptionState();
+              setSubscriptionState(nextState);
+              localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
+              localStorage.setItem('negociord_user_tier', newTier);
+            }}
+            onSubscriptionChange={(nextState) => {
+              setSubscriptionState(nextState);
+              localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextState));
+              localStorage.setItem('negociord_user_tier', nextState.plan);
+            }}
+          />
+        </React.Suspense>
+      )}
 
     </div>
   );
