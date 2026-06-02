@@ -22,6 +22,7 @@ import {
   FileCheck
 } from 'lucide-react';
 import { printElementById } from '../lib/print';
+import AdSenseBlock from './AdSenseBlock';
 
 interface ProfessionalPortalProps {
   isOpen: boolean;
@@ -805,7 +806,7 @@ Sello de Recibido Empresa (Fecha y Hora):`;
 
   return (
     <div className="fixed inset-0 bg-[#0F172A]/70 z-[100] flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white border border-gray-250 rounded-2xl shadow-2xl w-full max-w-6xl my-auto animate-in fade-in-50 zoom-in-95 duration-200 text-left flex flex-col max-h-[96vh] sm:max-h-[92vh] overflow-hidden">
+      <div className="bg-white border border-gray-250 rounded-2xl shadow-2xl w-full max-w-[98rem] my-auto animate-in fade-in-50 zoom-in-95 duration-200 text-left flex flex-col max-h-[96vh] sm:max-h-[92vh] overflow-hidden">
         
         {/* Header Ribbon */}
         <div className="bg-[#0F766E] text-white px-6 py-4 flex justify-between items-center shrink-0">
@@ -905,6 +906,12 @@ Sello de Recibido Empresa (Fecha y Hora):`;
 
         {/* Dynamic Modal Content space */}
         <div className="flex-grow overflow-y-auto p-4 sm:p-6 bg-white">
+          <div className="grid grid-cols-1 2xl:grid-cols-[180px_minmax(0,1fr)_180px] gap-4 items-start">
+            <aside className="hidden 2xl:block sticky top-0 h-[calc(92vh-15rem)] min-h-[520px]">
+              <AdSenseBlock variant="skyscraper-left" className="h-full" />
+            </aside>
+
+            <div className="min-w-0">
           
           {/* TAB 1: DESGLOSE DE ITBIS POR LOTES */}
           {activeTab === 'itbis-ncf' && (
@@ -2460,6 +2467,13 @@ Sello de Recibido Empresa (Fecha y Hora):`;
 
             </div>
           )}
+
+            </div>
+
+            <aside className="hidden 2xl:block sticky top-0 h-[calc(92vh-15rem)] min-h-[520px]">
+              <AdSenseBlock variant="skyscraper-right" className="h-full" />
+            </aside>
+          </div>
 
         </div>
 
