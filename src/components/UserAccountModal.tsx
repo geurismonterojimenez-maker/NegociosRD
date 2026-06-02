@@ -503,7 +503,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       addLog(`Error de escritura Firestore en actualización de rol: ${err instanceof Error ? err.message : String(err)}`);
       // Revert optimistic updates
       setAllUsers(prev => prev.map(u => u.uid === targetUid ? { ...u, role: currentRole } : u));
-      alert("Error al actualizar rol del usuario.");
+      triggerToast('No se pudo actualizar el rol del usuario. Revisa permisos de Firestore.');
     }
   };
 

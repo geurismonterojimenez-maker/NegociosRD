@@ -284,6 +284,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
   // Newsletter state
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Article engagement states (local only)
   const [likedArticles, setLikedArticles] = useState<string[]>([]);
@@ -575,12 +576,13 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
             <button 
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
-                alert('Enlace del artículo copiado al portapapeles.');
+                setLinkCopied(true);
+                setTimeout(() => setLinkCopied(false), 2000);
               }}
               className="text-[#0F766E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
             >
               <Share2 size={12} />
-              Compartir
+              {linkCopied ? 'Enlace copiado' : 'Compartir'}
             </button>
           </div>
         </div>

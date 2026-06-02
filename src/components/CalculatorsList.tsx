@@ -109,7 +109,7 @@ export default function CalculatorsList({
           <span className="text-lg">🌟</span>
           <div>
             <div className="text-xs">Todas</div>
-            <p className="text-[10px] text-gray-400 font-normal">20 calculadoras</p>
+            <p className="text-[10px] text-gray-400 font-normal">{CALCULATORS.length} herramientas</p>
           </div>
         </button>
 
@@ -133,7 +133,7 @@ export default function CalculatorsList({
               </span>
               <div>
                 <div className="text-xs">{cat.name}</div>
-                <p className="text-[10px] text-gray-400 font-normal truncate max-w-[120px]">{cat.id === 'impuestos' ? 'DGII' : cat.id === 'laboral' ? 'TSS' : 'Plan'}</p>
+                <p className="text-[10px] text-gray-400 font-normal truncate max-w-[150px]">{cat.descdgii}</p>
               </div>
             </button>
           );

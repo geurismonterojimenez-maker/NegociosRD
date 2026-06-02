@@ -506,6 +506,8 @@ export default function App() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [footerEmail, setFooterEmail] = useState('');
+  const [footerEmailStatus, setFooterEmailStatus] = useState<'idle' | 'error' | 'success'>('idle');
 
   // Load Google AdSense library dynamically on mount if it was not already injected in index.html.
   useEffect(() => {
@@ -591,6 +593,17 @@ export default function App() {
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [targetedProFeature, setTargetedProFeature] = useState<string>('');
+
+  const handleFooterEmailSubmit = () => {
+    const email = footerEmail.trim();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!isValidEmail) {
+      setFooterEmailStatus('error');
+      return;
+    }
+    setFooterEmailStatus('success');
+    setFooterEmail('');
+  };
 
   const syncSubscriptionState = async (nextState: SubscriptionState, reason: string) => {
     const safeState = normalizeSubscriptionState(nextState);
@@ -2018,7 +2031,7 @@ export default function App() {
                     <button onClick={() => navigateTo('/herramientas/calculadora-prestaciones-laborales')} className="flex items-center gap-1.5 text-[#0F766E] hover:underline font-semibold text-left cursor-pointer">
                       ✦ Prestaciones Laborales
                     </button>
-                    <button onClick={() => navigateTo('/herramientas/calculadora-retenciones-dgii')} className="flex items-center gap-1.5 text-[#0F766E] hover:underline font-semibold text-left cursor-pointer">
+                    <button onClick={() => navigateTo('/herramientas/calculadora-retenciones')} className="flex items-center gap-1.5 text-[#0F766E] hover:underline font-semibold text-left cursor-pointer">
                       ✦ Retenciones de ISR/TSS
                     </button>
                   </div>
@@ -2116,16 +2129,27 @@ export default function App() {
                   <input 
                     id="footer-email-monitoring"
                     type="email" 
+                    value={footerEmail}
+                    onChange={(event) => {
+                      setFooterEmail(event.target.value);
+                      if (footerEmailStatus !== 'idle') setFooterEmailStatus('idle');
+                    }}
                     placeholder="correo@ejemplo.com"
                     className="bg-gray-50 border border-gray-300 rounded px-2 text-xs flex-grow outline-none focus:ring-1 focus:ring-[#0F766E] focus:bg-white transition-all"
                   />
                   <button 
-                    onClick={() => alert('¡Gracias por inscribirse a Tu Negocio RD!')}
+                    onClick={handleFooterEmailSubmit}
                     className="bg-[#0F766E] text-white text-xs font-bold px-3 py-1.5 rounded hover:opacity-90 cursor-pointer shadow-xs active:scale-95 transition-all"
                   >
                     Inscribir
                   </button>
                 </div>
+                {footerEmailStatus === 'error' && (
+                  <p className="mt-2 text-[11px] font-semibold text-red-600">Escribe un correo valido para recibir alertas.</p>
+                )}
+                {footerEmailStatus === 'success' && (
+                  <p className="mt-2 text-[11px] font-semibold text-[#0F766E]">Listo. Guardamos tu interes para alertas normativas.</p>
+                )}
               </div>
 
             </div>

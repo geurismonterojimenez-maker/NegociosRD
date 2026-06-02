@@ -19,7 +19,7 @@ export function calculatePrestaciones(
   incluyePreaviso: boolean,
   incluyeCesantia: boolean,
   vacacionesPendientes: 'pendientes_completas' | 'proporcional' | 'ninguna',
-  mesesGozadosRegalia: number
+  mesesGozadosRegalia: number = 0
 ): PrestacionesResult {
   const normSalary = Math.max(0, salarioMensual);
   
@@ -32,8 +32,8 @@ export function calculatePrestaciones(
   const salida = new Date(fechaSalida);
   
   let totalDiasTrabajados = 0;
-  if (!isNaN(ingreso.getTime()) && !isNaN(salida.getTime())) {
-    const diffTime = Math.abs(salida.getTime() - ingreso.getTime());
+  if (!isNaN(ingreso.getTime()) && !isNaN(salida.getTime()) && salida.getTime() > ingreso.getTime()) {
+    const diffTime = salida.getTime() - ingreso.getTime();
     totalDiasTrabajados = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
@@ -66,6 +66,9 @@ export function calculatePrestaciones(
   desglose.push(`Salario mensual: RD$ ${normSalary.toLocaleString('en-US', { minimumFractionDigits: 2 })}`);
   desglose.push(`Fórmula salario diario aplicable (Cobro Mensual): Salario Mensual / 23.83`);
   desglose.push(`Salario ordinario diario: RD$ ${salarioDiario.toFixed(2)}`);
+  if (totalDiasTrabajados === 0 && !isNaN(ingreso.getTime()) && !isNaN(salida.getTime()) && salida.getTime() <= ingreso.getTime()) {
+    desglose.push('Rango de fechas no valido: la fecha de salida debe ser posterior a la fecha de ingreso para calcular antiguedad laboral.');
+  }
   desglose.push(`Tiempo de servicio calculado: ${anos} año(s), ${meses} mes(es) y ${dias} día(s) (Total de ${totalDiasTrabajados} días).`);
 
   // 1. CÁLCULO DE PREAVISO (Art. 76 del Código de Trabajo)
@@ -176,7 +179,8 @@ export function calculatePrestaciones(
 
   // 4. CÁLCULO DE REGALÍA PASCUAL (Salario de Navidad, Art. 219 del Código de Trabajo)
   // Consiste en la duodécima parte de lo ganado en el año calendario en curso (1/12)
-  const regaliaMesesContemplados = Math.max(0, Math.min(12, mesesGozadosRegalia));
+  const safeMesesRegalia = Number.isFinite(mesesGozadosRegalia) ? mesesGozadosRegalia : 0;
+  const regaliaMesesContemplados = Math.max(0, Math.min(12, safeMesesRegalia));
   // Total ganado aproximado en base al salario de contratación
   const totalSalariosGanadosEsteAno = normSalary * regaliaMesesContemplados;
   const regaliaMonto = Number((totalSalariosGanadosEsteAno / 12).toFixed(2));

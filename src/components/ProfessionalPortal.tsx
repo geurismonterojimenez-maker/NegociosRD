@@ -114,7 +114,7 @@ export default function ProfessionalPortal({ isOpen, onClose, userTier = 'FREE',
   const handleAddInvoice = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newClient || !newBaseAmount) {
-      alert('Por favor, introduzca el nombre de cliente y el monto base.');
+      showToast('Introduce el nombre del cliente y el monto base para registrar la factura.');
       return;
     }
 

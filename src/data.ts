@@ -1,10 +1,10 @@
 import { CalculatorInfo, FaqItem, GuidePage, SEOContent } from './types';
 
 export const CATEGORIES = [
-  { id: 'impuestos', name: 'Impuestos', icon: 'account_balance', descdgii: '8 calculadoras DGII', color: 'text-teal-600 bg-teal-50' },
-  { id: 'laboral', name: 'Laboral', icon: 'groups', descdgii: '10 cálculos de prestaciones y TSS', color: 'text-amber-600 bg-amber-50' },
-  { id: 'finanzas', name: 'Finanzas', icon: 'payments', descdgii: '3 simuladores de préstamos', color: 'text-blue-600 bg-blue-50' },
-  { id: 'negocios', name: 'Negocios', icon: 'business_center', descdgii: 'Herramientas de margen y costo', color: 'text-indigo-600 bg-indigo-50' }
+  { id: 'impuestos', name: 'Impuestos', icon: 'account_balance', descdgii: '6 calculadoras DGII', color: 'text-teal-600 bg-teal-50' },
+  { id: 'laboral', name: 'Laboral', icon: 'groups', descdgii: '20 calculos de prestaciones y TSS', color: 'text-amber-600 bg-amber-50' },
+  { id: 'finanzas', name: 'Finanzas', icon: 'payments', descdgii: '13 simuladores financieros', color: 'text-blue-600 bg-blue-50' },
+  { id: 'negocios', name: 'Negocios', icon: 'business_center', descdgii: '11 herramientas de margen y costo', color: 'text-indigo-600 bg-indigo-50' }
 ];
 
 export const CALCULATORS: CalculatorInfo[] = [

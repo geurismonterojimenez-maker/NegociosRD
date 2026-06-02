@@ -316,7 +316,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
           tiempos: res.tiempoServicio
         };
       }
-      case 'cesantia-calc': {
+      case 'cesantias-calc': {
         const res = calculatePrestaciones(
           prestacionesSalary,
           prestacionesIngreso,
@@ -682,7 +682,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
             )}
 
             {/* Prestaciones y Liquidación screen */}
-            {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'vacaciones-calc' || calc.id === 'regalia-pascual' || calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && (
+            {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'vacaciones-calc' || calc.id === 'regalia-pascual' || calc.id === 'preaviso-calc' || calc.id === 'cesantias-calc') && (
               <>
                 <div>
                   <label htmlFor="prestaciones-salary" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Salario bruto ordinario de contrato (RD$)</label>
@@ -703,7 +703,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                 </div>
 
                 {/* Date range inputs for preaviso, cesantia, liquidacion always visible */}
-                {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && (
+                {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'preaviso-calc' || calc.id === 'cesantias-calc') && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="prestaciones-ingreso" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Fecha de Ingreso</label>
@@ -1348,7 +1348,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
             )}
 
             {/* 15 & 16. Preaviso or Cesantia single details */}
-            {(calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && calculatedResults && (
+            {(calc.id === 'preaviso-calc' || calc.id === 'cesantias-calc') && calculatedResults && (
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-teal-600/40 pb-5 mb-5 min-w-0">
                   <div className="min-w-0">
@@ -1561,7 +1561,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                 )}
 
                 {/* Prestaciones / Liquidación steps list */}
-                {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'preaviso-calc' || calc.id === 'cesantia-calc') && calculatedResults && ('desgloseExplicativo' in calculatedResults) && (
+                {(calc.id === 'prestaciones-laborales' || calc.id === 'liquidacion-laboral' || calc.id === 'preaviso-calc' || calc.id === 'cesantias-calc') && calculatedResults && ('desgloseExplicativo' in calculatedResults) && (
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <span className="text-xs font-bold text-gray-900 uppercase block mb-2 tracking-wider">Desglose de cálculo de ley:</span>
                     <ul className="space-y-2 text-xs font-sans list-none">
