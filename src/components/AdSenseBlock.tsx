@@ -10,7 +10,7 @@ interface AdSenseBlockProps {
 const OFFICIAL_ADSENSE_CLIENT_ID = 'ca-pub-6144599865368963';
 const ADSENSE_SLOT_BY_VARIANT: Record<AdSenseBlockProps['variant'], string> = {
   'skyscraper-left': '3312679766',
-  'skyscraper-right': '4444444444',
+  'skyscraper-right': '1999598095',
   'horizontal-bottom': '4444444444',
   'mobile-infeed': '2222222222',
   'tablet-banner': '4444444444',
