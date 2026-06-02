@@ -348,7 +348,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
   }, [filteredArticles, featuredArticle]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 animate-in fade-in duration-200">
+    <div className="w-full max-w-7xl min-w-0 mx-auto px-4 md:px-8 py-8 animate-in fade-in duration-200">
       
       {/* Detail view of a clicked article */}
       {selectedArticle ? (

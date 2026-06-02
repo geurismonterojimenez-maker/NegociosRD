@@ -14,11 +14,9 @@ interface LogoProps {
 }
 
 /**
- * 1. LogoSymbol: The central vector icon from the user's uploaded logo.
- * Features:
- * - Professional interlocking 'T' and 'N' capital letters in deep teal.
- * - Rising gold bar chart columns nested in the core diagonal of the N.
- * - A sharp upward-right growth arrow in vibrant growth teal cutting across.
+ * 1. LogoSymbol: compact brand seal optimized for header, favicon and small UI.
+ * The previous mark had too many crossing shapes at small sizes, so this keeps
+ * the same corporate colors while making the monogram readable.
  */
 export const LogoSymbol: React.FC<LogoProps & { strokeWidth?: number }> = ({ 
   size = 40, 
@@ -33,65 +31,41 @@ export const LogoSymbol: React.FC<LogoProps & { strokeWidth?: number }> = ({
       xmlns="http://www.w3.org/2000/svg"
       className={`inline-block select-none ${className}`}
     >
-      {/* 1. Deep Teal T-Bar and Stem */}
-      <path
-        d="M20 35H90V47H63V105H47V47H20V35Z"
-        fill={COLORS.darkTeal}
-      />
-      {/* Slanted facet on top of T (as in original logo, which has a distinct sleek serif layout) */}
-      <path
-        d="M20 35L26 29H84L90 35H20Z"
-        fill={COLORS.darkTeal}
-        opacity="0.9"
-      />
-
-      {/* 2. Deep Teal N-Shape */}
-      {/* The N integrates with the T stem: Left diagonal, vertical right stem, styled corners */}
-      <path
-        d="M63.5 39H79L120 102V47H136V117H120L79 54V105H63.5V39Z"
+      <rect
+        x="10"
+        y="10"
+        width="140"
+        height="140"
+        rx="34"
         fill={COLORS.darkTeal}
       />
 
-      {/* 3. Gold Bar Chart (Growing columns) */}
-      {/* Column 1 (Left, Short) */}
-      <rect
-        x="90.5"
-        y="42"
-        width="10"
-        height="22"
-        rx="1"
-        transform="skewX(-28) rotate(-1)"
-        fill={COLORS.gold}
+      <path
+        d="M26 45H84V62H64V116H45V62H26V45Z"
+        fill="#FFFFFF"
       />
-      {/* Column 2 (Middle, Medium) */}
-      <rect
-        x="100.5"
-        y="22"
-        width="10"
-        height="40"
-        rx="1"
-        transform="skewX(-28) rotate(-1)"
-        fill={COLORS.gold}
-      />
-      {/* Column 3 (Right, Tall) */}
-      <rect
-        x="110.5"
-        y="2"
-        width="10"
-        height="58"
-        rx="1"
-        transform="skewX(-28) rotate(-1)"
-        fill={COLORS.gold}
+      <path
+        d="M82 45H100L121 85V45H139V116H121L100 76V116H82V45Z"
+        fill="#FFFFFF"
       />
 
-      {/* 4. Vibrant Teal Growth Arrow */}
-      {/* Cutting up and to the right over the center diagonal of N */}
       <path
-        d="M72 108L140 40M140 40H118M140 40V62"
-        stroke={COLORS.lightTeal}
-        strokeWidth="11"
+        d="M36 118C62 106 91 85 122 42"
+        stroke={COLORS.gold}
+        strokeWidth="12"
+        strokeLinecap="round"
+      />
+      <path
+        d="M122 42H101M122 42V63"
+        stroke={COLORS.gold}
+        strokeWidth="12"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+      <path
+        d="M10 44C10 25.2223 25.2223 10 44 10H116C134.778 10 150 25.2223 150 44V116C150 134.778 134.778 150 116 150H44C25.2223 150 10 134.778 10 116V44Z"
+        stroke={COLORS.lightTeal}
+        strokeWidth="6"
       />
     </svg>
   );

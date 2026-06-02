@@ -790,6 +790,7 @@ export default function App() {
   const [showPortalModal, setShowPortalModal] = useState(false);
   const shouldShowAdRail = currentView !== 'precios' && currentView !== 'admin';
   const shouldShowGlobalBottomAds = shouldShowAdRail && currentView !== 'calculator';
+  const shouldShowToolSidebar = ['home', 'calculator', 'blog'].includes(currentView);
 
   // --- CTA Interactive State (Contabilidad Gratis) ---
   const [ctaVentasMes, setCtaVentasMes] = useState<number>(75000);
@@ -1296,6 +1297,7 @@ export default function App() {
         <div className="content-shell flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white lg:h-full lg:overflow-hidden" id="center-content-ad-hybrid">
           
           {/* SIDEBAR NAVIGATION - Exact Match */}
+          {shouldShowToolSidebar && (
           <aside className="min-[1700px]:col-span-2 border-r border-gray-200 bg-white p-4 xl:p-5 hidden min-[1700px]:flex flex-col justify-between lg:h-full lg:overflow-y-auto z-10">
           <div>
             <h2 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-4">Herramientas Populares</h2>
@@ -1386,10 +1388,11 @@ export default function App() {
           </div>
 
           {/* Habla con un experto card removed */}
-        </aside>
+          </aside>
+          )}
 
         {/* WORKSPACE AREA - occupies col-span-9 on desktop, col-span-12 on smaller displays */}
-        <div className="col-span-12 min-[1700px]:col-span-10 p-4 md:p-6 2xl:p-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto" id="main-workspace-balance">
+        <div className={`col-span-12 ${shouldShowToolSidebar ? 'min-[1700px]:col-span-10' : ''} p-4 md:p-6 2xl:p-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto`} id="main-workspace-balance">
           
           {currentView === 'home' && (
             <div className="space-y-6 animate-in fade-in duration-150">
