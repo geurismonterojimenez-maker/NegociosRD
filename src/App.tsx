@@ -598,7 +598,6 @@ export default function App() {
         }
       } else {
         const storedLocal = localStorage.getItem('negociord_local_user');
-        const isLoggedOut = localStorage.getItem('negociord_logged_out') === 'true';
 
         if (storedLocal) {
           try {
@@ -606,22 +605,6 @@ export default function App() {
           } catch {
             setFirebaseUser(null);
           }
-        } else if (!isLoggedOut) {
-          // Automatically log in as jeuri905 on load if they did not explicitly log out
-          const autoUser = {
-            uid: 'jeuri905-auto',
-            email: 'jeuri905@gmail.com',
-            displayName: 'Jeuri Perdomo',
-            photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop',
-            isLocalDemo: true,
-          };
-          localStorage.setItem('negociord_local_user', JSON.stringify(autoUser));
-          setFirebaseUser(autoUser);
-
-          const nextSubscription = createActiveSubscriptionState('anual', 'demo-card');
-          setSubscriptionState(nextSubscription);
-          localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextSubscription));
-          localStorage.setItem('negociord_user_tier', 'PRO');
         } else {
           setFirebaseUser(null);
           const fallback = parseStoredSubscriptionState(localStorage.getItem('negociord_subscription_state'));
