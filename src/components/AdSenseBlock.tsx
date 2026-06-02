@@ -8,11 +8,21 @@ interface AdSenseBlockProps {
 }
 
 const OFFICIAL_ADSENSE_CLIENT_ID = 'ca-pub-6144599865368963';
+const ADSENSE_SLOT_BY_VARIANT: Record<AdSenseBlockProps['variant'], string> = {
+  'skyscraper-left': '3312679766',
+  'skyscraper-right': '4444444444',
+  'horizontal-bottom': '4444444444',
+  'mobile-infeed': '2222222222',
+  'tablet-banner': '4444444444',
+  'results-inline': '4444444444',
+  'nav-inline': '3333333333'
+};
 
 export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockProps) {
   const [showCode, setShowCode] = useState(false);
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
   const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
+  const adSlot = ADSENSE_SLOT_BY_VARIANT[variant];
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');
 
   useEffect(() => {
@@ -32,7 +42,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
           <ins className="adsbygoogle"
                style={{ display: 'block', width: '150px', height: '32px' }}
                data-ad-client={adsenseClientId}
-               data-ad-slot="3333333333"
+               data-ad-slot={adSlot}
                data-ad-format="auto"
                data-full-width-responsive="false" />
         </div>
@@ -68,7 +78,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
           <ins className="adsbygoogle"
                style={{ display: 'block', margin: '0 auto' }}
                data-ad-client={adsenseClientId}
-               data-ad-slot={variant === 'mobile-infeed' ? '2222222222' : '4444444444'}
+               data-ad-slot={adSlot}
                data-ad-format={format}
                data-full-width-responsive="true" />
         </div>
@@ -83,7 +93,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
 <ins class="adsbygoogle"
      style="display:block"
      data-ad-client="${client}"
-     data-ad-slot="4444444444"
+     data-ad-slot="${adSlot}"
      data-ad-format="${format}"
      data-full-width-responsive="true"></ins>
 <script>
