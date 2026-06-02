@@ -1,184 +1,158 @@
 const printableBaseCss = `
   @page {
-    margin: 1.45cm;
+    margin: 1.2cm 1.4cm 1.2cm 1.4cm;
     size: letter portrait;
   }
 
   * {
     box-sizing: border-box;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   html,
   body {
     margin: 0;
     padding: 0;
-    background: #ffffff;
-    color: #111827;
-    font-family: Inter, Arial, sans-serif;
-    font-size: 10.5pt;
-    line-height: 1.45;
-  }
-
-  body {
-    padding: 0;
+    background: #ffffff !important;
+    color: #1f2937 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    font-size: 10pt;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
 
   .print-shell {
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    background: #ffffff;
-  }
-
-  .print-shell > * {
-    width: 100% !important;
-    max-width: 100% !important;
-    border: 0 !important;
-    border-radius: 0 !important;
     background: #ffffff !important;
-    color: #111827 !important;
-    padding: 0 !important;
-    margin: 0 !important;
   }
 
-  .print-shell,
-  .print-shell * {
-    max-height: none !important;
-    overflow: visible !important;
-    box-shadow: none !important;
+  /* Clean print rules to avoid breaking elements awkwardly across pages */
+  .print-avoid-break,
+  tr,
+  blockquote,
+  pre,
+  .calculator-results-panel {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .print-shell button,
-  .print-shell select,
-  .print-shell input,
-  .print-shell textarea,
-  .print-shell .print\\:hidden {
-    display: none !important;
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    color: #005556 !important; /* Elegant brand dark teal for headings */
   }
 
+  /* Premium Tables Styling for High-End Financial Records */
   table {
-    width: 100%;
-    border-collapse: collapse;
-    page-break-inside: auto;
-    break-inside: auto;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 12pt;
+    margin-bottom: 12pt;
+    font-size: 9pt !important;
   }
 
   th {
-    background: #f3f4f6;
-    color: #111827;
-    font-weight: 700;
+    background-color: #f8fafc !important; /* Soft slate/teal background for headings */
+    color: #005556 !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 2px solid #005556 !important;
+    font-size: 8.5pt !important;
   }
 
   th,
   td {
-    border: 1px solid #d1d5db;
-    padding: 6pt 7pt;
-    vertical-align: top;
+    border: 1px solid #e2e8f0 !important; /* Extra fine elegant light slate border instead of harsh dark grid */
+    padding: 8px 10px !important;
+    vertical-align: middle !important;
+    text-align: inherit;
   }
 
-  thead {
-    display: table-header-group;
+  /* Accent total row in tables */
+  tr.bg-teal-50, 
+  tr.bg-emerald-50, 
+  tr:last-child {
+    font-weight: 700 !important;
   }
 
-  tfoot {
-    display: table-footer-group;
+  /* Ensure background fills render perfectly on pdf */
+  .bg-teal-50, .bg-teal-50\/50 {
+    background-color: #f0fdfa !important;
+  }
+  .bg-gray-50, .bg-gray-50\/50 {
+    background-color: #f8fafc !important;
+  }
+  .text-teal-700, .text-\[\#0F766E\] {
+    color: #005556 !important;
+  }
+  .text-emerald-600 {
+    color: #0891b2 !important;
   }
 
-  tr,
-  .print-avoid-break {
-    page-break-inside: avoid;
-    break-inside: avoid;
+  /* Signature blocks */
+  .pt-8.flex.justify-between {
+    margin-top: 30pt !important;
   }
 
-  a {
-    color: #111827;
-    text-decoration: none;
+  /* Hide print buttons or interactive selection controls inside printed sheet */
+  button,
+  select,
+  input,
+  textarea,
+  .print-hidden,
+  .print\\:hidden {
+    display: none !important;
   }
 
+  /* Legal Contracts typography (highly professional serif layout) */
   [data-print-kind="legal-document"] {
-    font-family: Georgia, "Times New Roman", serif !important;
+    font-family: Garamond, Georgia, "Times New Roman", serif !important;
     font-size: 11pt !important;
-    line-height: 1.58 !important;
+    line-height: 1.6 !important;
     color: #111827 !important;
-    white-space: normal !important;
+    text-align: justify !important;
   }
 
   [data-print-kind="legal-document"] .legal-document-header {
-    display: block !important;
-    border-bottom: 2px solid #0f766e;
-    margin-bottom: 18pt;
-    padding-bottom: 10pt;
-    text-align: center;
+    border-bottom: 2.5px solid #005556 !important;
+    margin-bottom: 20pt !important;
+    padding-bottom: 12pt !important;
+    text-align: center !important;
   }
 
   [data-print-kind="legal-document"] .legal-document-brand {
-    color: #0f766e;
-    font-family: Inter, Arial, sans-serif;
-    font-size: 9pt;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    color: #005556 !important;
+    font-family: -apple-system, sans-serif !important;
+    font-size: 9.5pt !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase !important;
   }
 
   [data-print-kind="legal-document"] .legal-document-title {
-    margin: 5pt 0 3pt;
-    color: #111827;
-    font-size: 16pt;
-    font-weight: 700;
-    line-height: 1.18;
-    text-transform: uppercase;
-  }
-
-  [data-print-kind="legal-document"] .legal-document-meta {
-    color: #4b5563;
-    font-family: Inter, Arial, sans-serif;
-    font-size: 8.5pt;
+    margin: 8pt 0 4pt !important;
+    color: #111827 !important;
+    font-size: 16pt !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
   }
 
   [data-print-kind="legal-document"] .legal-document-body {
     white-space: pre-wrap !important;
-    text-align: justify;
-    hyphens: auto;
   }
 
   [data-print-kind="legal-document"] .legal-document-footer {
-    display: block !important;
-    margin-top: 22pt;
-    padding-top: 8pt;
-    border-top: 1px solid #d1d5db;
-    color: #4b5563;
-    font-family: Inter, Arial, sans-serif;
-    font-size: 8.5pt;
-    line-height: 1.35;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  [data-print-kind="legal-document"] .print\\:hidden,
-  [data-print-kind="legal-document"] .absolute {
-    display: none !important;
-  }
-
-  [data-print-kind="report-document"] {
-    font-family: Inter, Arial, sans-serif !important;
-    font-size: 10pt !important;
-    line-height: 1.45 !important;
-  }
-
-  [data-print-kind="report-document"] h1,
-  [data-print-kind="report-document"] h2,
-  [data-print-kind="report-document"] h3 {
-    color: #0f766e !important;
-    page-break-after: avoid;
-    break-after: avoid;
-  }
-
-  [data-print-kind="report-document"] .rounded-2xl,
-  [data-print-kind="report-document"] .rounded-xl,
-  [data-print-kind="report-document"] .rounded-lg {
-    border-radius: 0 !important;
+    border-top: 1px solid #cbd5e1 !important;
+    margin-top: 24pt !important;
+    padding-top: 10pt !important;
+    color: #475569 !important;
+    font-family: -apple-system, sans-serif !important;
+    font-size: 8.5pt !important;
   }
 `;
 
@@ -193,12 +167,18 @@ export function printElementById(elementId: string, title = 'Tu Negocio RD - Doc
     return false;
   }
 
+  // Clone node carefully to keep all deep content HTML structures
   const cloned = source.cloneNode(true) as HTMLElement;
-  cloned.querySelectorAll('style').forEach((styleEl) => styleEl.remove());
-  cloned.querySelectorAll('button, select, input, textarea, .print\\:hidden').forEach((el) => el.remove());
-  cloned.removeAttribute('id');
-  cloned.className = '';
-  cloned.style.cssText = '';
+  
+  // Clean interactive / unneeded assets inside the cloned sheet before printing
+  cloned.querySelectorAll('button, select, input, textarea, .print\\:hidden, [data-print-hidden]').forEach((el) => el.remove());
+
+  // Capture all core stylesheets (Vite/Tailwind and indices) in real-time from active document to feed to the printing portal
+  const styleElements = document.querySelectorAll('link[rel="stylesheet"], style');
+  let stylesHtml = '';
+  styleElements.forEach((style) => {
+    stylesHtml += style.outerHTML;
+  });
 
   printWindow.document.open();
   printWindow.document.write(`<!doctype html>
@@ -206,17 +186,28 @@ export function printElementById(elementId: string, title = 'Tu Negocio RD - Doc
   <head>
     <meta charset="utf-8" />
     <title>${title.replace(/</g, '&lt;')}</title>
-    <style>${printableBaseCss}</style>
+    <!-- Tailwind application stylesheet injection -->
+    ${stylesHtml}
+    <!-- High-end print tuning core styles -->
+    <style>
+      ${printableBaseCss}
+    </style>
   </head>
-  <body>
-    <main class="print-shell">${cloned.outerHTML}</main>
+  <body class="bg-white p-0 m-0">
+    <!-- Re-render within identical frame ID & class chain so Tailwind scoped styles run beautifully -->
+    <div class="print-shell p-0 m-0 bg-white">
+      <div id="${elementId}" class="${source.className}" style="${source.style.cssText}">
+        ${cloned.innerHTML}
+      </div>
+    </div>
     <script>
       window.addEventListener('load', function () {
+        // Give fonts, icons, and dynamic images a solid window frame to render correctly
         setTimeout(function () {
           window.focus();
           window.print();
-          setTimeout(function () { window.close(); }, 400);
-        }, 120);
+          setTimeout(function () { window.close(); }, 500);
+        }, 350);
       });
     </script>
   </body>
