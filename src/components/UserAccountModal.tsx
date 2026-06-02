@@ -516,7 +516,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
       triggerToast(`¡Bienvenido, ${result.user.displayName || 'usuario'}!`);
     } catch (err) {
       console.error("Google Sign-In Error:", err);
-      if (isUnauthorizedDomainError(err) && isLocalRuntime()) {
+      if (isUnauthorizedDomainError(err)) {
         activateLocalDemoAccount();
         return;
       }
@@ -920,14 +920,23 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 {credentialsError && (
                   <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl font-semibold border border-red-100 leading-relaxed space-y-2 break-words">
                     {credentialsError.includes('Authorized domains') && (
-                      <a
-                        href={FIREBASE_AUTH_SETTINGS_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mb-2 inline-flex items-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-red-700 hover:bg-red-50"
-                      >
-                        Abrir configuracion de Firebase
-                      </a>
+                      <div className="flex flex-col sm:flex-row gap-2 mb-2">
+                        <a
+                          href={FIREBASE_AUTH_SETTINGS_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-red-700 hover:bg-red-50 text-center"
+                        >
+                          Abrir configuración de Firebase
+                        </a>
+                        <button
+                          type="button"
+                          onClick={activateLocalDemoAccount}
+                          className="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-emerald-800 hover:bg-emerald-100 cursor-pointer text-center"
+                        >
+                          Probar en Modo Demo Local (Sin Firebase)
+                        </button>
+                      </div>
                     )}
                     ⚠️ {credentialsError}
                   </div>
@@ -1019,16 +1028,14 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                 <span>Entrar con Google</span>
               </button>
 
-              {isLocalRuntime() && (
-                <button
-                  type="button"
-                  onClick={activateLocalDemoAccount}
-                  disabled={actionLoading}
-                  className="w-full py-2.5 px-4 border border-[#0F766E]/30 bg-[#0F766E]/5 hover:bg-[#0F766E]/10 rounded-xl font-bold text-[11px] text-[#0F766E] transition-all disabled:opacity-50"
-                >
-                  Continuar en modo local
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={activateLocalDemoAccount}
+                disabled={actionLoading}
+                className="w-full py-2.5 px-4 border border-[#0F766E]/30 bg-[#0F766E]/5 hover:bg-[#0F766E]/10 rounded-xl font-bold text-[11px] text-[#0F766E] transition-all disabled:opacity-50 cursor-pointer"
+              >
+                Continuar en Modo Local (Demostración)
+              </button>
 
               <div className="flex justify-center items-center gap-1.5 text-[9px] text-gray-400">
                 <ShieldCheck size={12} className="text-[#0F766E]" />
