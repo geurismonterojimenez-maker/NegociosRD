@@ -2,10 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { CALCULATORS, CATEGORIES } from '../data';
 import { CalculatorInfo } from '../types';
 import { Sparkles } from 'lucide-react';
-// @ts-ignore
-import * as pkg from 'react-window';
-// @ts-ignore
-const List = pkg.FixedSizeList || pkg.default?.FixedSizeList || pkg;
 import Fuse from 'fuse.js';
 
 interface CalculatorsListProps {
@@ -18,7 +14,7 @@ interface CalculatorsListProps {
   onProRequired?: (featureName: string) => void;
 }
 
-// FASE 3 - Pre-compiled local memory index (O(1) category routing)
+// OPTIMIZATION 1 - Pre-compiled O(1) local memory indexing
 const CATEGORY_INDEX: Record<string, CalculatorInfo[]> = {
   all: CALCULATORS,
   impuestos: CALCULATORS.filter(c => c.category === 'impuestos'),
@@ -27,7 +23,7 @@ const CATEGORY_INDEX: Record<string, CalculatorInfo[]> = {
   negocios: CALCULATORS.filter(c => c.category === 'negocios'),
 };
 
-// Static Fuse.js cache to avoid constructing search instances during typing frames
+// OPTIMIZATION 2 - Static Fuse.js cache to prevent instance rebuilding during keystroke cycles
 const FUSE_CACHE: Record<string, Fuse<CalculatorInfo>> = {};
 
 const getFuseInstanceForCategory = (catKey: string, dataset: CalculatorInfo[]) => {
@@ -42,7 +38,7 @@ const getFuseInstanceForCategory = (catKey: string, dataset: CalculatorInfo[]) =
   return FUSE_CACHE[catKey];
 };
 
-// FASE 9 - Preheat and pre-build indexes using requestIdleCallback when browser thread is free
+// OPTIMIZATION 3 - Preheat global indices during requestIdleCallback when browser thread is free
 if (typeof window !== 'undefined') {
   const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 50));
   idleCallback(() => {
@@ -52,6 +48,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// OPTIMIZATION 4 - Component memoization to fully bypass render cycles when typing
 const MemoizedCalculatorsList = React.memo(function CalculatorsList({
   onSelectCalculator,
   searchFilter,
@@ -60,7 +57,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
   setActiveCategory
 }: CalculatorsListProps) {
 
-  // FASE 4 - Subset fuzzy-searching with Fuse.js
+  // OPTIMIZATION 5 - Cached subset fuzzy search results using useMemo
   const filteredCalculators = useMemo(() => {
     const catKey = activeCategory || 'all';
     const targetSet = CATEGORY_INDEX[catKey] || CALCULATORS;
@@ -73,7 +70,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
     return fuse.search(searchFilter).map(res => res.item);
   }, [searchFilter, activeCategory]);
 
-  // Suggested chips handler
+  // Suggested keywords callback
   const handleSuggestionClick = (term: string, slug: string) => {
     const matched = CALCULATORS.find(c => c.urlSlug === slug || c.id === slug);
     if (matched) {
@@ -83,7 +80,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
     }
   };
 
-  // Load recently viewed calculators from localStorage
+  // Load recently viewed calculators safely from localStorage
   const [recentCalcIds, setRecentCalcIds] = useState<string[]>([]);
   React.useEffect(() => {
     try {
@@ -103,91 +100,9 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
       .filter((c): c is CalculatorInfo => !!c);
   }, [recentCalcIds]);
 
-  // FASE 5 - Responsive grid columns detection for virtualization
-  const [columns, setColumns] = useState(3);
-  React.useEffect(() => {
-    const handleResize = () => {
-      const w = window.innerWidth;
-      if (w < 640) {
-        setColumns(1);
-      } else if (w < 1024) {
-        setColumns(2);
-      } else {
-        setColumns(3);
-      }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize, { passive: true });
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // FASE 5 - Slicing rows
-  const rows = useMemo(() => {
-    const chunked = [];
-    for (let i = 0; i < filteredCalculators.length; i += columns) {
-      chunked.push(filteredCalculators.slice(i, i + columns));
-    }
-    return chunked;
-  }, [filteredCalculators, columns]);
-
-  // Virtual Row Renderer
-  const VirtualRow = ({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const rowItems = rows[index] || [];
-    const gridColsClass = columns === 1 ? 'grid-cols-1' : columns === 2 ? 'grid-cols-2' : 'grid-cols-3';
-
-    return (
-      <div style={style} className="px-1">
-        <div className={`grid ${gridColsClass} gap-6 h-full pb-4`}>
-          {rowItems.map((calc) => (
-            <div 
-              key={calc.id}
-              onClick={() => onSelectCalculator(calc)}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-xs hover:border-[#0F766E] cursor-pointer transition-all flex flex-col justify-between h-[180px] group overflow-hidden"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`px-2 py-0.5 font-bold rounded text-[9px] uppercase tracking-wider ${
-                    calc.category === 'impuestos' ? 'text-teal-700 bg-teal-50' :
-                    calc.category === 'laboral' ? 'text-amber-700 bg-amber-50' :
-                    calc.category === 'finanzas' ? 'text-blue-700 bg-blue-50' :
-                    'text-indigo-700 bg-indigo-50'
-                  }`}>
-                    {calc.category}
-                  </span>
-                </div>
-                <h3 className="font-bold text-sm text-[#111827] group-hover:text-[#0F766E] transition-colors mb-1.5 truncate">
-                  {calc.name}
-                </h3>
-                <p className="text-xs text-[#6B7280] line-clamp-2 leading-relaxed">
-                  {calc.description}
-                </p>
-              </div>
-
-              {/* Tags panel */}
-              <div className="flex flex-wrap gap-1 pt-2 items-center justify-between text-[11px] font-semibold text-[#0F766E]">
-                <div className="flex flex-wrap gap-1">
-                  {calc.tags.slice(0, 2).map((tag, tIdx) => (
-                    <span key={tIdx} className="text-[9px] font-medium text-gray-400">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold">
-                  Calcular →
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const showVirtualization = filteredCalculators.length > 20;
-
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-      {/* Recent Calculators Row if present */}
+      {/* Recent Calculators Row */}
       {recentCalcsOfUser.length > 0 && (
         <div className="mb-8 p-4 bg-[#F9FAFB] rounded-xl border border-gray-150 animate-in fade-in duration-200">
           <div className="flex items-center gap-1.5 text-xs font-bold text-[#0F766E] uppercase tracking-wider mb-2.5">
@@ -202,6 +117,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
               <button
                 key={calc.id}
                 onClick={() => onSelectCalculator(calc)}
+                type="button"
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-gray-200 bg-white hover:border-[#0F766E] hover:text-[#0F766E] text-xs font-semibold text-gray-755 transition-all shadow-xs shrink-0 cursor-pointer"
               >
                 <span>⚡</span>
@@ -212,7 +128,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
         </div>
       )}
 
-      {/* Category boxes or buttons - Sleek and Compact Bento style */}
+      {/* Category boxes Bento Grid */}
       <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
         <Sparkles size={14} className="text-[#0F766E]" />
         <span>Filtrar por Categoría</span>
@@ -220,6 +136,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mb-8">
         <button
           onClick={() => setActiveCategory(null)}
+          type="button"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeCategory === null
               ? 'border-[#0F766E] bg-teal-50/20 text-[#0F766E] font-bold'
@@ -239,6 +156,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
+              type="button"
               className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all cursor-pointer min-w-0 overflow-hidden ${
                 isSelected
                   ? 'border-[#0F766E] bg-teal-50/20 text-[#0F766E] font-bold'
@@ -260,7 +178,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
         })}
       </div>
 
-      {/* Directory Grid */}
+      {/* Directory Grid Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-150 pb-5 mb-8">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-[#111827] mb-1">
@@ -274,7 +192,7 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
           </p>
         </div>
 
-        {/* Suggestion Chips Quick Trigger */}
+        {/* Suggestion Chips */}
         <div className="flex flex-wrap gap-2 text-xs items-center">
           <span className="text-gray-500 font-medium">Sugeridos:</span>
           <button 
@@ -320,27 +238,14 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
             Restablecer búsqueda
           </button>
         </div>
-      ) : showVirtualization ? (
-        /* FASE 5 - Virtualized react-window grid */
-        <div className="w-full">
-          <List
-            height={Math.min(rows.length * 196, 620)}
-            itemCount={rows.length}
-            itemSize={196}
-            width="100%"
-            className="overflow-x-hidden scrollbar-thin"
-          >
-            {VirtualRow}
-          </List>
-        </div>
       ) : (
-        /* Native Grid rendering for small lists <= 20 results (keeps natural layout) */
+        /* Natively responsive grid: preserves dynamic auto-wrap heights perfectly */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-250">
           {filteredCalculators.map((calc) => (
             <div 
               key={calc.id}
               onClick={() => onSelectCalculator(calc)}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-xs hover:border-[#0F766E] cursor-pointer transition-all flex flex-col justify-between min-h-[190px] h-auto group overflow-hidden"
+              className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-[#0F766E] cursor-pointer transition-all flex flex-col justify-between min-h-[190px] h-auto group overflow-hidden"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -356,13 +261,13 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
                 <h3 className="font-bold text-sm text-[#111827] group-hover:text-[#0F766E] transition-colors mb-1.5">
                   {calc.name}
                 </h3>
-                <p className="text-xs text-[#6B7280] line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#6B7280] line-clamp-3 leading-relaxed">
                   {calc.description}
                 </p>
               </div>
 
-              {/* Tags panel */}
-              <div className="flex flex-wrap gap-1 pt-2 items-center justify-between text-[11px] font-semibold text-[#0F766E]">
+              {/* Tags and Action footer */}
+              <div className="flex flex-wrap gap-1 pt-4 items-center justify-between text-[11px] font-semibold text-[#0F766E] border-t border-gray-50 mt-3">
                 <div className="flex flex-wrap gap-1">
                   {calc.tags.slice(0, 2).map((tag, tIdx) => (
                     <span key={tIdx} className="text-[9px] font-medium text-gray-400">
@@ -370,8 +275,8 @@ const MemoizedCalculatorsList = React.memo(function CalculatorsList({
                     </span>
                   ))}
                 </div>
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold">
-                  Calcular →
+                <span className="opacity-80 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all text-[11px] font-bold flex items-center gap-0.5">
+                  Calcular <span>→</span>
                 </span>
               </div>
             </div>
