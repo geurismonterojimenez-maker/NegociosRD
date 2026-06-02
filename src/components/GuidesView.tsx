@@ -65,30 +65,40 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
               <div className="prose prose-teal max-w-none text-[#111827] font-sans text-sm md:text-base leading-relaxed space-y-6">
                 {/* Simplified markdown parser for bold, section header rendering */}
                 {selectedGuide.contentMarkdown.split('\n\n').map((paragraph, pIdx) => {
+                  const shouldRenderInArticleAd = pIdx === 1;
+                  const withInArticleAd = (node: React.ReactNode) => (
+                    <React.Fragment key={pIdx}>
+                      {node}
+                      {shouldRenderInArticleAd && (
+                        <AdSlot position="in-article" className="my-8" />
+                      )}
+                    </React.Fragment>
+                  );
+
                   if (paragraph.startsWith('## ')) {
-                    return (
-                      <h2 key={pIdx} className="text-xl md:text-2xl font-bold text-[#111827] pt-4 border-b pb-2">
+                    return withInArticleAd(
+                      <h2 className="text-xl md:text-2xl font-bold text-[#111827] pt-4 border-b pb-2">
                         {paragraph.replace('## ', '')}
                       </h2>
                     );
                   }
                   if (paragraph.startsWith('### ')) {
-                    return (
-                      <h3 key={pIdx} className="text-lg font-bold text-gray-900 pt-2">
+                    return withInArticleAd(
+                      <h3 className="text-lg font-bold text-gray-900 pt-2">
                         {paragraph.replace('### ', '')}
                       </h3>
                     );
                   }
                   if (paragraph.startsWith('#### ')) {
-                    return (
-                      <h4 key={pIdx} className="text-base font-bold text-[#0F766E] pt-1">
+                    return withInArticleAd(
+                      <h4 className="text-base font-bold text-[#0F766E] pt-1">
                         {paragraph.replace('#### ', '')}
                       </h4>
                     );
                   }
                   if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
-                    return (
-                      <ul key={pIdx} className="list-disc pl-5 space-y-1.5 text-sm md:text-base text-gray-700">
+                    return withInArticleAd(
+                      <ul className="list-disc pl-5 space-y-1.5 text-sm md:text-base text-gray-700">
                         {paragraph.split('\n').map((li, lIdx) => (
                           <li key={lIdx}>{li.replace(/^[\s-*]+/, '')}</li>
                         ))}
@@ -96,8 +106,8 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                     );
                   }
                   // Render bold blocks
-                  return (
-                    <p key={pIdx} className="text-gray-700 whitespace-pre-wrap">
+                  return withInArticleAd(
+                    <p className="text-gray-700 whitespace-pre-wrap">
                       {paragraph.split('**').map((text, tIdx) => {
                         return tIdx % 2 === 1 ? <strong key={tIdx} className="text-gray-950 font-bold">{text}</strong> : text;
                       })}

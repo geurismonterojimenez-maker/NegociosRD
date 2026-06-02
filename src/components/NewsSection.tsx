@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import AdSenseBlock from './AdSenseBlock';
+import AdSlot from './AdSlot';
 import { 
   Search, 
   Calendar, 
@@ -434,10 +434,20 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
             {/* Detailed styled markup content parser */}
             <div className="space-y-4 text-sm text-gray-700 leading-relaxed font-normal">
               {selectedArticle.contentMarkdown.split('\n\n').map((paragraph, idx) => {
+                const shouldRenderInArticleAd = idx === 1;
+                const withInArticleAd = (node: React.ReactNode) => (
+                  <React.Fragment key={idx}>
+                    {node}
+                    {shouldRenderInArticleAd && (
+                      <AdSlot position="in-article" className="my-8" />
+                    )}
+                  </React.Fragment>
+                );
+
                 // Formatting heading
                 if (paragraph.startsWith('### ')) {
-                  return (
-                    <h3 key={idx} className="text-base font-bold text-[#111827] pt-4 flex items-center gap-2">
+                  return withInArticleAd(
+                    <h3 className="text-base font-bold text-[#111827] pt-4 flex items-center gap-2">
                       <Newspaper size={16} className="text-[#0F766E]" />
                       {paragraph.replace('### ', '')}
                     </h3>
@@ -447,8 +457,8 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                 // Formatting bullet points
                 if (paragraph.includes('\n- ') || paragraph.includes('\n1. ') || paragraph.startsWith('- ') || paragraph.startsWith('1. ')) {
                   const items = paragraph.split('\n');
-                  return (
-                    <ul key={idx} className="space-y-2 pl-4 list-none my-3 bg-gray-50/50 p-4 rounded-xl border border-gray-150">
+                  return withInArticleAd(
+                    <ul className="space-y-2 pl-4 list-none my-3 bg-gray-50/50 p-4 rounded-xl border border-gray-150">
                       {items.map((it, i) => {
                         const cleanT = it.replace(/^(-|\d+\.)\s+\*\*/, '').replace(/\*\*$/, '').replace(/^\s*(-|\d+\.)\s+/, '');
                         
@@ -477,9 +487,8 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
 
                 // Regular formatting with simple bold replacements
                 const parsedParagraph = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                return (
+                return withInArticleAd(
                   <p 
-                    key={idx} 
                     dangerouslySetInnerHTML={{ __html: parsedParagraph }}
                     className="text-gray-650"
                   />

@@ -8,7 +8,6 @@ import { calculatePrestaciones } from '../lib/calculations/prestaciones';
 import { calculateAmortization } from '../lib/calculations/prestamos';
 import { calculateBusinessMargin, calculateDGIILateFees } from '../lib/calculations/negocios';
 import { ArrowLeft, Share2, Info, Check, Sparkles, TrendingUp, DollarSign, Calculator, HelpCircle, FileText, ChevronDown, ChevronUp } from 'lucide-react';
-import AdSenseBlock from './AdSenseBlock';
 import AdSlot from './AdSlot';
 import LaboralCalculators from './LaboralCalculators';
 import FinanzasCalculators from './FinanzasCalculators';

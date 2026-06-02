@@ -8,11 +8,19 @@ interface AdSlotProps {
 }
 
 const OFFICIAL_ADSENSE_CLIENT_ID = 'ca-pub-6144599865368963';
+const ADSENSE_SLOT_BY_POSITION: Record<AdSlotProps['position'], string> = {
+  horizontal: '2943190273',
+  rectangle: '5429752815',
+  'in-article': '8215698257',
+  sidebar: '3312679766',
+  mobile: '3210783582'
+};
 
 export default function AdSlot({ position, className = '' }: AdSlotProps) {
   const [showCode, setShowCode] = useState(false);
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
   const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
+  const adSlot = ADSENSE_SLOT_BY_POSITION[position];
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');
 
   useEffect(() => {
@@ -44,7 +52,7 @@ export default function AdSlot({ position, className = '' }: AdSlotProps) {
           <ins className="adsbygoogle"
                style={{ display: 'block', margin: '0 auto' }}
                data-ad-client={adsenseClientId}
-               data-ad-slot="1234567890"
+               data-ad-slot={adSlot}
                data-ad-format={format}
                data-full-width-responsive="true" />
         </div>
@@ -59,7 +67,7 @@ export default function AdSlot({ position, className = '' }: AdSlotProps) {
 <ins class="adsbygoogle"
      style="display:block"
      data-ad-client="${client}"
-     data-ad-slot="1234567890"
+     data-ad-slot="${adSlot}"
      data-ad-format="${format}"
      data-full-width-responsive="true"></ins>
 <script>
