@@ -357,9 +357,9 @@
   display: none !important;
 }
 
-@media (min-width: 1456px) {
+@media (min-width: 1500px) {
   .site-shell {
-    max-width: 1456px;
+    max-width: 1500px;
     padding: 0 24px;
     display: grid;
     grid-template-columns: 160px minmax(0, 1040px) 160px;
