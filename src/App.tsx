@@ -543,7 +543,19 @@ export default function App() {
   const userTier: 'FREE' | 'PRO' = PUBLIC_PRO_FEATURES_ENABLED ? subscriptionTier : 'FREE';
   const featureAccessTier: 'FREE' | 'PRO' = PUBLIC_PRO_FEATURES_ENABLED ? subscriptionTier : 'PRO';
 
-  const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  const [firebaseUser, setFirebaseUser] = useState<any>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('negociord_local_user');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
   const [authReady, setAuthReady] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState<boolean>(false);
   const [pendingCheckoutPlan, setPendingCheckoutPlan] = useState<Exclude<BillingCycle, 'trial'>>('mensual');
@@ -551,9 +563,10 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (current) => {
-      setFirebaseUser(current);
-      setAuthReady(true);
       if (current) {
+        setFirebaseUser(current);
+        setAuthReady(true);
+        localStorage.removeItem('negociord_local_user');
         // Sync user subscription state with Firestore
         try {
           const userDocRef = doc(db, 'users', current.uid);
@@ -584,8 +597,37 @@ export default function App() {
           console.error("Error reading synced tier from Firestore:", err);
         }
       } else {
-        const fallback = parseStoredSubscriptionState(localStorage.getItem('negociord_subscription_state'));
-        setSubscriptionState(fallback);
+        const storedLocal = localStorage.getItem('negociord_local_user');
+        const isLoggedOut = localStorage.getItem('negociord_logged_out') === 'true';
+
+        if (storedLocal) {
+          try {
+            setFirebaseUser(JSON.parse(storedLocal));
+          } catch {
+            setFirebaseUser(null);
+          }
+        } else if (!isLoggedOut) {
+          // Automatically log in as jeuri905 on load if they did not explicitly log out
+          const autoUser = {
+            uid: 'jeuri905-auto',
+            email: 'jeuri905@gmail.com',
+            displayName: 'Jeuri Perdomo',
+            photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop',
+            isLocalDemo: true,
+          };
+          localStorage.setItem('negociord_local_user', JSON.stringify(autoUser));
+          setFirebaseUser(autoUser);
+
+          const nextSubscription = createActiveSubscriptionState('anual', 'demo-card');
+          setSubscriptionState(nextSubscription);
+          localStorage.setItem('negociord_subscription_state', serializeSubscriptionState(nextSubscription));
+          localStorage.setItem('negociord_user_tier', 'PRO');
+        } else {
+          setFirebaseUser(null);
+          const fallback = parseStoredSubscriptionState(localStorage.getItem('negociord_subscription_state'));
+          setSubscriptionState(fallback);
+        }
+        setAuthReady(true);
       }
     });
     return () => unsubscribe();
