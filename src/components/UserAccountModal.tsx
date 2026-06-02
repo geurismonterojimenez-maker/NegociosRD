@@ -187,7 +187,7 @@ function getAuthErrorMessage(err: any): string {
     code.includes('auth/operation-not-allowed') ||
     code.includes('PASSWORD_LOGIN_DISABLED')
   ) {
-    return `El acceso con correo y contrasena no esta habilitado en Firebase. Usa "Entrar con Google" con ${ADMIN_EMAIL}, o activa Email/Password en Firebase Auth.`;
+    return 'El acceso con correo y contrasena no esta habilitado en Firebase. Usa "Entrar con Google" o activa Email/Password en Firebase Auth.';
   }
 
   if (
@@ -872,7 +872,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
         </div>
       )}
 
-      <div className="bg-white rounded-3xl max-w-3xl w-full border border-gray-150 p-6 md:p-8 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150" id="account-portal">
+      <div className="bg-white rounded-3xl max-w-4xl w-full border border-gray-150 p-5 sm:p-6 md:p-8 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto overflow-x-hidden animate-in zoom-in-95 duration-150" id="account-portal">
         <button 
           onClick={onClose}
           className="absolute top-5 right-5 p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all cursor-pointer"
@@ -880,12 +880,12 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
           <X size={18} />
         </button>
 
-        <div className="mb-6 flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center border border-teal-200 text-lg">
+        <div className="mb-6 flex items-start gap-2.5 pr-10 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center border border-teal-200 text-lg shrink-0">
             🏢
           </div>
-          <div>
-            <h3 className="text-xl font-extrabold text-[#111827]">Portal Seguro Tu Negocio RD</h3>
+          <div className="min-w-0">
+            <h3 className="text-lg sm:text-xl font-extrabold text-[#111827] leading-tight">Portal Seguro Tu Negocio RD</h3>
             <p className="text-xs text-gray-400">Autenticación Firebase & Consola Integrada de Pagos</p>
           </div>
         </div>
@@ -897,11 +897,11 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
           </div>
         ) : !user ? (
           /* --- EXQUISITE DUAL SIGN IN PANELS (EMAIL/PASSWORD + GOOGLE) --- */
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 py-4">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 py-4 min-w-0">
             
             {/* COLUMN A: EMAIL & PASSWORD ACCESS WITH LIVE MODE MUTATOR */}
-            <div className="md:col-span-12 lg:col-span-7 space-y-5 text-left">
-              <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+            <div className="xl:col-span-7 space-y-5 text-left min-w-0">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pb-2 border-b border-gray-100 min-w-0">
                 <h4 className="font-extrabold text-sm text-gray-800 tracking-tight">
                   {isRegisterMode ? 'Crear Cuenta Profesional' : 'Ingreso por Correo Electrónico'}
                 </h4>
@@ -918,7 +918,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
 
               <form onSubmit={handleEmailAuthSubmit} className="space-y-4">
                 {credentialsError && (
-                  <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl font-semibold border border-red-100 leading-relaxed space-y-2">
+                  <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl font-semibold border border-red-100 leading-relaxed space-y-2 break-words">
                     {credentialsError.includes('Authorized domains') && (
                       <a
                         href={FIREBASE_AUTH_SETTINGS_URL}
@@ -995,7 +995,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
             </div>
 
             {/* COLUMN B: FAST SOCIAL SIGN IN */}
-            <div className="md:col-span-12 lg:col-span-5 border-t lg:border-t-0 lg:border-l border-gray-150 pt-6 lg:pt-0 lg:pl-8 flex flex-col justify-center space-y-5 text-center">
+            <div className="xl:col-span-5 border-t xl:border-t-0 xl:border-l border-gray-150 pt-6 xl:pt-0 xl:pl-8 flex flex-col justify-center space-y-5 text-center min-w-0">
               <div>
                 <span className="px-3 py-1 bg-teal-50 text-[#0F766E] text-[10px] font-black rounded-full uppercase tracking-wider inline-block mb-2 border border-teal-100">
                   Acceso en un Clic
@@ -1026,7 +1026,7 @@ export default function UserAccountModal({ isOpen, onClose, userTier, onTierChan
                   disabled={actionLoading}
                   className="w-full py-2.5 px-4 border border-[#0F766E]/30 bg-[#0F766E]/5 hover:bg-[#0F766E]/10 rounded-xl font-bold text-[11px] text-[#0F766E] transition-all disabled:opacity-50"
                 >
-                  Continuar modo local para comprar PRO
+                  Continuar en modo local
                 </button>
               )}
 

@@ -97,19 +97,19 @@ export default function CalculatorsList({
         <Sparkles size={14} className="text-[#0F766E]" />
         <span>Filtrar por Categoría</span>
       </h2>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mb-8">
         <button
           onClick={() => setActiveCategory(null)}
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all cursor-pointer ${
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all cursor-pointer min-w-0 overflow-hidden ${
             activeCategory === null
               ? 'border-[#0F766E] bg-teal-50/20 text-[#0F766E] font-bold'
               : 'border-[#E5E7EB] bg-white hover:border-[#bdc9c6] text-gray-700 font-medium'
           }`}
         >
-          <span className="text-lg">🌟</span>
-          <div>
-            <div className="text-xs">Todas</div>
-            <p className="text-[10px] text-gray-400 font-normal">{CALCULATORS.length} herramientas</p>
+          <span className="text-lg shrink-0">🌟</span>
+          <div className="min-w-0 flex-1">
+            <div className="text-xs truncate">Todas</div>
+            <p className="text-[10px] text-gray-400 font-normal truncate">{CALCULATORS.length} herramientas</p>
           </div>
         </button>
 
@@ -119,21 +119,21 @@ export default function CalculatorsList({
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all cursor-pointer ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all cursor-pointer min-w-0 overflow-hidden ${
                 isSelected
                   ? 'border-[#0F766E] bg-teal-50/20 text-[#0F766E] font-bold'
                   : 'border-[#E5E7EB] bg-white hover:border-[#bdc9c6] text-gray-700 font-medium'
               }`}
             >
-              <span className="text-lg">
+              <span className="text-lg shrink-0">
                 {cat.id === 'impuestos' && '🏛️'}
                 {cat.id === 'laboral' && '💼'}
                 {cat.id === 'finanzas' && '📈'}
                 {cat.id === 'negocios' && '🏬'}
               </span>
-              <div>
-                <div className="text-xs">{cat.name}</div>
-                <p className="text-[10px] text-gray-400 font-normal truncate max-w-[150px]">{cat.descdgii}</p>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs truncate">{cat.name}</div>
+                <p className="text-[10px] text-gray-400 font-normal truncate">{cat.descdgii}</p>
               </div>
             </button>
           );
