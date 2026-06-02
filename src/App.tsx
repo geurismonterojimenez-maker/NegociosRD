@@ -669,6 +669,7 @@ export default function App() {
   // Simple dialog for "Portal" or "Login"
   const [showPortalModal, setShowPortalModal] = useState(false);
   const shouldShowAdRail = currentView !== 'precios' && currentView !== 'admin';
+  const shouldShowGlobalBottomAds = shouldShowAdRail && currentView !== 'calculator';
 
   // --- CTA Interactive State (Contabilidad Gratis) ---
   const [ctaVentasMes, setCtaVentasMes] = useState<number>(75000);
@@ -1495,6 +1496,10 @@ export default function App() {
                 <span>/</span>
                 <span className="text-gray-400">{activeCalculator.name}</span>
               </div>
+
+              <div className="mb-5 shrink-0" id="adsense-slot-1-top-calc">
+                <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
+              </div>
               
               <React.Suspense fallback={<LazyFallback label="Cargando calculadora..." />}>
                 <CalculatorForm 
@@ -1505,13 +1510,6 @@ export default function App() {
                   onProRequired={handleProRequired}
                 />
               </React.Suspense>
-
-              <div className="mt-6 shrink-0" id="adsense-slot-1-billboard-calc">
-                <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
-              </div>
-              <div className="xl:hidden mt-6 shrink-0" id="adsense-slot-2-mobile-alternative-calc">
-                <AdSenseBlock variant="mobile-infeed" className="shadow-xs border border-gray-150" />
-              </div>
             </div>
           )}
 
@@ -2038,14 +2036,14 @@ export default function App() {
           )}
 
           {/* Ad Slot 3 (Contraparte Móvil): Visible en móviles/tablets para completar las 4 inserciones publicitarias con alta visibilidad */}
-          {shouldShowAdRail && (
+          {shouldShowGlobalBottomAds && (
           <div className="xl:hidden mt-6 shrink-0" id="adsense-slot-3-mobile-alternative">
             <AdSenseBlock variant="results-inline" className="shadow-xs border border-gray-150" />
           </div>
           )}
 
           {/* 2. Publicidad Segura - Adsense horizontal placeholder rendered inside scrollable workspace */}
-          {shouldShowAdRail && (
+          {shouldShowGlobalBottomAds && (
           <section className="max-w-7xl mx-auto px-4 py-6 w-full mt-6" id="adsense-bottom-section">
             <AdSenseBlock variant="horizontal-bottom" />
           </section>
