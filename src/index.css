@@ -30,7 +30,8 @@ body,
 #main-workspace-balance span,
 #main-workspace-balance button,
 #main-workspace-balance label {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 #main-workspace-balance .font-mono,
@@ -359,8 +360,21 @@ body,
   display: none;
 }
 
+.responsive-flow-ad {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
 .nav-ad-container {
   display: none !important;
+}
+
+@media (max-width: 767px) {
+  #center-content-ad-hybrid {
+    border-left-width: 0;
+    border-right-width: 0;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -370,6 +384,10 @@ body,
 }
 
 @media (min-width: 1500px) {
+  .responsive-flow-ad {
+    display: none;
+  }
+
   .site-shell {
     max-width: 1500px;
     padding: 0 24px;
@@ -407,6 +425,71 @@ body,
 #header-logo-brand svg {
   width: 30.6px !important;
   height: 30.6px !important;
+}
+
+@media (max-width: 360px) {
+  .site-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  #main-workspace-balance {
+    padding: 0.75rem;
+  }
+
+  #main-workspace-balance h1 {
+    font-size: clamp(1.45rem, 9vw, 2rem) !important;
+    line-height: 1.08;
+  }
+
+  #main-workspace-balance h2,
+  #main-workspace-balance h3 {
+    line-height: 1.14;
+  }
+
+  #main-workspace-balance input {
+    text-overflow: ellipsis;
+  }
+
+  header > div {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  #header-logo-brand {
+    gap: 0.4rem;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  #header-logo-brand span {
+    font-size: 0.875rem !important;
+    line-height: 1;
+  }
+
+  #mobile-menu-toggle-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (max-width: 280px) {
+  #header-logo-brand span {
+    display: none;
+  }
+
+  #header-logo-brand svg {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  #main-workspace-balance {
+    padding: 0.5rem;
+  }
+
+  #main-workspace-balance h1 {
+    font-size: 1.35rem !important;
+  }
 }
 
 @media (min-width: 640px) {

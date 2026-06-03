@@ -1429,6 +1429,12 @@ export default function App() {
                 </div>
               </div>
 
+              {shouldShowAdRail && (
+                <div className="responsive-flow-ad" id="adsense-responsive-after-hero">
+                  <AdSenseBlock variant="mobile-infeed" />
+                </div>
+              )}
+
               <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
                   <div>
@@ -1458,6 +1464,12 @@ export default function App() {
                   ))}
                 </div>
               </section>
+
+              {shouldShowAdRail && (
+                <div className="responsive-flow-ad" id="adsense-responsive-after-rates">
+                  <AdSenseBlock variant="horizontal-bottom" />
+                </div>
+              )}
 
               {/* MAIN DYNAMIC DIRECTORY COMPONENT */}
               <div className="bg-white rounded-2xl border border-gray-250/80 shadow-xs overflow-hidden">

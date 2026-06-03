@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tunegociord-v1';
+const CACHE_VERSION = 'tunegociord-v2';
 const STATIC_ASSETS = ['/', '/favicon.svg', '/site.webmanifest', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
