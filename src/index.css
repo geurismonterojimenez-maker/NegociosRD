@@ -375,6 +375,18 @@ body,
     border-left-width: 0;
     border-right-width: 0;
   }
+
+  #main-workspace-balance table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  #main-workspace-balance th,
+  #main-workspace-balance td {
+    white-space: normal;
+  }
 }
 
 @media (min-width: 1024px) {
