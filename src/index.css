@@ -5,6 +5,13 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 #outer-adsense-grid-wrapper,
 #center-content-ad-hybrid,
 #main-workspace-balance,

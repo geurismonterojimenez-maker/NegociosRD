@@ -790,7 +790,7 @@ export default function App() {
   const [showPortalModal, setShowPortalModal] = useState(false);
   const shouldShowAdRail = currentView !== 'precios' && currentView !== 'admin';
   const shouldShowGlobalBottomAds = shouldShowAdRail && currentView !== 'calculator';
-  const shouldShowToolSidebar = ['home', 'calculator', 'blog'].includes(currentView);
+  const shouldShowToolSidebar = false;
 
   // --- CTA Interactive State (Contabilidad Gratis) ---
   const [ctaVentasMes, setCtaVentasMes] = useState<number>(75000);
