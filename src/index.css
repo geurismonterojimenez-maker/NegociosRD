@@ -357,47 +357,8 @@
 }
 
 @media (min-width: 1024px) {
-  .site-shell {
-    max-width: none;
-    padding: 0 10px;
-    display: grid;
-    grid-template-columns: 112px minmax(0, 1fr) 112px;
-    gap: 10px;
-    align-items: start;
-    justify-content: center;
-  }
-
-  .content-shell {
-    max-width: none;
-    margin: 0 auto;
-  }
-
-  .desktop-ad {
-    display: block !important;
-    width: 112px;
-    min-height: 600px;
-    border: 1px dashed #CBD5E1;
-    border-radius: 14px;
-    background: #F8FAFC;
-    position: sticky;
-    top: 96px;
-    overflow: hidden;
-  }
-
   .nav-ad-container {
     display: flex !important;
-  }
-}
-
-@media (min-width: 1280px) {
-  .site-shell {
-    padding: 0 14px;
-    grid-template-columns: 136px minmax(0, 1fr) 136px;
-    gap: 14px;
-  }
-
-  .desktop-ad {
-    width: 136px;
   }
 }
 
@@ -405,16 +366,28 @@
   .site-shell {
     max-width: 1500px;
     padding: 0 24px;
+    display: grid;
     grid-template-columns: 160px minmax(0, 1040px) 160px;
     gap: 24px;
+    align-items: start;
+    justify-content: center;
   }
 
   .content-shell {
     max-width: 1040px;
+    margin: 0 auto;
   }
 
   .desktop-ad {
+    display: block !important;
     width: 160px;
+    min-height: 600px;
+    border: 1px dashed #CBD5E1;
+    border-radius: 14px;
+    background: #F8FAFC;
+    position: sticky;
+    top: 96px;
+    overflow: hidden;
   }
 }
 
