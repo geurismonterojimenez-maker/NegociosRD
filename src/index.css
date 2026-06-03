@@ -416,6 +416,30 @@ body,
   }
 }
 
+@media (min-width: 2200px) {
+  header > div {
+    max-width: 92vw !important;
+  }
+
+  .site-shell {
+    max-width: 92vw;
+    grid-template-columns:
+      minmax(180px, 11vw)
+      minmax(1040px, 1fr)
+      minmax(180px, 11vw);
+    gap: clamp(24px, 2vw, 72px);
+  }
+
+  .content-shell {
+    max-width: none;
+    width: 100%;
+  }
+
+  .desktop-ad {
+    width: 100%;
+  }
+}
+
 /* Responsive adjustment for #header-logo-brand (under 640px) */
 #header-logo-brand {
   padding: 8px 12px;
