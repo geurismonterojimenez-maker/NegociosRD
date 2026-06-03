@@ -418,6 +418,8 @@ body,
   .desktop-ad {
     display: block !important;
     width: 160px;
+    min-width: 160px;
+    max-width: 160px;
     min-height: 600px;
     border: 1px dashed #CBD5E1;
     border-radius: 14px;
@@ -448,7 +450,10 @@ body,
   }
 
   .desktop-ad {
-    width: 100%;
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+    justify-self: center;
   }
 }
 

@@ -59,6 +59,25 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
     );
   }
 
+  if ((variant === 'skyscraper-left' || variant === 'skyscraper-right') && hasClientId && !isDev) {
+    return (
+      <div
+        className={`w-full h-full flex flex-col items-center gap-2.5 overflow-hidden ${className}`}
+        id={`adsense-block-${variant}`}
+      >
+        <div className="w-full flex items-center justify-center px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
+          Publicidad
+        </div>
+        <ins className="adsbygoogle"
+             style={{ display: 'inline-block', width: '160px', height: '600px' }}
+             data-ad-client={adsenseClientId}
+             data-ad-slot={adSlot}
+             data-ad-format="vertical"
+             data-full-width-responsive="false" />
+      </div>
+    );
+  }
+
   if (hasClientId && !isDev) {
     const format = variant === 'mobile-infeed' ? 'fluid' : variant.includes('skyscraper') ? 'vertical' : 'auto';
     const minHeightStyle = variant.includes('skyscraper') ? '600px' : variant === 'mobile-infeed' ? '120px' : '90px';
