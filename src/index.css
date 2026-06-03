@@ -364,6 +364,9 @@ body,
   display: block;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  contain: layout size;
+  overflow: hidden;
 }
 
 .nav-ad-container {
@@ -426,8 +429,31 @@ body,
     background: #F8FAFC;
     position: sticky;
     top: 96px;
+    contain: layout size;
     overflow: hidden;
   }
+}
+
+.adsbygoogle {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+#main-workspace-balance .adsbygoogle,
+#main-workspace-balance .adsbygoogle iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.desktop-ad .adsbygoogle,
+.desktop-ad .adsbygoogle iframe {
+  width: 160px !important;
+  max-width: 160px !important;
+}
+
+#center-content-ad-hybrid,
+#main-workspace-balance {
+  inline-size: 100%;
 }
 
 @media (min-width: 2200px) {

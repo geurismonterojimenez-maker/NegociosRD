@@ -99,7 +99,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
                data-ad-client={adsenseClientId}
                data-ad-slot={adSlot}
                data-ad-format={format}
-               data-full-width-responsive="true" />
+              data-full-width-responsive="false" />
         </div>
       </div>
     );
@@ -114,7 +114,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
      data-ad-client="${client}"
      data-ad-slot="${adSlot}"
      data-ad-format="${format}"
-     data-full-width-responsive="true"></ins>
+     data-full-width-responsive="false"></ins>
 <script>
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>`;
