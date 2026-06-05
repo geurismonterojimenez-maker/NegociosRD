@@ -398,13 +398,13 @@ body,
   }
 }
 
-@media (min-width: 1500px) {
+@media (min-width: 1456px) {
   .responsive-flow-ad {
     display: none;
   }
 
   .site-shell {
-    max-width: 1500px;
+    max-width: 1456px;
     padding: 0 24px;
     display: grid;
     grid-template-columns: 160px minmax(0, 1040px) 160px;
