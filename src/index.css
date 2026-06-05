@@ -418,6 +418,18 @@ body,
     margin: 0 auto;
   }
 
+  #left-adsense-skyscraper-column {
+    grid-column: 1;
+  }
+
+  #center-content-ad-hybrid {
+    grid-column: 2;
+  }
+
+  #right-adsense-skyscraper-column {
+    grid-column: 3;
+  }
+
   .desktop-ad {
     display: block !important;
     width: 160px;
