@@ -130,12 +130,20 @@ function smtpRead(socket: tls.TLSSocket): Promise<string> {
       cleanup();
       reject(err);
     };
+    const onClose = () => {
+      cleanup();
+      reject(new Error("Conexión SMTP cerrada prematuramente (cierre de socket o timeout)."));
+    };
     const cleanup = () => {
       socket.off("data", onData);
       socket.off("error", onError);
+      socket.off("close", onClose);
+      socket.off("end", onClose);
     };
     socket.on("data", onData);
     socket.on("error", onError);
+    socket.on("close", onClose);
+    socket.on("end", onClose);
   });
 }
 
@@ -171,11 +179,35 @@ async function sendGmailMessage(options: {
   const appPassword = process.env.GMAIL_APP_PASSWORD as string;
   const recipients = [options.to, ...INVOICE_BCC.split(",").map((email) => email.trim()).filter(Boolean)];
   const socket = tls.connect(465, "smtp.gmail.com", { servername: "smtp.gmail.com" });
+  socket.setTimeout(8000); // 8-second timeout limit to avoid blocking the Express main thread
 
   await new Promise<void>((resolve, reject) => {
-    socket.once("secureConnect", resolve);
-    socket.once("error", reject);
+    const onConnect = () => {
+      socket.off("error", onError);
+      socket.off("timeout", onTimeout);
+      resolve();
+    };
+    const onError = (err: Error) => {
+      socket.off("secureConnect", onConnect);
+      socket.off("timeout", onTimeout);
+      reject(err);
+    };
+    const onTimeout = () => {
+      socket.off("secureConnect", onConnect);
+      socket.off("error", onError);
+      socket.destroy();
+      reject(new Error("Timeout de conexión SMTP (8 segundos excedidos)"));
+    };
+    socket.once("secureConnect", onConnect);
+    socket.once("error", onError);
+    socket.once("timeout", onTimeout);
   });
+
+  const onSmtpTimeout = () => {
+    console.warn("[SMTP] Conexión inactiva superó el límite de tiempo. Destruyendo socket...");
+    socket.destroy();
+  };
+  socket.on("timeout", onSmtpTimeout);
 
   try {
     const greeting = await smtpRead(socket);
@@ -227,6 +259,7 @@ async function sendGmailMessage(options: {
     await smtpCommand(socket, "QUIT", [221]);
     return { sent: true };
   } finally {
+    socket.off("timeout", onSmtpTimeout);
     socket.end();
   }
 }

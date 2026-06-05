@@ -30,6 +30,21 @@ export async function fetchItbisGeneralRate(): Promise<RateSourceResult> {
     // Since government sites might be behind Cloudflare or returned HTML:
     // Try to locate rates inside text or just fallback gracefully
     const htmlText = await response.text();
+    
+    // Intenta extraer dinámicamente la tasa usando una expresión regular
+    const itbisRegex = /itbis.*?\b(1[5-9]|20)\s*%/i;
+    const match = htmlText.match(itbisRegex);
+    if (match) {
+      const parsedValue = parseInt(match[1], 10) / 100;
+      return {
+        value: parsedValue,
+        status: "current",
+        lastChecked: new Date().toISOString().split("T")[0],
+        sourceUrl: url,
+        notes: `Verificado: Tasa general de ITBIS de ${(parsedValue * 100)}% extraída dinámicamente del portal de la DGII.`
+      };
+    }
+
     if (htmlText.includes("18%") || htmlText.includes("0.18")) {
       return {
         value: 0.18,
@@ -72,7 +87,21 @@ export async function fetchTssSalarioBase(): Promise<RateSourceResult> {
     }
 
     const htmlText = await response.text();
-    // Try to find the 23,223 value
+    
+    // Intenta extraer dinámicamente el salario base usando una expresión regular (ej. "23,223" o "24,500")
+    const tssRegex = /(?:salario\s+base|salario\s+mínimo|cotizable|resolución).*?\b(2\d)[,.](\d{3})\b/i;
+    const match = htmlText.match(tssRegex);
+    if (match) {
+      const parsedValue = parseFloat(`${match[1]}${match[2]}`);
+      return {
+        value: parsedValue,
+        status: "current",
+        lastChecked: new Date().toISOString().split("T")[0],
+        sourceUrl: url,
+        notes: `Verificado: Salario base de RD$ ${parsedValue.toLocaleString('en-US')} extraído dinámicamente de resoluciones TSS.`
+      };
+    }
+
     if (htmlText.includes("23,223") || htmlText.includes("23223")) {
       return {
         value: 23223.00,
@@ -112,6 +141,21 @@ export async function fetchAfpEmpleadoRate(): Promise<RateSourceResult> {
 
     if (!response || !response.ok) throw new Error("SIPEN down");
     const text = await response.text();
+    
+    // Intenta extraer dinámicamente la tasa usando una expresión regular (ej. "2.87%")
+    const afpRegex = /(?:afp|pensiones).*?\b(2\.\d{2})\s*%/i;
+    const match = text.match(afpRegex);
+    if (match) {
+      const parsedValue = parseFloat(match[1]) / 100;
+      return {
+        value: parsedValue,
+        status: "current",
+        lastChecked: new Date().toISOString().split("T")[0],
+        sourceUrl: url,
+        notes: `Verificado: Aporte AFP de ${(parsedValue * 100).toFixed(2)}% extraído dinámicamente de SIPEN.`
+      };
+    }
+
     if (text.includes("2.87") || text.includes("0.0287")) {
       return {
         value: 0.0287,

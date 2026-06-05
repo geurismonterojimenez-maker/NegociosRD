@@ -51,7 +51,8 @@ service cloud.firestore {
         && (data.subscriptionAutoRenew == null || data.subscriptionAutoRenew is bool)
         && (data.subscriptionLastAction == null || data.subscriptionLastAction is string)
         && (data.subscriptionUpdatedAt == null || data.subscriptionUpdatedAt is string)
-        && (data.updatedAt == null || data.updatedAt is string);
+        && (data.updatedAt == null || data.updatedAt is string)
+        && (data.metadata == null || data.metadata is map);
     }
 
     function isValidPaymentMethod(data) {
@@ -109,6 +110,7 @@ service cloud.firestore {
         incoming().diff(existing()).affectedKeys().hasOnly([
           'role',
           'updatedAt',
+          'metadata',
           'displayName',
           'photoURL',
           'subscriptionStatus',
