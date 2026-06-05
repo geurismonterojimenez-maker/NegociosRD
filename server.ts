@@ -10,6 +10,15 @@ import { CALCULATORS, PROGRAMMATIC_GUIDES } from "./src/data";
 
 dotenv.config();
 
+// Global error logging handlers to safeguard server uptime against uncaught exceptions or unhandled rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[FatalError] Unhandled Promise Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("[FatalError] Uncaught Exception:", error);
+});
+
 const app = express();
 app.use(express.json());
 const PORT_VALUE = process.env.PORT || "3000";

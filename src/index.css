@@ -398,7 +398,7 @@ body,
   }
 }
 
-@media (min-width: 1456px) {
+@media (min-width: 1240px) {
   .responsive-flow-ad {
     display: none;
   }

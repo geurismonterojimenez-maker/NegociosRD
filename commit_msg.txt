@@ -1,0 +1,1 @@
+fix: safeguard access with client-side ErrorBoundary, server process handlers, and lower ad breakpoint to 1240px
