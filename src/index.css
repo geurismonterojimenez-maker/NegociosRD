@@ -432,6 +432,7 @@ body,
 
   .desktop-ad {
     display: block !important;
+    box-sizing: content-box;
     width: 160px;
     min-width: 160px;
     max-width: 160px;
@@ -441,8 +442,6 @@ body,
     background: #F8FAFC;
     position: sticky;
     top: 96px;
-    contain: layout size;
-    overflow: hidden;
   }
 }
 

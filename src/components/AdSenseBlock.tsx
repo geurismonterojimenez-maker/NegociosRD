@@ -62,7 +62,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
   if ((variant === 'skyscraper-left' || variant === 'skyscraper-right') && hasClientId && !isDev) {
     return (
       <div
-        className={`w-full h-full flex flex-col items-center gap-2.5 overflow-hidden ${className}`}
+        className={`w-full flex flex-col items-center gap-2 ${className}`}
         id={`adsense-block-${variant}`}
       >
         <div className="w-full flex items-center justify-center px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
