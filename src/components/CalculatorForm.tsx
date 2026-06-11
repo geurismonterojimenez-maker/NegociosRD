@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CalculatorInfo, FaqItem } from '../types';
+import { getCalculatorEditorialContent } from '../content/calculator-content';
+import { trackEvent } from '../lib/analytics';
 import { TAX_RATES } from '../config/tax-rates';
 import { calculateItbisExcluido, calculateItbisIncluido } from '../lib/calculations/itbis';
 import { calculateIsrAsalariado } from '../lib/calculations/isr';
@@ -19,10 +21,12 @@ interface CalculatorFormProps {
   onNavigateToCalc: (slug: string) => void;
   userTier?: 'FREE' | 'PRO';
   onProRequired?: (featureName: string) => void;
+  hasExternalH1?: boolean;
 }
 
-export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRequired }: CalculatorFormProps) {
+export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRequired, hasExternalH1 = false }: CalculatorFormProps) {
   const isLocked = false;
+  const editorialContent = useMemo(() => getCalculatorEditorialContent(calc), [calc]);
 
   if (isLocked) {
     return (
@@ -383,8 +387,19 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
     bizMarginDesired
   ]);
 
+  useEffect(() => {
+    if (!calculatedResults) return;
+    const timer = window.setTimeout(() => {
+      trackEvent('calculator_result', {
+        calculator_id: calc.id,
+        calculator_category: calc.category
+      });
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [calc.id, calc.category, calculatedResults]);
+
   // Specific FAQs for tools context
-  const miniFAQs = useMemo<FaqItem[]>(() => {
+  const genericMiniFAQs = useMemo<FaqItem[]>(() => {
     if (calc.category === 'impuestos') {
       return [
         { question: '¿Qué transacciones físicas están gravadas con el ITBIS?', answer: 'Cualquier transferencia de bienes industrializados dentro de la frontera nacional de RD de mano de comercios comerciales, así como importaciones aduaneras de materias o equipos, y la prestación de servicios generales profesionales.' },
@@ -402,6 +417,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
       ];
     }
   }, [calc.category]);
+  const miniFAQs = editorialContent.faqs.length > 0 ? editorialContent.faqs : genericMiniFAQs;
 
   const relatedTools = useMemo(() => {
     if (calc.category === 'impuestos') {
@@ -439,7 +455,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
       {/* Header Container */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#111827] mb-2">{calc.name}</h1>
+          {hasExternalH1 ? (
+            <h2 className="text-3xl font-bold tracking-tight text-[#111827] mb-2">{calc.name}</h2>
+          ) : (
+            <h1 className="text-3xl font-bold tracking-tight text-[#111827] mb-2">{calc.name}</h1>
+          )}
           <p className="text-lg text-[#6B7280] max-w-3xl">{calc.description}</p>
         </div>
         <div className="flex items-center gap-2 self-start md:self-auto">
@@ -951,7 +971,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
         {/* Results Screen - occupies 7 cols on lg */}
         <div className="2xl:col-span-7 space-y-6 min-w-0">
           {/* Main Results Graphic Widget in deep primary teal */}
-          <div className="calculator-results-panel bg-[#0F766E] rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700 min-w-0">
+          <div className="calculator-results-panel bg-[#0F766E] rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700 min-w-0" aria-live="polite" aria-atomic="true">
             <span className="text-xs font-bold text-teal-200 uppercase tracking-widest mb-5 block flex items-center gap-1.5">
               <Sparkles size={14} className="text-teal-300" />
               Resultado Calculado — República Dominicana
@@ -1511,7 +1531,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
           <div className="my-4 p-4 bg-teal-50/40 border border-teal-100 rounded-xl flex items-start gap-3">
             <span className="text-lg">💡</span>
             <div>
-              <h5 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Aviso de Validación Tu Negocio RD 2026</h5>
+              <h3 className="text-xs font-bold text-teal-950 uppercase tracking-wider">Aviso de Validación Tu Negocio RD 2026</h3>
               <p className="text-[11px] text-teal-800 leading-normal mt-0.5">
                 Estimación basada en tasas oficiales y topes vigentes documentados de la DGII Dominicana y la TSS (salario base RD$ 23,223.00). Por favor, consulta las fuentes oficiales antes de tomar decisiones legales, fiscales o laborales definitivas. Puedes exportar estos resultados en CSV o imprimir en PDF usando los botones dedicados superiores.
               </p>
@@ -1653,6 +1673,19 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
           </h2>
 
           <div className="space-y-4 text-sm text-gray-600 leading-relaxed font-sans">
+            <h3 className="text-base font-bold text-gray-900">Que calcula esta herramienta</h3>
+            <p>{editorialContent.overview}</p>
+            <h3 className="text-base font-bold text-gray-900">Proceso de calculo</h3>
+            <p>{editorialContent.steps}</p>
+            <h3 className="text-base font-bold text-gray-900">Ejemplo practico</h3>
+            <p>{editorialContent.example}</p>
+            <h3 className="text-base font-bold text-gray-900">Errores comunes</h3>
+            <ul className="list-disc pl-5 space-y-2">
+              {editorialContent.commonErrors.map((error) => <li key={error}>{error}</li>)}
+            </ul>
+          </div>
+
+          <div className="hidden">
             <h3 className="text-base font-bold text-gray-900">¿Qué es y cómo funciona el cálculo de {calc.name}?</h3>
             <p>
               En la República Dominicana, los procesos {calc.category === 'impuestos' ? 'fiscales de la DGII' : calc.category === 'laboral' ? 'normados por el Ministerio de Trabajo y la TSS' : 'bancarios regulados por la Superintendencia de Bancos'} están estrictamente codificados por leyes nacionales. Comprender su funcionamiento garantiza a los empleados recibir su compensación justa y a los empresarios cumplir con sus obligaciones tributarias de manera transparente.
@@ -1683,6 +1716,16 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-base font-bold text-gray-900">Preguntas frecuentes de {calc.name}</h3>
+            {miniFAQs.map((faq) => (
+              <div key={faq.question} className="bg-gray-50/50 p-4 rounded-lg border border-gray-100">
+                <h4 className="font-bold text-sm text-[#111827]">{faq.question}</h4>
+                <p className="text-xs text-[#6B7280] mt-1">{faq.answer}</p>
+              </div>
+            ))}
           </div>
         </div>
 

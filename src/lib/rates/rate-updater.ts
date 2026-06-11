@@ -1,19 +1,37 @@
-import { 
-  fetchItbisGeneralRate, 
-  fetchTssSalarioBase, 
+import {
   fetchAfpEmpleadoRate,
-  RateSourceResult 
+  fetchItbisGeneralRate,
+  fetchTssSalarioBase,
+  RateSourceResult
 } from "./rate-sources";
+
+type RateStatus = "current" | "needs_review" | "source_unavailable";
+
+interface StoredRate {
+  value: number;
+  label: string;
+  sourceName: string;
+  sourceUrl: string;
+  effectiveDate: string;
+  lastChecked: string;
+  status: RateStatus;
+  notes: string;
+  verificationStatus?: string;
+  lastAttempt?: string;
+  candidateValue?: number;
+  candidateDetectedAt?: string;
+}
 
 export interface RateStatusUpdate {
   key: string;
   previousValue: number;
   newValue: number;
-  status: "current" | "needs_review" | "source_unavailable";
+  status: RateStatus;
   sourceName: string;
   sourceUrl: string;
   lastChecked: string;
   notes: string;
+  candidateValue?: number;
 }
 
 export interface RefreshResult {
@@ -22,263 +40,276 @@ export interface RefreshResult {
   rates: Record<string, RateStatusUpdate>;
   warnings: string[];
   changesDetected: boolean;
+  pendingReview: Record<string, {
+    currentValue: number;
+    candidateValue: number;
+    sourceUrl: string;
+    detectedAt: string;
+  }>;
 }
 
-// Default in-memory rates fallback database
-const defaultRatesCache = {
+const checkedDate = "2026-06-10";
+const defaultRatesCache: Record<string, StoredRate> = {
   itbis_general: {
     value: 0.18,
-    label: "ITBIS General",
-    sourceName: "Dirección General de Impuestos Internos (DGII)",
+    label: "ITBIS general",
+    sourceName: "Direccion General de Impuestos Internos (DGII)",
     sourceUrl: "https://dgii.gov.do",
     effectiveDate: "2013-01-01",
-    lastChecked: "2026-05-30",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Tasa base estándar de 18%."
+    notes: "Tasa general verificada de 18%."
   },
   itbis_reducida: {
     value: 0.16,
-    label: "ITBIS Reducido",
-    sourceName: "Dirección General de Impuestos Internos (DGII)",
+    label: "ITBIS reducido",
+    sourceName: "Direccion General de Impuestos Internos (DGII)",
     sourceUrl: "https://dgii.gov.do",
     effectiveDate: "2016-01-01",
-    lastChecked: "2026-05-30",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Tasa del 16% para determinados productos de la canasta comercial procesados."
+    notes: "Tasa de 16% para bienes expresamente alcanzados."
   },
   afp_empleado: {
     value: 0.0287,
-    label: "AFP Empleado",
-    sourceName: "Tesorería de la Seguridad Social (TSS)",
+    label: "AFP empleado",
+    sourceName: "Tesoreria de la Seguridad Social (TSS)",
     sourceUrl: "https://tss.gob.do",
     effectiveDate: "2003-06-01",
-    lastChecked: "2026-05-30",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Aporte laboral del 2.87%."
+    notes: "Aporte laboral de 2.87%."
   },
   sfs_empleado: {
     value: 0.0304,
-    label: "SFS Empleado",
-    sourceName: "Tesorería de la Seguridad Social (TSS)",
+    label: "SFS empleado",
+    sourceName: "Tesoreria de la Seguridad Social (TSS)",
     sourceUrl: "https://tss.gob.do",
     effectiveDate: "2007-09-01",
-    lastChecked: "2026-05-30",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Seguro Familiar de Salud laboral de 3.04%."
+    notes: "Aporte laboral de 3.04%."
   },
   afp_empleador: {
-    value: 0.0710,
-    label: "AFP Empleador",
-    sourceName: "Tesorería de la Seguridad Social (TSS)",
+    value: 0.071,
+    label: "AFP empleador",
+    sourceName: "Tesoreria de la Seguridad Social (TSS)",
     sourceUrl: "https://tss.gob.do",
     effectiveDate: "2003-06-01",
-    lastChecked: "2026-05-30",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Contribución patronal al plan de pensiones ordinario (7.10%)."
+    notes: "Aporte patronal de 7.10%."
   },
   sfs_empleador: {
     value: 0.0709,
-    label: "SFS Empleador",
-    sourceName: "Tesorería de la Seguridad Social (TSS)",
+    label: "SFS empleador",
+    sourceName: "Tesoreria de la Seguridad Social (TSS)",
     sourceUrl: "https://tss.gob.do",
     effectiveDate: "2007-09-01",
-    lastChecked: "2026-05-30",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Contribución patronal al seguro de salud familiar (7.09%)."
+    notes: "Aporte patronal de 7.09%."
   },
   srl_base: {
-    value: 0.0120,
-    label: "SRL Seguro Riesgos Laborales Base",
-    sourceName: "Tesorería de la Seguridad Social (TSS)",
+    value: 0.012,
+    label: "SRL base",
+    sourceName: "Tesoreria de la Seguridad Social (TSS)",
     sourceUrl: "https://tss.gob.do",
     effectiveDate: "2003-06-01",
-    lastChecked: "2026-05-30",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Aporte patronal de riesgos de accidentes laborales de promedio sectorial de 1.20%."
+    notes: "Referencia de 1.20%; puede variar por riesgo."
   },
   infotep: {
-    value: 0.0100,
-    label: "Aporte INFOTEP Patronal",
-    sourceName: "Instituto de Formación Técnica (INFOTEP)",
+    value: 0.01,
+    label: "INFOTEP empleador",
+    sourceName: "INFOTEP",
     sourceUrl: "https://www.infotep.gob.do",
     effectiveDate: "1980-01-16",
-    lastChecked: "2026-05-30",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Ley 116-80 sobre capacitación laboral de un 1.00% corporativo."
+    notes: "Aporte patronal de 1.00%."
   },
   salario_minimo_tss: {
-    value: 23223.00,
-    label: "Salario Mínimo Nacional TSS",
+    value: 23223,
+    label: "Salario base para topes TSS",
     sourceName: "Consejo Nacional de la Seguridad Social (CNSS)",
     sourceUrl: "https://www.cnss.gob.do",
-    effectiveDate: "2024-02-01",
-    lastChecked: "2026-05-30",
+    effectiveDate: "2026-02-01",
+    lastChecked: checkedDate,
     status: "current",
-    notes: "Sueldo de referencia nacional de RD$ 23,223.00 para límites TSS."
+    notes: "Base de RD$23,223; topes: SRL 92,892, SFS 232,230 y pensiones 464,460."
   }
 };
 
-/**
- * Resiliently reads the official rates cache from JSON file on Node server, or falls back to in-memory store.
- */
+function getPaths() {
+  return {
+    runtime: ["data", "official-rates-cache.runtime.json"],
+    source: ["src", "lib", "rates", "official-rates-cache.json"],
+    audit: ["data", "rate-audit-log.jsonl"]
+  };
+}
+
 export async function readRatesCache(): Promise<any> {
-  if (typeof window === "undefined") {
-    try {
-      const fsModule = await import("fs");
-      const pathModule = await import("path");
-      const fs = fsModule.default || fsModule;
-      const path = pathModule.default || pathModule;
-      
-      const filePath = path.join(process.cwd(), "src", "lib", "rates", "official-rates-cache.json");
+  if (typeof window !== "undefined") {
+    return { rates: defaultRatesCache, status: "synchronized", lastCheckedAll: `${checkedDate}T00:00:00Z` };
+  }
+
+  try {
+    const fsModule = await import("fs");
+    const pathModule = await import("path");
+    const fs = fsModule.default || fsModule;
+    const path = pathModule.default || pathModule;
+    const paths = getPaths();
+    for (const segments of [paths.runtime, paths.source]) {
+      const filePath = path.join(process.cwd(), ...segments);
       if (fs.existsSync(filePath)) {
-        const fileContent = fs.readFileSync(filePath, "utf-8");
-        return JSON.parse(fileContent);
+        return JSON.parse(fs.readFileSync(filePath, "utf-8"));
       }
-    } catch (err) {
-      console.error("[RateUpdater] Failed to read rates cache file, using schema memory fallback:", err);
     }
+  } catch (err) {
+    console.error("[RateUpdater] Failed to read rates cache:", err);
   }
-  return { rates: defaultRatesCache, status: "synchronized", lastCheckedAll: "2026-05-30T15:00:00Z" };
+
+  return { rates: defaultRatesCache, status: "synchronized", lastCheckedAll: `${checkedDate}T00:00:00Z` };
 }
 
-/**
- * Writes the refreshed rates cache back to JSON.
- */
 export async function writeRatesCache(data: any): Promise<boolean> {
-  if (typeof window === "undefined") {
-    try {
-      const fsModule = await import("fs");
-      const pathModule = await import("path");
-      const fs = fsModule.default || fsModule;
-      const path = pathModule.default || pathModule;
-      
-      const filePath = path.join(process.cwd(), "src", "lib", "rates", "official-rates-cache.json");
-      
-      // Ensure directory exists
-      const dirPath = path.dirname(filePath);
-      if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
-      }
-      
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
-      return true;
-    } catch (err) {
-      console.error("[RateUpdater] Failed to write refreshed rates to JSON cache:", err);
-    }
+  if (typeof window !== "undefined") return false;
+  try {
+    const fsModule = await import("fs");
+    const pathModule = await import("path");
+    const fs = fsModule.default || fsModule;
+    const path = pathModule.default || pathModule;
+    const filePath = path.join(process.cwd(), ...getPaths().runtime);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    return true;
+  } catch (err) {
+    console.error("[RateUpdater] Failed to write rates cache:", err);
+    return false;
   }
-  return false;
 }
 
-/**
- * Orchestrates a complete rate scraping refresh, tracks any modifications, 
- * issues clear warnings/alerts and saves the synchronized state locally.
- */
+async function appendAuditEntry(entry: Record<string, unknown>): Promise<void> {
+  if (typeof window !== "undefined") return;
+  try {
+    const fsModule = await import("fs");
+    const pathModule = await import("path");
+    const fs = fsModule.default || fsModule;
+    const path = pathModule.default || pathModule;
+    const auditPath = path.join(process.cwd(), ...getPaths().audit);
+    fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+    fs.appendFileSync(auditPath, `${JSON.stringify(entry)}\n`, "utf-8");
+  } catch (err) {
+    console.error("[RateUpdater] Failed to append audit entry:", err);
+  }
+}
+
 export async function refreshOfficialRates(): Promise<RefreshResult> {
   const currentStore = await readRatesCache();
-  const currentRates = currentStore.rates || defaultRatesCache;
-  
+  const currentRates: Record<string, StoredRate> = currentStore.rates || defaultRatesCache;
   const warnings: string[] = [];
-  let changesDetected = false;
-  
-  // 1. Fetch ITBIS
-  const itbisRes = await fetchItbisGeneralRate();
-  if (itbisRes.status === "source_unavailable") {
-    warnings.push("No se pudo contactar el portal de la DGII. Fallback activo.");
-  }
-  
-  const originalItbis = currentRates.itbis_general?.value ?? 0.18;
-  if (itbisRes.value !== originalItbis && itbisRes.status === "current") {
-    changesDetected = true;
-  }
-  
-  // 2. Fetch TSS Salario Mínimo Base
-  const tssRes = await fetchTssSalarioBase();
-  if (tssRes.status === "source_unavailable") {
-    warnings.push("La conexión con la Tesorería de la Seguridad Social (TSS) falló. Se usó el último tope registrado.");
-  }
-  
-  const originalTss = currentRates.salario_minimo_tss?.value ?? 23223.00;
-  if (tssRes.value !== originalTss && tssRes.status === "current") {
-    changesDetected = true;
+  const pendingReview: RefreshResult["pendingReview"] = {};
+  const checkedAt = new Date().toISOString();
+  const sourceResults = await Promise.all([
+    fetchItbisGeneralRate(),
+    fetchTssSalarioBase(),
+    fetchAfpEmpleadoRate()
+  ]);
+  const checks: Array<{
+    key: string;
+    result: RateSourceResult;
+    unavailable: string;
+  }> = [
+    { key: "itbis_general", result: sourceResults[0], unavailable: "No se pudo contactar el portal de la DGII." },
+    { key: "salario_minimo_tss", result: sourceResults[1], unavailable: "No se pudo contactar el portal de la TSS." },
+    { key: "afp_empleado", result: sourceResults[2], unavailable: "No se pudo contactar el portal de SIPEN." }
+  ];
+  const fileRates: Record<string, StoredRate> = JSON.parse(JSON.stringify(currentRates));
+
+  for (const [key, fallback] of Object.entries(defaultRatesCache)) {
+    if (!fileRates[key]) fileRates[key] = JSON.parse(JSON.stringify(fallback));
   }
 
-  // 3. Fetch AFP Empleado
-  const afpRes = await fetchAfpEmpleadoRate();
-  if (afpRes.status === "source_unavailable") {
-    warnings.push("No se pudo contactar el SIPEN. Carga de parámetros pasiva.");
-  }
+  for (const check of checks) {
+    const stored = fileRates[check.key];
+    if (!stored) continue;
+    const currentValue = Number(stored.value);
+    stored.lastAttempt = checkedAt;
+    stored.sourceUrl = check.result.sourceUrl;
 
-  const originalAfp = currentRates.afp_empleado?.value ?? 0.0287;
-  if (afpRes.value !== originalAfp && afpRes.status === "current") {
-    changesDetected = true;
-  }
-
-  // 4. Update the disk cache structure safely, preserving everything else!
-  const fileRates = JSON.parse(JSON.stringify(currentRates));
-
-  if (fileRates.itbis_general) {
-    fileRates.itbis_general.value = itbisRes.value;
-    fileRates.itbis_general.status = itbisRes.status;
-    fileRates.itbis_general.lastChecked = itbisRes.lastChecked;
-    fileRates.itbis_general.sourceUrl = itbisRes.sourceUrl;
-    if (itbisRes.notes) fileRates.itbis_general.notes = itbisRes.notes;
-  }
-  
-  if (fileRates.salario_minimo_tss) {
-    fileRates.salario_minimo_tss.value = tssRes.value;
-    fileRates.salario_minimo_tss.status = tssRes.status;
-    fileRates.salario_minimo_tss.lastChecked = tssRes.lastChecked;
-    fileRates.salario_minimo_tss.sourceUrl = tssRes.sourceUrl;
-    if (tssRes.notes) fileRates.salario_minimo_tss.notes = tssRes.notes;
-  }
-
-  if (fileRates.afp_empleado) {
-    fileRates.afp_empleado.value = afpRes.value;
-    fileRates.afp_empleado.status = afpRes.status;
-    fileRates.afp_empleado.lastChecked = afpRes.lastChecked;
-    fileRates.afp_empleado.sourceUrl = afpRes.sourceUrl;
-    if (afpRes.notes) fileRates.afp_empleado.notes = afpRes.notes;
-  }
-
-  // Also verify other standard keys exist from fallbacks if we lost them earlier
-  const fallbackKeys = Object.keys(defaultRatesCache);
-  for (const fk of fallbackKeys) {
-    if (!fileRates[fk]) {
-      fileRates[fk] = JSON.parse(JSON.stringify((defaultRatesCache as any)[fk]));
+    if (check.result.status === "source_unavailable") {
+      warnings.push(`${check.unavailable} Se conserva el ultimo valor verificado.`);
+      stored.verificationStatus = "source_unavailable";
+      continue;
     }
+    if (check.result.status !== "current") {
+      warnings.push(`${stored.label}: la fuente respondio, pero requiere revision manual.`);
+      stored.verificationStatus = "needs_review";
+      continue;
+    }
+    if (Number(check.result.value) !== currentValue) {
+      pendingReview[check.key] = {
+        currentValue,
+        candidateValue: Number(check.result.value),
+        sourceUrl: check.result.sourceUrl,
+        detectedAt: checkedAt
+      };
+      stored.status = "needs_review";
+      stored.verificationStatus = "candidate_detected";
+      stored.candidateValue = Number(check.result.value);
+      stored.candidateDetectedAt = checkedAt;
+      warnings.push(`${stored.label}: se detecto un valor distinto y quedo pendiente de aprobacion.`);
+      continue;
+    }
+
+    stored.status = "current";
+    stored.verificationStatus = "verified";
+    stored.lastChecked = check.result.lastChecked;
+    stored.notes = check.result.notes;
+    delete stored.candidateValue;
+    delete stored.candidateDetectedAt;
   }
 
-  // Compile final store state for disk writing
+  const changesDetected = Object.keys(pendingReview).length > 0;
   const updatedStore = {
-    lastCheckedAll: new Date().toISOString(),
-    status: warnings.length === 0 ? "synchronized" : "partial_success",
+    lastAttemptAll: checkedAt,
+    lastCheckedAll: changesDetected || warnings.length > 0 ? currentStore.lastCheckedAll : checkedAt,
+    status: changesDetected ? "pending_review" : warnings.length === 0 ? "synchronized" : "partial_success",
+    pendingReview,
     rates: fileRates
   };
-
-  // Persist back to the cache file (Saves standard structure with "value" intact!)
   await writeRatesCache(updatedStore);
+  await appendAuditEntry({
+    timestamp: checkedAt,
+    status: updatedStore.status,
+    changesDetected,
+    warnings,
+    pendingReview
+  });
 
-  // Now build compliant RateStatusUpdate structures for the API return value
-  const updatedRatesResult: Record<string, RateStatusUpdate> = {};
-  for (const k of Object.keys(fileRates)) {
-    const originalRateVal = currentRates[k]?.value ?? fileRates[k].value;
-    updatedRatesResult[k] = {
-      key: k,
-      previousValue: originalRateVal,
-      newValue: fileRates[k].value,
-      status: fileRates[k].status,
-      sourceName: fileRates[k].sourceName,
-      sourceUrl: fileRates[k].sourceUrl,
-      lastChecked: fileRates[k].lastChecked,
-      notes: fileRates[k].notes
+  const rates: Record<string, RateStatusUpdate> = {};
+  for (const [key, rate] of Object.entries(fileRates)) {
+    rates[key] = {
+      key,
+      previousValue: currentRates[key]?.value ?? rate.value,
+      newValue: rate.value,
+      status: rate.status,
+      sourceName: rate.sourceName,
+      sourceUrl: rate.sourceUrl,
+      lastChecked: rate.lastChecked,
+      notes: rate.notes,
+      candidateValue: rate.candidateValue
     };
   }
 
   return {
     success: true,
-    timestamp: new Date().toISOString(),
-    rates: updatedRatesResult,
+    timestamp: checkedAt,
+    rates,
     warnings,
-    changesDetected
+    changesDetected,
+    pendingReview
   };
 }

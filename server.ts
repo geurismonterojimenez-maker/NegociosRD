@@ -7,6 +7,19 @@ import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { readRatesCache, refreshOfficialRates } from "./src/lib/rates/rate-updater";
 import { CALCULATORS, PROGRAMMATIC_GUIDES } from "./src/data";
+import {
+  getCanonicalCalculatorPath,
+  getSalaryPageAmounts,
+  parseProgrammaticSeoPage,
+  parseSalaryPageAmount,
+  PROGRAMMATIC_SEO_PAGES,
+  salaryPageSlug,
+  SEO_LANDING_BY_SLUG,
+  SEO_LANDING_PAGES,
+  TOPIC_HUB_BY_SLUG,
+  TOPIC_HUBS
+} from "./src/seo-pages";
+import { EDITORIAL_PAGES } from "./src/content/editorial";
 
 dotenv.config();
 
@@ -26,6 +39,17 @@ const NUMERIC_PORT = Number(PORT_VALUE);
 const LISTEN_TARGET = Number.isNaN(NUMERIC_PORT) ? PORT_VALUE : NUMERIC_PORT;
 
 const CACHE_FILE = path.join(process.cwd(), "news-cache.json");
+const NEWS_REVIEW_FILE = path.join(process.cwd(), "data", "news-review-queue.json");
+const OFFICIAL_NEWS_HOSTS = [
+  "dgii.gov.do",
+  "tss.gob.do",
+  "mt.gob.do",
+  "bancentral.gov.do",
+  "cnss.gob.do",
+  "sisalril.gob.do",
+  "sipen.gob.do",
+  "presidencia.gob.do"
+];
 const CHECKOUT_PROVIDER = process.env.CHECKOUT_PROVIDER || "demo";
 const ORIGIN_URL = (process.env.PUBLIC_SITE_URL || process.env.APP_URL || "https://tunegociord.com").replace(/\/$/, "");
 const DEFAULT_SHARE_IMAGE = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop";
@@ -46,12 +70,12 @@ const SECURITY_HEADERS: Record<string, string> = {
     "base-uri 'self'",
     "object-src 'none'",
     "frame-ancestors 'none'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.gstatic.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.gstatic.com https://apis.google.com",
     "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com",
     "img-src 'self' data: blob: https:",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "frame-src https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com",
+    "frame-src https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.firebaseapp.com",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "upgrade-insecure-requests"
@@ -345,23 +369,52 @@ function loadArticles() {
   return [];
 }
 
-// Helper to save articles to the cached JSON database
-function saveArticles(articles: any[]) {
+function loadReviewQueue(): any[] {
   try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(articles, null, 2), "utf-8");
+    if (fs.existsSync(NEWS_REVIEW_FILE)) {
+      return JSON.parse(fs.readFileSync(NEWS_REVIEW_FILE, "utf-8"));
+    }
   } catch (err) {
-    console.error("Error writing news cache file:", err);
+    console.error("Error reading news review queue:", err);
   }
+  return [];
+}
+
+function saveReviewQueue(articles: any[]) {
+  fs.mkdirSync(path.dirname(NEWS_REVIEW_FILE), { recursive: true });
+  fs.writeFileSync(NEWS_REVIEW_FILE, JSON.stringify(articles, null, 2), "utf-8");
+}
+
+function hasEnoughOfficialSources(article: any): boolean {
+  if (!Array.isArray(article?.groundingSources)) return false;
+  const officialUrls = article.groundingSources.filter((source: any) => {
+    try {
+      const host = new URL(String(source?.uri || "")).hostname.toLowerCase();
+      return OFFICIAL_NEWS_HOSTS.some((officialHost) => host === officialHost || host.endsWith(`.${officialHost}`));
+    } catch {
+      return false;
+    }
+  });
+  return new Set(officialUrls.map((source: any) => source.uri)).size >= 2;
 }
 
 // 1. GET API endpoint to fetch news
 app.get("/api/news", (req, res) => {
-  const articles = loadArticles();
+  const articles = loadArticles().filter((article: any) => article.reviewStatus === "verified");
   res.json({ success: true, articles });
 });
 
 // 2. POS API endpoint to refresh news with Gemini AI (Google Search Grounding)
 app.post("/api/news/refresh", async (req, res) => {
+  const configuredToken = process.env.NEWS_REFRESH_TOKEN;
+  const providedToken = req.header("x-refresh-token");
+  if (process.env.NODE_ENV === "production" && (!configuredToken || providedToken !== configuredToken)) {
+    return res.status(403).json({
+      success: false,
+      error: "La investigacion de noticias requiere autorizacion editorial."
+    });
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -499,74 +552,47 @@ IMPORTANTE: El campo 'id' debe comenzar con el prefijo "dynamic-" para distingui
 
     const newArticles = JSON.parse(jsonText.trim());
 
-    // Load existing items
-    const currentArticles = loadArticles();
+    const validCandidates = newArticles
+      .filter((article: any) => {
+        const timestamp = Date.parse(article?.publishDate || "");
+        return article?.id?.startsWith("dynamic-") &&
+          Number.isFinite(timestamp) &&
+          timestamp <= Date.now() + 86_400_000 &&
+          hasEnoughOfficialSources(article);
+      })
+      .map((article: any) => ({
+        ...article,
+        author: "Equipo editorial Tu Negocio RD",
+        reviewStatus: "pending_review",
+        generatedAt: new Date().toISOString(),
+        reviewedAt: null
+      }));
 
-    // Merge articles carefully: avoid adding duplicates based on ID
-    const mergedArticles = [...currentArticles];
-    
-    for (const art of newArticles) {
-      const idx = mergedArticles.findIndex((x) => x.id === art.id);
-      if (idx !== -1) {
-        // Overwrite existing dynamic article
-        mergedArticles[idx] = art;
-      } else {
-        // Prepend to show the latest dynamic news at the top
-        mergedArticles.unshift(art);
-      }
-    }
-
-    // Save back to news-cache.json
-    saveArticles(mergedArticles);
-
-    res.json({
-      success: true,
-      message: "Las noticias han sido actualizadas automáticamente con Gemini AI & Google Search.",
-      articles: mergedArticles
-    });
-  } catch (error: any) {
-    console.error("Error during news refresh with Gemini API:", error);
-    
-    // Graceful Fallback: Load cached articles instead of returning a 500 error
-    const cachedArticles = loadArticles();
-    if (cachedArticles && cachedArticles.length > 0) {
-      return res.json({
-        success: true,
-        isFallback: true,
-        message: "Se cargaron las noticias locales desde caché debido a un límite de cuota temporal con el servicio de IA.",
-        articles: cachedArticles
+    if (validCandidates.length === 0) {
+      return res.status(422).json({
+        success: false,
+        error: "Ningun borrador cumplio el minimo de dos fuentes oficiales verificables."
       });
     }
 
-    // Default static seed articles for 2026 as last line of defense
-    const fallbackSeed = [
-      {
-        id: "dynamic-dgii-ant-25",
-        title: "DGII implementa facilidades impositivas y estímulo para mipymes",
-        category: "Impuestos",
-        categoryKey: "impuestos",
-        summary: "La Dirección General de Impuestos Internos (DGII) anunció un paquete de flexibilización tributaria para pequeñas empresas.",
-        contentMarkdown: "### Nuevas Medidas de Impulso para MIPYMES\n\nLa Dirección General de Impuestos Internos (DGII) de la República Dominicana ha emitido una nueva resolución destinada a aliviar la carga de anticipo impositivo para micro, pequeñas y medianas empresas.\n\n#### Beneficios clave:\n- **Eliminación del anticipo del ISR** para deudas acumuladas de microempresas.\n- **Planes de pago flexibles** de hasta 12 meses para deudas fiscales pasadas.\n- **Facilidad de digitalización gratuita** para la adopción ágil de la facturación electrónica.\n\nLas medidas buscan dinamizar los comercios locales y asegurar que el ecosistema empresarial dominicano prosiga su ruta hacia la formalización fiscal.",
-        publishDate: new Date().toISOString().split("T")[0],
-        readTime: "4 min",
-        author: "Comité Fiscal Tu Negocio RD",
-        tags: ["DGII", "MIPYMES", "Anticipos"],
-        relatedCalculatorSlug: "calculadora-isr",
-        relatedCalculatorName: "Calculadora de Retenciones ISR",
-        isFeatured: true,
-        groundingSources: [
-          { title: "DGII Oficial", uri: "https://dgii.gov.do" }
-        ]
-      }
-    ];
+    const queue = loadReviewQueue();
+    for (const candidate of validCandidates) {
+      const existingIndex = queue.findIndex((item: any) => item.id === candidate.id);
+      if (existingIndex >= 0) queue[existingIndex] = candidate;
+      else queue.unshift(candidate);
+    }
+    saveReviewQueue(queue);
 
-    saveArticles(fallbackSeed);
-
-    res.json({
+    return res.status(202).json({
       success: true,
-      isFallback: true,
-      message: "Se generaron noticias estándar de respaldo debido a un límite de cuota temporal.",
-      articles: fallbackSeed
+      message: "Los borradores quedaron pendientes de revision editorial y no fueron publicados.",
+      queued: validCandidates.length
+    });
+  } catch (error: any) {
+    console.error("Error during news refresh with Gemini API:", error);
+    return res.status(502).json({
+      success: false,
+      error: "No fue posible generar borradores verificables. No se publico contenido de respaldo."
     });
   }
 });
@@ -592,6 +618,16 @@ app.get("/api/rates", async (req, res) => {
 
 // 4. POST /api/rates/refresh - Triggers automated scraping refresh of rates from DGII, TSS & SIPEN
 app.post("/api/rates/refresh", async (req, res) => {
+  const configuredToken = process.env.RATE_REFRESH_TOKEN;
+  const providedToken = req.header("x-refresh-token");
+  if (process.env.NODE_ENV === "production" && (!configuredToken || providedToken !== configuredToken)) {
+    res.status(403).json({
+      success: false,
+      error: "La actualizacion de tasas requiere autorizacion administrativa."
+    });
+    return;
+  }
+
   try {
     const result = await refreshOfficialRates();
     res.json(result);
@@ -713,9 +749,20 @@ app.post("/api/checkout/session", async (req, res) => {
   });
 });
 
+app.get("/herramientas/:slug", (req, res, next) => {
+  const canonicalPath = getCanonicalCalculatorPath(req.params.slug);
+  if (!canonicalPath.startsWith("/herramientas/")) {
+    res.redirect(301, canonicalPath);
+    return;
+  }
+  next();
+});
+
 // 7. GET /sitemap.xml - Dynamic XML sitemap for search engines
 app.get("/sitemap.xml", (req, res) => {
-  const calculatedUrls = CALCULATORS.map(calc => `
+  const calculatedUrls = CALCULATORS
+    .filter(calc => getCanonicalCalculatorPath(calc.urlSlug).startsWith("/herramientas/"))
+    .map(calc => `
   <url>
     <loc>${ORIGIN_URL}/herramientas/${calc.urlSlug}</loc>
     <lastmod>2026-05-30</lastmod>
@@ -731,6 +778,38 @@ app.get("/sitemap.xml", (req, res) => {
     <priority>0.6</priority>
   </url>`).join('');
 
+  const landingUrls = SEO_LANDING_PAGES.map(page => `
+  <url>
+    <loc>${ORIGIN_URL}/${page.slug}</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>`).join('');
+
+  const salaryUrls = getSalaryPageAmounts().map(amount => `
+  <url>
+    <loc>${ORIGIN_URL}/${salaryPageSlug(amount)}</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`).join('');
+
+  const programmaticUrls = PROGRAMMATIC_SEO_PAGES.map(page => `
+  <url>
+    <loc>${ORIGIN_URL}/${page.slug}</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>`).join('');
+
+  const topicUrls = TOPIC_HUBS.map(hub => `
+  <url>
+    <loc>${ORIGIN_URL}/temas/${hub.slug}</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`).join('');
+
   const staticUrls = [
     '/',
     '/noticias',
@@ -739,6 +818,9 @@ app.get("/sitemap.xml", (req, res) => {
     '/privacidad',
     '/terminos',
     '/reembolsos'
+    ,'/metodologia'
+    ,'/politica-editorial'
+    ,'/fuentes-oficiales'
   ].map(path => `
   <url>
     <loc>${ORIGIN_URL}${path}</loc>
@@ -752,6 +834,10 @@ app.get("/sitemap.xml", (req, res) => {
 ${staticUrls}
 ${calculatedUrls}
 ${guideUrls}
+${landingUrls}
+${salaryUrls}
+${programmaticUrls}
+${topicUrls}
 </urlset>`;
 
   res.header("Content-Type", "application/xml");
@@ -777,11 +863,55 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   let robots = "index, follow";
   const pathPart = originalUrl.split("?")[0];
   let type: 'article' | 'website' = 'website';
-  let faqSchema = "";
   let appSchema = "";
   let homeSchema = "";
+  const landingPage = SEO_LANDING_BY_SLUG.get(pathPart.replace(/^\//, ""));
+  const salaryAmount = parseSalaryPageAmount(pathPart);
+  const programmaticPage = parseProgrammaticSeoPage(pathPart);
+  const topicHub = pathPart.startsWith("/temas/") ? TOPIC_HUB_BY_SLUG.get(pathPart.replace("/temas/", "")) : null;
+  const editorialKey = pathPart.replace(/^\//, "") as keyof typeof EDITORIAL_PAGES;
 
-  if (pathPart.startsWith("/herramientas/")) {
+  if (landingPage) {
+    title = landingPage.title;
+    description = landingPage.metaDescription;
+    const calculator = CALCULATORS.find(calc => calc.urlSlug === landingPage.calculatorSlug || calc.id === landingPage.calculatorSlug);
+    if (calculator) {
+      appSchema = jsonLdScript({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": landingPage.heading,
+        "description": landingPage.metaDescription,
+        "url": `${ORIGIN_URL}/${landingPage.slug}`,
+        "operatingSystem": "All",
+        "applicationCategory": "BusinessApplication",
+        "inLanguage": "es-DO",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "DOP"
+        }
+      });
+    }
+  } else if (salaryAmount !== null) {
+    const formatted = `RD$ ${salaryAmount.toLocaleString("es-DO")}`;
+    title = `Si gano ${formatted}, cuanto me descuentan en RD? | 2026`;
+    description = `Calcula AFP, SFS, ISR y salario neto para un sueldo bruto mensual de ${formatted} en Republica Dominicana con tasas y topes 2026.`;
+    type = "article";
+  } else if (programmaticPage) {
+    title = programmaticPage.title;
+    description = programmaticPage.description;
+    type = "article";
+  } else if (topicHub) {
+    title = `${topicHub.title} | Tu Negocio RD`;
+    description = topicHub.description;
+    type = "article";
+  } else if (editorialKey in EDITORIAL_PAGES) {
+    const editorialPage = EDITORIAL_PAGES[editorialKey];
+    title = editorialPage.title;
+    description = editorialPage.description;
+    type = "article";
+  } else if (pathPart.startsWith("/herramientas/")) {
     const slug = pathPart.replace("/herramientas/", "");
     const calc = CALCULATORS.find(c => c.urlSlug === slug || c.id === slug);
     if (calc) {
@@ -805,60 +935,6 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   }
   </script>`;
 
-      // Optional: Generate FAQPage Schema if it has standard questions
-      if (calc.category === 'impuestos') {
-        faqSchema = `
-  <script type="application/ld+json" class="dynamic-schema">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "¿Cómo se calcula el ITBIS en República Dominicana?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Se multiplica la base imponible por la tasa aplicable (18% general, 16% reducida)."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Cuáles son las fechas de declaración del ITBIS?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Se declara mensualmente a más tardar el día 20 de cada mes mediante el formulario IT-1."
-        }
-      }
-    ]
-  }
-  </script>`;
-      } else if (calc.category === 'laboral') {
-        faqSchema = `
-  <script type="application/ld+json" class="dynamic-schema">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "¿Qué es la cesantía y cuándo aplica en RD?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Es la compensación por despido injustificado o desahucio ejercido por el empleador, calculada según el tiempo de servicio continuo."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿El salario navideño o regalía sufre deducciones de ley?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "No, el salario navideño (Regalía Pascual) está 100% exento por ley de deducciones de la seguridad social (TSS) o retención de ISR."
-        }
-      }
-    ]
-  }
-  </script>`;
-      }
     }
   } else if (pathPart.startsWith("/guia/")) {
     const slug = pathPart.replace("/guia/", "");
@@ -884,8 +960,8 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     title = "Politica de Reembolsos | Tu Negocio RD";
     description = "Politica comercial de cancelaciones y reembolsos para servicios digitales de Tu Negocio RD.";
   } else if (pathPart === "/noticias") {
-    title = "Últimas Noticias Financieras y Fiscales de R.D. | Tu Negocio RD";
-    description = "Mantente al día con investigaciones exclusivas usando IA sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.";
+    title = "Noticias Fiscales y Laborales de R.D. | Tu Negocio RD";
+    description = "Boletines revisados sobre DGII, TSS y normas laborales de Republica Dominicana, con fechas y enlaces a fuentes oficiales.";
   } else if (pathPart === "/admin") {
     title = "Administración Privada | Tu Negocio RD";
     description = "Consola interna privada para administración, auditoría y control operativo de Tu Negocio RD.";
@@ -991,16 +1067,28 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
       "@type": "Organization",
       "name": "Tu Negocio RD"
     },
+    "datePublished": "2026-06-10",
+    "dateModified": "2026-06-10",
+    "image": DEFAULT_SHARE_IMAGE,
     "mainEntityOfPage": canonicalUrl
   }) : "";
 
-  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${faqSchema}${homeSchema}${articleSchema}\n</head>`;
+  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${homeSchema}${articleSchema}\n</head>`;
   return html.replace('</head>', injectedElements);
 }
 
 // Route validation helper for server-side responses
 function isValidRoute(originalUrl: string): boolean {
   const pathPart = originalUrl.split("?")[0];
+  if (
+    SEO_LANDING_BY_SLUG.has(pathPart.replace(/^\//, "")) ||
+    parseSalaryPageAmount(pathPart) !== null ||
+    parseProgrammaticSeoPage(pathPart) !== null ||
+    (pathPart.startsWith("/temas/") && TOPIC_HUB_BY_SLUG.has(pathPart.replace("/temas/", ""))) ||
+    pathPart.replace(/^\//, "") in EDITORIAL_PAGES
+  ) {
+    return true;
+  }
   
   const validStaticPaths = [
     "/",
@@ -1080,6 +1168,17 @@ async function startServer() {
 
   const onListening = () => {
     console.log(`[Server] Running on ${PORT_VALUE} under environment: ${process.env.NODE_ENV || "development"}`);
+    if (process.env.RATES_AUTO_REFRESH !== "false") {
+      const runRateVerification = () => {
+        refreshOfficialRates().catch((err) => {
+          console.error("[RateUpdater] Scheduled verification failed:", err);
+        });
+      };
+      const initialTimer = setTimeout(runRateVerification, 60_000);
+      initialTimer.unref?.();
+      const interval = setInterval(runRateVerification, 24 * 60 * 60 * 1000);
+      interval.unref?.();
+    }
   };
 
   if (typeof LISTEN_TARGET === "number") {

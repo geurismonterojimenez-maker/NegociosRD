@@ -22,6 +22,19 @@ import AdSenseBlock from './components/AdSenseBlock';
 import { LogoSymbol, LogoFull, LogoComplete } from './components/Logo';
 import { isAdminEmail } from './config/admin';
 import { TAX_RATES_REGISTRY } from './config/tax-rates';
+import {
+  getCanonicalCalculatorPath,
+  parseProgrammaticSeoPage,
+  parseSalaryPageAmount,
+  ProgrammaticSeoPageData,
+  SEO_LANDING_BY_SLUG,
+  SEO_LANDING_PAGES,
+  SeoLandingPage,
+  TOPIC_HUB_BY_SLUG,
+  TopicHub
+} from './seo-pages';
+import { EDITORIAL_PAGES } from './content/editorial';
+import { reportWebVitals, trackEvent, trackPageView } from './lib/analytics';
 import { 
   Search, 
   Sparkles, 
@@ -109,6 +122,10 @@ const GuidesView = React.lazy(() => import('./components/GuidesView'));
 const NewsSection = React.lazy(() => import('./components/NewsSection'));
 const ProfessionalPortal = React.lazy(() => import('./components/ProfessionalPortal'));
 const UserAccountModal = React.lazy(() => import('./components/UserAccountModal'));
+const SalarySeoPage = React.lazy(() => import('./components/SalarySeoPage'));
+const EditorialPage = React.lazy(() => import('./components/EditorialPage'));
+const ProgrammaticSeoPage = React.lazy(() => import('./components/ProgrammaticSeoPage'));
+const TopicHubPage = React.lazy(() => import('./components/TopicHubPage'));
 
 function LazyFallback({ label = 'Cargando modulo...' }: { label?: string }) {
   return (
@@ -207,13 +224,13 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
         "@type": "ListItem",
         "position": 1,
         "name": "Inicio",
-        "item": origin
+        "item": PUBLIC_SITE_URL
       },
       ...(path !== '/' ? [{
         "@type": "ListItem",
         "position": 2,
         "name": type === 'article' ? "Guías" : "Herramientas",
-        "item": `${origin}${path.split('/').slice(0, -1).join('/')}`
+        "item": `${PUBLIC_SITE_URL}${path.split('/').slice(0, -1).join('/')}`
       }, {
         "@type": "ListItem",
         "position": 3,
@@ -256,6 +273,9 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
         "@type": "Organization",
         "name": "Tu Negocio RD"
       },
+      "datePublished": "2026-06-10",
+      "dateModified": "2026-06-10",
+      "image": DEFAULT_SHARE_IMAGE,
       "mainEntityOfPage": canonicalUrl
     });
   } else if (path === '/') {
@@ -273,22 +293,6 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
     });
   }
 
-  // C. FAQPage Schema if FAQs are provided
-  if (faqItems && faqItems.length > 0) {
-    const faqSchema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": faqItems.map(item => ({
-        "@type": "Question",
-        "name": item.question,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": item.answer
-        }
-      }))
-    };
-    injectSchema(faqSchema);
-  }
 };
 // --- MULTI-TIER PRO vs FREE PAYWALL OVERLAY COMPONENT ---
 interface PaywallProps {
@@ -503,7 +507,7 @@ type IdleHandle = number;
 
 declare global {
   interface Window {
-    dataLayer?: Array<Record<string, unknown>>;
+    dataLayer?: Array<Record<string, string | number | boolean | null | undefined>>;
   }
 }
 
@@ -521,6 +525,30 @@ function runWhenIdle(callback: () => void, timeout = 1500): () => void {
   return () => window.clearTimeout(handle);
 }
 
+function runAfterInteractionOrDelay(callback: () => void, delay = 60000): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  let started = false;
+  let cancelIdle = () => {};
+  const events: Array<keyof WindowEventMap> = ['pointerdown', 'keydown'];
+  const removeListeners = () => events.forEach((event) => window.removeEventListener(event, start));
+  const start = () => {
+    if (started) return;
+    started = true;
+    window.clearTimeout(timer);
+    removeListeners();
+    cancelIdle = runWhenIdle(callback, 2000);
+  };
+  const timer = window.setTimeout(start, delay);
+  events.forEach((event) => window.addEventListener(event, start, { passive: true }));
+
+  return () => {
+    window.clearTimeout(timer);
+    removeListeners();
+    cancelIdle();
+  };
+}
+
 function loadScriptOnce(id: string, src: string, attrs: Record<string, string> = {}) {
   if (typeof document === 'undefined' || document.getElementById(id)) return;
   const script = document.createElement('script');
@@ -528,11 +556,20 @@ function loadScriptOnce(id: string, src: string, attrs: Record<string, string> =
   script.async = true;
   script.src = src;
   Object.entries(attrs).forEach(([key, value]) => script.setAttribute(key, value));
+  script.addEventListener('load', () => {
+    script.dataset.loaded = 'true';
+    window.dispatchEvent(new Event(`${id}:loaded`));
+  }, { once: true });
   document.head.appendChild(script);
 }
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'blog' | 'nosotros' | 'contacto' | 'privacidad' | 'terminos' | 'reembolsos' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios' | 'admin' | '404'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'calculator' | 'salary-seo' | 'programmatic-seo' | 'topic-hub' | 'editorial' | 'blog' | 'nosotros' | 'contacto' | 'privacidad' | 'terminos' | 'reembolsos' | 'news' | 'centro-laboral' | 'centro-financiero' | 'precios' | 'admin' | '404'>('home');
+  const [activeLandingPage, setActiveLandingPage] = useState<SeoLandingPage | null>(null);
+  const [salarySeoAmount, setSalarySeoAmount] = useState<number | null>(null);
+  const [programmaticSeoPage, setProgrammaticSeoPage] = useState<ProgrammaticSeoPageData | null>(null);
+  const [activeTopicHub, setActiveTopicHub] = useState<TopicHub | null>(null);
+  const [activeEditorialPage, setActiveEditorialPage] = useState<keyof typeof EDITORIAL_PAGES | null>(null);
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -569,14 +606,24 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => reportWebVitals(), []);
+
   useEffect(() => {
-    return runWhenIdle(() => {
-      const connection = (navigator as any).connection;
-      if (connection?.saveData) return;
-      void import('./components/CentroLaboral');
-      void import('./components/CentroFinanciero');
-      void import('./components/GuidesView');
-    }, 9000);
+    let cancelIdleLoad = () => {};
+    const preloadTimer = window.setTimeout(() => {
+      cancelIdleLoad = runWhenIdle(() => {
+        const connection = (navigator as any).connection;
+        if (connection?.saveData) return;
+        void import('./components/CentroLaboral');
+        void import('./components/CentroFinanciero');
+        void import('./components/GuidesView');
+      }, 2000);
+    }, 60000);
+
+    return () => {
+      window.clearTimeout(preloadTimer);
+      cancelIdleLoad();
+    };
   }, []);
   // High-End Premium Interactive pricing & ROI estimator states
   const [billingCycle, setBillingCycle] = useState<'mensual' | 'anual'>('mensual');
@@ -675,7 +722,7 @@ export default function App() {
     const cancelStart = isPrivateAuthRoute ? (() => {
       void startAuth();
       return () => {};
-    })() : runWhenIdle(() => void startAuth(), 7000);
+    })() : runAfterInteractionOrDelay(() => void startAuth(), 60000);
 
     return () => {
       cancelled = true;
@@ -808,7 +855,50 @@ export default function App() {
   const parseUrlToState = () => {
     if (typeof window === "undefined") return;
     const path = window.location.pathname;
-    if (path.startsWith('/herramientas/')) {
+    const landingPage = SEO_LANDING_BY_SLUG.get(path.replace(/^\//, ''));
+    const salaryAmount = parseSalaryPageAmount(path);
+    const programmaticPage = parseProgrammaticSeoPage(path);
+    const topicHub = path.startsWith('/temas/') ? TOPIC_HUB_BY_SLUG.get(path.replace('/temas/', '')) : null;
+    const editorialKey = path.replace(/^\//, '') as keyof typeof EDITORIAL_PAGES;
+    setActiveLandingPage(null);
+    setSalarySeoAmount(null);
+    setProgrammaticSeoPage(null);
+    setActiveTopicHub(null);
+    setActiveEditorialPage(null);
+
+    if (landingPage) {
+      const calc = CALCULATORS.find(c => c.urlSlug === landingPage.calculatorSlug || c.id === landingPage.calculatorSlug);
+      if (calc) {
+        setCurrentView('calculator');
+        setActiveCalculator(calc);
+        setActiveLandingPage(landingPage);
+        return;
+      }
+    } else if (salaryAmount !== null) {
+      setCurrentView('salary-seo');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      setSalarySeoAmount(salaryAmount);
+      return;
+    } else if (programmaticPage) {
+      setCurrentView('programmatic-seo');
+      setProgrammaticSeoPage(programmaticPage);
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (topicHub) {
+      setCurrentView('topic-hub');
+      setActiveTopicHub(topicHub);
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (editorialKey in EDITORIAL_PAGES) {
+      setCurrentView('editorial');
+      setActiveEditorialPage(editorialKey);
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
+    } else if (path.startsWith('/herramientas/')) {
       const slug = path.replace('/herramientas/', '');
       const calc = CALCULATORS.find(c => c.urlSlug === slug || c.id === slug);
       if (calc) {
@@ -903,6 +993,8 @@ export default function App() {
     window.history.pushState(null, '', path);
     parseUrlToState();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.setTimeout(() => document.getElementById('main-content')?.focus(), 0);
+    trackPageView(path);
   };
 
   // 2. Mounting popstate hook
@@ -916,12 +1008,36 @@ export default function App() {
   // 3. Client-side SEO metadata update effect
   React.useEffect(() => {
     if (currentView === 'calculator' && activeCalculator) {
-      const desc = activeCalculator.seoMetaDescription;
-      const faqsList = [
+      const faqsList = activeLandingPage?.faqs || [
         { question: `¿Cómo funciona la ${activeCalculator.name}?`, answer: activeCalculator.description },
-        { question: `¿Qué tasas oficiales toma de referencia la ${activeCalculator.name}?`, answer: "Usa de referencia las tasas de ley más recientes del Ministerio de Trabajo, DGII dominicana para ITBIS e ISR, y topes de aportación a la TSS actualizados al año 2026." }
+        { question: `¿Qué tasas oficiales toma de referencia la ${activeCalculator.name}?`, answer: "Usa como referencia las tasas publicadas por el Ministerio de Trabajo, la DGII y la TSS para el periodo aplicable." }
       ];
-      updateMetaTags(activeCalculator.seoTitle, desc, `/herramientas/${activeCalculator.urlSlug}`, 'website', faqsList);
+      updateMetaTags(
+        activeLandingPage?.title || activeCalculator.seoTitle,
+        activeLandingPage?.metaDescription || activeCalculator.seoMetaDescription,
+        activeLandingPage ? `/${activeLandingPage.slug}` : getCanonicalCalculatorPath(activeCalculator.urlSlug),
+        'website',
+        faqsList
+      );
+    } else if (currentView === 'salary-seo' && salarySeoAmount !== null) {
+      const formatted = `RD$ ${salarySeoAmount.toLocaleString('es-DO')}`;
+      updateMetaTags(
+        `Si gano ${formatted}, cuanto me descuentan en RD? | 2026`,
+        `Calcula AFP, SFS, ISR y salario neto para un sueldo bruto mensual de ${formatted} en Republica Dominicana con tasas y topes 2026.`,
+        `/si-gano-${salarySeoAmount}-cuanto-me-descuentan`,
+        'article',
+        [
+          { question: `Cuanto se descuenta de TSS con ${formatted}?`, answer: "Se calculan AFP y SFS usando los porcentajes del trabajador y los topes cotizables vigentes." },
+          { question: "El resultado incluye ISR?", answer: "Si. La renta neta despues de TSS se anualiza y se compara con la escala DGII 2026." },
+        ]
+      );
+    } else if (currentView === 'programmatic-seo' && programmaticSeoPage) {
+      updateMetaTags(programmaticSeoPage.title, programmaticSeoPage.description, `/${programmaticSeoPage.slug}`, 'article');
+    } else if (currentView === 'topic-hub' && activeTopicHub) {
+      updateMetaTags(activeTopicHub.title, activeTopicHub.description, `/temas/${activeTopicHub.slug}`, 'article');
+    } else if (currentView === 'editorial' && activeEditorialPage) {
+      const page = EDITORIAL_PAGES[activeEditorialPage];
+      updateMetaTags(page.title, page.description, `/${activeEditorialPage}`, 'article');
     } else if (currentView === 'blog' && selectedGuideSlug) {
       const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === selectedGuideSlug);
       if (guide) {
@@ -933,7 +1049,7 @@ export default function App() {
       const page = TRUST_PAGES[currentView as keyof typeof TRUST_PAGES];
       updateMetaTags(page.title, page.description, `/${currentView}`, "website");
     } else if (currentView === 'news') {
-      updateMetaTags("Últimas Noticias Financieras y Fiscales de R.D. | Tu Negocio RD", "Mantente al día con investigaciones exclusivas sobre reformas laborales, cambios de ley impositiva de la DGII y reglamentos de la TSS dominicana.", "/noticias", "website");
+      updateMetaTags("Noticias Fiscales y Laborales de R.D. | Tu Negocio RD", "Boletines revisados sobre DGII, TSS y normas laborales de Republica Dominicana, con fechas y enlaces a fuentes oficiales.", "/noticias", "website");
     } else if (currentView === 'centro-laboral') {
       updateMetaTags("Centro Laboral RD - Asistencia & Prestaciones | Tu Negocio RD", "Herramientas de cálculo especializadas y guías de asistencia laboral de conformidad con el Código de Trabajo dominicano.", "/centro-laboral", "website");
     } else if (currentView === 'centro-financiero') {
@@ -943,7 +1059,7 @@ export default function App() {
     } else {
       updateMetaTags("Tu Negocio RD - Calculadoras Fiscales, Laborales y Financieras de R.D.", "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.", "/", "website");
     }
-  }, [currentView, activeCalculator, selectedGuideSlug]);
+  }, [currentView, activeCalculator, activeLandingPage, salarySeoAmount, programmaticSeoPage, activeTopicHub, activeEditorialPage, selectedGuideSlug]);
 
   // Switch to a calculator view
   const handleSelectCalculator = useCallback((calc: CalculatorInfo) => {
@@ -955,7 +1071,8 @@ export default function App() {
     } catch (e) {
       console.warn(e);
     }
-    navigateTo('/herramientas/' + calc.urlSlug);
+    trackEvent('calculator_open', { calculator_id: calc.id, calculator_category: calc.category });
+    navigateTo(getCanonicalCalculatorPath(calc.urlSlug));
   }, []);
 
   // Navigating by slug string
@@ -975,7 +1092,8 @@ export default function App() {
       } catch (e) {
         console.warn(e);
       }
-      navigateTo('/herramientas/' + calc.urlSlug);
+      trackEvent('calculator_open', { calculator_id: calc.id, calculator_category: calc.category });
+      navigateTo(getCanonicalCalculatorPath(calc.urlSlug));
     }
   }, []);
 
@@ -1024,19 +1142,22 @@ export default function App() {
 
   return (
     <div className="bg-[#FAFAFA] min-h-screen text-[#111827] font-sans antialiased flex flex-col justify-between selection:bg-teal-50 selection:text-[#0F766E] overflow-x-hidden">
+      <a href="#main-workspace-balance" className="skip-link">Saltar al contenido principal</a>
       
       {/* 1. Header component styled under Geometric Balance (exact match) */}
       <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 md:px-10 flex justify-between items-center h-16">
           
           {/* Logo brand */}
-          <div 
+          <button
+            type="button"
             onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); }} 
             className="flex items-center gap-3 cursor-pointer select-none hover:opacity-90 transition-opacity"
             id="header-logo-brand"
+            aria-label="TU NEGOCIO RD - Ir al inicio"
           >
             <LogoFull size={34} textClass="text-xl font-black" />
-          </div>
+          </button>
 
           {/* Integrated Dynamic Search Bar inside Header */}
           <div className="relative flex-1 lg:max-w-[160px] xl:max-w-sm mx-3 xl:mx-5 hidden md:block">
@@ -1109,8 +1230,6 @@ export default function App() {
               Documentos RD
             </button>
 
-            <AdSenseBlock variant="nav-inline" className="shrink-0 nav-ad-container" />
-
             {/* Google Account Profile / Login Button */}
             <div className="hidden md:flex items-center gap-2">
               {firebaseUser ? (
@@ -1157,7 +1276,9 @@ export default function App() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="w-12 h-12 flex items-center justify-center rounded-md text-gray-500 hover:text-[#0F766E] hover:bg-gray-100/50 transition-colors focus:outline-none cursor-pointer"
-              aria-label="Abrir menú"
+              aria-label={mobileMenuOpen ? "Cerrar menu" : "Abrir menu"}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation-panel"
               id="mobile-menu-toggle-btn"
             >
               <span className={`inline-flex items-center justify-center transition-transform duration-350 ease-in-out ${mobileMenuOpen ? 'rotate-180' : 'rotate-0'}`}>
@@ -1170,7 +1291,7 @@ export default function App() {
 
       {/* Mobile & Tablet Dropdown Navigation Panel */}
       {mobileMenuOpen && (
-        <div className="fixed inset-x-0 top-16 bg-white border-b border-gray-200 z-40 lg:hidden shadow-lg animate-in slide-in-from-top-4 duration-250">
+        <div id="mobile-navigation-panel" className="fixed inset-x-0 top-16 bg-white border-b border-gray-200 z-40 lg:hidden shadow-lg animate-in slide-in-from-top-4 duration-250">
           <div className="px-5 py-6 space-y-5">
             {/* Native Inline Search field on phones */}
             <div className="relative block sm:hidden">
@@ -1392,7 +1513,7 @@ export default function App() {
           )}
 
         {/* WORKSPACE AREA - occupies col-span-9 on desktop, col-span-12 on smaller displays */}
-        <div className={`col-span-12 ${shouldShowToolSidebar ? 'min-[1700px]:col-span-10' : ''} p-4 md:p-6 2xl:p-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto`} id="main-workspace-balance">
+        <div className={`col-span-12 ${shouldShowToolSidebar ? 'min-[1700px]:col-span-10' : ''} p-4 md:p-6 2xl:p-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto`} id="main-workspace-balance" role="main" tabIndex={-1}>
           
           {currentView === 'home' && (
             <div className="space-y-6 animate-in fade-in duration-150">
@@ -1551,6 +1672,26 @@ export default function App() {
                 </span>
               </div>
 
+              <section className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 shadow-xs">
+                <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">Calculadoras principales de Republica Dominicana</h2>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {SEO_LANDING_PAGES.map((page) => (
+                    <a
+                      key={page.slug}
+                      href={`/${page.slug}`}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigateTo(`/${page.slug}`);
+                      }}
+                      className="p-4 rounded-xl border border-gray-100 bg-gray-50/40 hover:border-[#0F766E] hover:bg-teal-50/30 transition-colors"
+                    >
+                      <span className="block text-xs font-bold text-gray-900">{page.heading}</span>
+                      <span className="block text-[11px] text-gray-500 mt-1 line-clamp-2">{page.metaDescription}</span>
+                    </a>
+                  ))}
+                </div>
+              </section>
+
               {/* COMPACT COLLAPSIBLE FAQ SECTION */}
               <section className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 shadow-xs">
                 <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center justify-center gap-1.5">
@@ -1569,13 +1710,15 @@ export default function App() {
                         <button 
                           onClick={() => toggleFaq(idx)}
                           className="w-full text-left py-2.5 px-4 font-semibold text-[#111827] hover:text-[#0F766E] flex justify-between items-center transition-colors outline-none cursor-pointer"
+                          aria-expanded={isOpen}
+                          aria-controls={`home-faq-answer-${idx}`}
                         >
                           <span className="text-xs">¿{faq.question}</span>
                           {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
                         
                         {isOpen && (
-                          <div className="px-4 pb-3 pt-1 text-[11px] text-[#6B7280] font-normal leading-relaxed border-t border-gray-150 bg-white">
+                          <div id={`home-faq-answer-${idx}`} className="px-4 pb-3 pt-1 text-[11px] text-[#6B7280] font-normal leading-relaxed border-t border-gray-150 bg-white">
                             {faq.answer}
                           </div>
                         )}
@@ -1646,9 +1789,25 @@ export default function App() {
                 <span className="text-gray-400">{activeCalculator.name}</span>
               </div>
 
-              <div className="mb-5 shrink-0" id="adsense-slot-1-top-calc">
-                <AdSenseBlock variant="results-inline" className="border border-teal-150 bg-teal-50/5 shadow-xs" />
-              </div>
+              {activeLandingPage && (
+                <section className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm mb-6 space-y-5">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#0F766E] mb-2">Herramienta de referencia 2026</p>
+                    <h1 className="text-2xl md:text-3xl font-black text-gray-950 tracking-tight">{activeLandingPage.heading}</h1>
+                    <p className="mt-3 text-sm md:text-base text-gray-600 leading-relaxed">{activeLandingPage.intro}</p>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                      <h2 className="font-bold text-gray-900 mb-2">Como funciona</h2>
+                      <p className="text-gray-600 leading-relaxed">{activeLandingPage.explanation}</p>
+                    </div>
+                    <div className="bg-teal-50/40 border border-teal-100 rounded-xl p-4">
+                      <h2 className="font-bold text-[#0F766E] mb-2">Ejemplo practico</h2>
+                      <p className="text-gray-600 leading-relaxed">{activeLandingPage.example}</p>
+                    </div>
+                  </div>
+                </section>
+              )}
               
               <React.Suspense fallback={<LazyFallback label="Cargando calculadora..." />}>
                 <CalculatorForm 
@@ -1657,7 +1816,99 @@ export default function App() {
                   onNavigateToCalc={(slug) => handleNavigateToCalcBySlug(slug)}
                   userTier={featureAccessTier}
                   onProRequired={handleProRequired}
+                  hasExternalH1={Boolean(activeLandingPage)}
                 />
+              </React.Suspense>
+
+              <div className="mt-6 mb-8 shrink-0 deferred-section" id="adsense-slot-after-calculator">
+                <AdSenseBlock variant="results-inline" className="border border-gray-200 bg-gray-50/20" />
+              </div>
+
+              {activeLandingPage && (
+                <section className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm mb-10">
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-950">Preguntas frecuentes</h2>
+                      <div className="mt-4 space-y-3">
+                        {activeLandingPage.faqs.map((faq) => (
+                          <div key={faq.question} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                            <h3 className="font-bold text-sm text-gray-900">{faq.question}</h3>
+                            <p className="mt-1 text-xs text-gray-600 leading-relaxed">{faq.answer}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-6">
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-950">Calculadoras relacionadas</h2>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {activeLandingPage.relatedSlugs.map((slug) => {
+                            const related = CALCULATORS.find(calc => calc.urlSlug === slug || calc.id === slug);
+                            if (!related) return null;
+                            return (
+                              <a
+                                key={slug}
+                                href={`/herramientas/${related.urlSlug}`}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  handleNavigateToCalcBySlug(slug);
+                                }}
+                                className="px-3 py-2 rounded-lg border border-gray-200 text-xs font-semibold hover:border-[#0F766E] hover:text-[#0F766E]"
+                              >
+                                {related.name}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="bg-teal-50/40 border border-teal-100 rounded-xl p-5">
+                        <h2 className="font-bold text-[#0F766E]">Fuentes oficiales</h2>
+                        <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                          Informacion revisada con publicaciones de la DGII, TSS, Ministerio de Trabajo, CNSS y SISALRIL.
+                          Ultima actualizacion fiscal: 10 de junio de 2026.
+                        </p>
+                        <div className="flex flex-wrap gap-3 mt-3 text-xs font-semibold text-[#0F766E]">
+                          <a href="https://dgii.gov.do" target="_blank" rel="noreferrer" className="hover:underline">DGII</a>
+                          <a href="https://tss.gob.do" target="_blank" rel="noreferrer" className="hover:underline">TSS</a>
+                          <a href="https://mt.gob.do" target="_blank" rel="noreferrer" className="hover:underline">Ministerio de Trabajo</a>
+                          <a href="https://www.sisalril.gob.do" target="_blank" rel="noreferrer" className="hover:underline">SISALRIL</a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
+
+          {currentView === 'salary-seo' && salarySeoAmount !== null && (
+            <div className="animate-in fade-in duration-150">
+              <React.Suspense fallback={<LazyFallback label="Calculando salario neto..." />}>
+                <SalarySeoPage amount={salarySeoAmount} onNavigate={navigateTo} />
+              </React.Suspense>
+            </div>
+          )}
+
+          {currentView === 'programmatic-seo' && programmaticSeoPage && (
+            <div className="animate-in fade-in duration-150">
+              <React.Suspense fallback={<LazyFallback label="Calculando ejemplo..." />}>
+                <ProgrammaticSeoPage page={programmaticSeoPage} onNavigate={navigateTo} />
+              </React.Suspense>
+            </div>
+          )}
+
+          {currentView === 'topic-hub' && activeTopicHub && (
+            <div className="animate-in fade-in duration-150">
+              <React.Suspense fallback={<LazyFallback label="Cargando centro tematico..." />}>
+                <TopicHubPage hub={activeTopicHub} onNavigate={navigateTo} />
+              </React.Suspense>
+            </div>
+          )}
+
+          {currentView === 'editorial' && activeEditorialPage && (
+            <div className="animate-in fade-in duration-150">
+              <React.Suspense fallback={<LazyFallback label="Cargando politica editorial..." />}>
+                <EditorialPage pageKey={activeEditorialPage} />
               </React.Suspense>
             </div>
           )}
@@ -2193,13 +2444,13 @@ export default function App() {
 
           {/* 2. Publicidad Segura - Adsense horizontal placeholder rendered inside scrollable workspace */}
           {shouldShowGlobalBottomAds && (
-          <section className="max-w-7xl mx-auto px-4 py-6 w-full mt-6" id="adsense-bottom-section">
+          <section className="max-w-7xl mx-auto px-4 py-6 w-full mt-6 deferred-section" id="adsense-bottom-section">
             <AdSenseBlock variant="horizontal-bottom" />
           </section>
           )}
 
           {/* 3. Footer styled neatly matching design rendered inside scrollable workspace */}
-          <footer className="w-full bg-white border-t border-gray-200 py-12 text-sm text-[#6B7280] z-20 mt-8 rounded-2xl border border-gray-150 shadow-xs">
+          <footer className="w-full bg-white border-t border-gray-200 py-12 text-sm text-[#6B7280] z-20 mt-8 rounded-2xl border border-gray-150 shadow-xs deferred-section">
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
               
               <div className="space-y-4">
@@ -2210,7 +2461,7 @@ export default function App() {
               </div>
 
               <div>
-                <h4 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Guías de cálculo SEO</h4>
+                <h2 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Guías de cálculo SEO</h2>
                 <ul className="space-y-2 text-xs">
                   <li>
                     <a href="/guia/como-calcular-itbis" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-itbis')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
@@ -2241,13 +2492,16 @@ export default function App() {
               </div>
 
               <div>
-                <h4 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Recursos Oficiales</h4>
+                <h2 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Recursos Oficiales</h2>
                 <ul className="space-y-2 text-xs">
                   <li><a href="https://dgii.gov.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">Página Web DGII <ExternalLink size={10} /></a></li>
                   <li><a href="https://mt.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">Ministerio de Trabajo <ExternalLink size={10} /></a></li>
                   <li><a href="https://www.tss.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">Seguridad Social TSS <ExternalLink size={10} /></a></li>
                   <li><a href="https://ProUsuario.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">ProUsuario SB <ExternalLink size={10} /></a></li>
                   <li><button onClick={() => navigateTo('/contacto')} className="hover:text-[#0F766E] transition-colors text-left">Contacto</button></li>
+                  <li><button onClick={() => navigateTo('/metodologia')} className="hover:text-[#0F766E] transition-colors text-left">Metodologia</button></li>
+                  <li><button onClick={() => navigateTo('/politica-editorial')} className="hover:text-[#0F766E] transition-colors text-left">Politica editorial</button></li>
+                  <li><button onClick={() => navigateTo('/fuentes-oficiales')} className="hover:text-[#0F766E] transition-colors text-left">Fuentes oficiales</button></li>
                   <li><button onClick={() => navigateTo('/privacidad')} className="hover:text-[#0F766E] transition-colors text-left">Privacidad</button></li>
                   <li><button onClick={() => navigateTo('/terminos')} className="hover:text-[#0F766E] transition-colors text-left">Términos</button></li>
                 </ul>

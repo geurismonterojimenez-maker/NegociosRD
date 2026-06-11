@@ -35,9 +35,11 @@ export interface NewsArticle {
   relatedCalculatorName?: string;
   isFeatured?: boolean;
   groundingSources?: { title: string; uri: string }[];
+  reviewStatus?: 'verified' | 'pending_review';
+  reviewedAt?: string;
 }
 
-export const NEWS_ARTICLES: NewsArticle[] = [
+const LEGACY_NEWS_ARTICLES: NewsArticle[] = [
   {
     id: 'dgii-efactura',
     title: 'Implementación Obligatoria de Facturación Electrónica para Grandes Contribuyentes',
@@ -213,6 +215,95 @@ Le animamos a evaluar junto a su consultor tributario la viabilidad de incorpora
   }
 ];
 
+export const NEWS_ARTICLES: NewsArticle[] = [
+  {
+    id: 'tss-topes-cotizacion-2026',
+    title: 'Topes de cotizacion TSS vigentes desde febrero de 2026',
+    category: 'Laboral',
+    categoryKey: 'laboral',
+    summary: 'La TSS fijo nuevos limites para pensiones, salud y riesgos laborales con base salarial de RD$23,223.',
+    contentMarkdown: `La Tesoreria de la Seguridad Social informo los topes del regimen contributivo efectivos desde el **1 de febrero de 2026**.
+
+### Valores de referencia
+- Pensiones: **RD$464,460**
+- Seguro Familiar de Salud: **RD$232,230**
+- Riesgos Laborales: **RD$92,892**
+
+Estos limites evitan aplicar cada porcentaje sobre una base ilimitada. La nomina debe separar el tope de cada seguro y distinguir aportes del trabajador y del empleador.
+
+Antes de cerrar una nomina, conviene contrastar el periodo y cualquier resolucion posterior publicada por la TSS o el CNSS.`,
+    publishDate: '2026-02-01',
+    readTime: '3 min',
+    author: 'Equipo editorial Tu Negocio RD',
+    tags: ['TSS', 'AFP', 'SFS', 'Topes 2026'],
+    relatedCalculatorSlug: 'calculadora-tss',
+    relatedCalculatorName: 'Calculadora TSS',
+    isFeatured: true,
+    reviewStatus: 'verified',
+    reviewedAt: '2026-06-10',
+    groundingSources: [
+      { title: 'TSS: nuevos topes de cotizacion', uri: 'https://tss.gob.do/tss-informa-nuevos-topes-de-cotizacion-del-regimen-contributivo-del-sdss/' },
+      { title: 'Consejo Nacional de la Seguridad Social', uri: 'https://www.cnss.gob.do' }
+    ]
+  },
+  {
+    id: 'dgii-escala-isr-2026',
+    title: 'Escala de ISR para personas fisicas aplicable en 2026',
+    category: 'Impuestos',
+    categoryKey: 'impuestos',
+    summary: 'La escala progresiva mantiene el tramo exento anual y tasas marginales de 15%, 20% y 25%.',
+    contentMarkdown: `La retencion de ISR para asalariados se calcula sobre la renta neta gravable anualizada, no aplicando una tasa unica a todo el salario.
+
+### Tramos usados en la estimacion
+- Hasta **RD$416,220**: exento.
+- De **RD$416,220.01 a RD$624,329**: 15% sobre el excedente.
+- De **RD$624,329.01 a RD$867,123**: cuota fija mas 20% sobre el excedente.
+- Sobre **RD$867,123.01**: cuota fija mas 25% sobre el excedente.
+
+En nomina se descuentan primero los aportes del trabajador a la seguridad social. Otros ingresos o ajustes acumulados pueden modificar la retencion final.`,
+    publishDate: '2026-01-01',
+    readTime: '4 min',
+    author: 'Equipo editorial Tu Negocio RD',
+    tags: ['DGII', 'ISR', 'Asalariados', 'Escala 2026'],
+    relatedCalculatorSlug: 'calculadora-isr',
+    relatedCalculatorName: 'Calculadora ISR',
+    reviewStatus: 'verified',
+    reviewedAt: '2026-06-10',
+    groundingSources: [
+      { title: 'DGII: Impuesto Sobre la Renta', uri: 'https://dgii.gov.do/cicloContribuyente/obligacionesTributarias/principalesImpuestos/Paginas/impuestoSobreRenta.aspx' },
+      { title: 'Ministerio de Hacienda', uri: 'https://www.hacienda.gob.do' }
+    ]
+  },
+  {
+    id: 'dgii-itbis-operacion',
+    title: 'Como revisar una operacion con ITBIS antes de declarar',
+    category: 'Impuestos',
+    categoryKey: 'impuestos',
+    summary: 'Base imponible, tasa y comprobante deben revisarse por separado antes de consolidar el formulario IT-1.',
+    contentMarkdown: `La tasa general del ITBIS es **18%**, mientras determinados bienes estan sujetos a **16%** y otras operaciones pueden estar exentas.
+
+### Controles recomendados
+1. Confirma si la operacion esta gravada, exenta o usa tasa reducida.
+2. Separa base imponible, impuesto y total.
+3. Verifica el comprobante fiscal y el periodo.
+4. Consolida ventas, adelantos, retenciones y creditos antes de preparar el IT-1.
+
+Extraer un ITBIS incluido no equivale a restar 18% del total. Para 18%, la base se obtiene dividiendo el total entre 1.18.`,
+    publishDate: '2026-06-10',
+    readTime: '3 min',
+    author: 'Equipo editorial Tu Negocio RD',
+    tags: ['DGII', 'ITBIS', 'IT-1', 'Facturacion'],
+    relatedCalculatorSlug: 'calculadora-itbis',
+    relatedCalculatorName: 'Calculadora ITBIS',
+    reviewStatus: 'verified',
+    reviewedAt: '2026-06-10',
+    groundingSources: [
+      { title: 'DGII: ITBIS', uri: 'https://dgii.gov.do/cicloContribuyente/obligacionesTributarias/principalesImpuestos/Paginas/itbis.aspx' },
+      { title: 'DGII: portal institucional', uri: 'https://dgii.gov.do' }
+    ]
+  }
+];
+
 interface NewsSectionProps {
   onBackToHome: () => void;
   onNavigateToCalcBySlug: (slug: string) => void;
@@ -224,9 +315,6 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
   // Dynamic News States
   const [articles, setArticles] = useState<NewsArticle[]>(NEWS_ARTICLES);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshError, setRefreshError] = useState<string | null>(null);
-  const [refreshSuccess, setRefreshSuccess] = useState<boolean>(false);
 
   // Fetch articles on mount
   React.useEffect(() => {
@@ -246,58 +334,17 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
     return () => { active = false; };
   }, []);
 
-  const handleRefreshNews = async () => {
-    if (refreshing) return;
-    setRefreshing(true);
-    setRefreshError(null);
-    setRefreshSuccess(false);
-
-    try {
-      const response = await fetch('/api/news/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      if (data.success && data.articles) {
-        setArticles(data.articles);
-        setRefreshSuccess(true);
-        setTimeout(() => setRefreshSuccess(false), 8000);
-      } else {
-        setRefreshError(data.error || "Ocurrió un error al actualizar.");
-      }
-    } catch (err: any) {
-      console.error("Error refreshing news:", err);
-      setRefreshError("Error de comunicación. Compruebe la conexión o configuración de los Secretos.");
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   
   // Category state
   const [activeCategory, setActiveCategory] = useState<'All' | 'Impuestos' | 'Laboral' | 'Finanzas'>('All');
 
-  // Newsletter state
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
   // Article engagement states (local only)
   const [likedArticles, setLikedArticles] = useState<string[]>([]);
   const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>([]);
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newsletterEmail.trim()) {
-      setNewsletterSuccess(true);
-      setNewsletterEmail('');
-      setTimeout(() => setNewsletterSuccess(false), 5050);
-    }
-  };
 
   const toggleLike = (articleId: string) => {
     if (likedArticles.includes(articleId)) {
@@ -399,7 +446,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-gray-900">{selectedArticle.author}</span>
-                <span className="text-[10px] text-gray-500">Redactor Oficial y Especialista Legal</span>
+                <span className="text-[10px] text-gray-500">Contenido revisado por el equipo editorial</span>
               </div>
               <div className="ml-auto flex items-center gap-2">
                 <button 
@@ -421,6 +468,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                       : 'hover:bg-gray-50 border-gray-200 text-gray-600'
                   }`}
                   title="Guardar artículo"
+                  aria-label="Guardar articulo"
                 >
                   <Bookmark size={14} className={bookmarkedArticles.includes(selectedArticle.id) ? 'fill-current' : ''} />
                 </button>
@@ -512,7 +560,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
               <div className="mt-8 p-5 bg-teal-50/30 border border-teal-150 rounded-xl">
                 <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block mb-2 flex items-center gap-1">
                   <Compass size={12} className="text-[#0F766E]" />
-                  Fuentes de Investigación de Google Search Grounding
+                  Fuentes oficiales consultadas
                 </span>
                 <ul className="space-y-2.5 pl-1 list-none">
                   {selectedArticle.groundingSources.map((src, i) => (
@@ -605,61 +653,24 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
             </p>
           </div>
 
-          {/* Live AI Research Banner */}
+          {/* Editorial verification banner */}
           <div className="bg-gradient-to-r from-teal-900 via-[#0F766E] to-teal-800 text-white p-5 rounded-2xl border border-teal-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-300">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-300"></span>
-                </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-teal-200 flex items-center gap-1">
-                  <Sparkles size={11} className="text-teal-300 animate-pulse" />
-                  Investigación con IA y Google Search en Vivo
+                  <CheckCircle2 size={11} className="text-teal-300" />
+                  Revision editorial y fuentes primarias
                 </span>
               </div>
-              <h3 className="text-sm font-bold text-white">Monitoreo de Leyes y Boletines República Dominicana 2026</h3>
+              <h3 className="text-sm font-bold text-white">Boletines fiscales y laborales verificados</h3>
               <p className="text-xs text-teal-100 max-w-2xl leading-relaxed">
-                Nuestra plataforma está conectada a la IA para realizar un escaneo autónomo de normativas en fuentes dominicanas oficiales de forma automática y bajo demanda.
+                Los borradores automatizados permanecen en una cola privada. Solo se muestran articulos revisados, con fecha y enlaces a instituciones oficiales.
               </p>
             </div>
-            <button
-              onClick={handleRefreshNews}
-              disabled={refreshing}
-              className="px-4.5 py-2.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 hover:scale-[1.01] text-xs font-bold font-sans flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-xs select-none active:scale-95"
-            >
-              <Sparkles size={13} className={`text-teal-300 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>{refreshing ? 'Buscando con Google Search...' : 'Actualizar Noticias con IA'}</span>
-            </button>
+            <span className="px-4 py-2 rounded-xl border border-white/20 bg-white/10 text-xs font-bold text-white">
+              Ultima revision: 10 de junio de 2026
+            </span>
           </div>
-
-          {/* Refresh feedback messaging */}
-          {refreshing && (
-            <div className="p-4 bg-teal-50/50 border border-teal-200 rounded-xl flex items-center gap-3 text-xs text-teal-900 animate-pulse">
-              <div className="w-5 h-5 border-2 border-teal-700 border-t-transparent rounded-full animate-spin"></div>
-              <span>Realizando rastreo legislativo autónomo en República Dominicana. Por favor espere unos segundos mientras Gemini compila, verifica y estructura la información verídica...</span>
-            </div>
-          )}
-
-          {refreshError && (
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-800 animate-in slide-in-from-top-2">
-              <AlertCircle size={15} className="text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <strong className="block font-bold">Error de sincronización automática</strong>
-                {refreshError}
-              </div>
-            </div>
-          )}
-
-          {refreshSuccess && (
-            <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-start gap-2.5 text-xs text-teal-800 animate-in slide-in-from-top-2">
-              <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <strong className="block font-bold">¡Noticias actualizadas con éxito!</strong>
-                Hemos compilado y añadido los últimos boletines legislativos y normativas de República Dominicana correspondientes al año 2026.
-              </div>
-            </div>
-          )}
 
           {/* Search bar & categories filter inline */}
           <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between pb-2">
@@ -720,6 +731,16 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                     setSelectedArticle(featuredArticle);
                     window.scrollTo({ top: 0, behavior: 'instant' });
                   }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setSelectedArticle(featuredArticle);
+                      window.scrollTo({ top: 0, behavior: 'instant' });
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Leer ${featuredArticle.title}`}
                   className="bg-white rounded-2xl border-2 border-teal-600/20 p-6 md:p-8 shadow-xs hover:border-[#0F766E] transition-all cursor-pointer group relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 py-1.5 px-4 bg-[#0F766E] text-white text-[9px] font-bold uppercase tracking-widest rounded-bl-xl flex items-center gap-1 shadow-sm">
@@ -795,6 +816,16 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                           setSelectedArticle(article);
                           window.scrollTo({ top: 0, behavior: 'instant' });
                         }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedArticle(article);
+                            window.scrollTo({ top: 0, behavior: 'instant' });
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Leer ${article.title}`}
                         className="bg-white rounded-xl border border-gray-200 p-5 hover:border-[#0F766E] hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between h-56 group"
                       >
                         <div>
@@ -845,14 +876,14 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                   <span className="text-[10px] font-bold uppercase tracking-widest text-teal-100">Portal Alertas Tu Negocio RD</span>
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm leading-snug text-white">Últimas Decisiones de la Suprema Corte</h4>
+                  <h4 className="font-bold text-sm leading-snug text-white">Verifique la fecha antes de actuar</h4>
                   <p className="text-[11px] text-teal-100/90 leading-relaxed mt-1">
-                    La tercera sala emite precedente declarando exentos de cotización los subsidios por maternidad o enfermedad comunes otorgados directamente por el empleador como incentivo extraordinario.
+                    Una noticia resume una publicacion, pero no sustituye la resolucion, norma o sentencia completa. Abra siempre las fuentes oficiales incluidas en cada articulo.
                   </p>
                 </div>
                 <div className="pt-2 border-t border-teal-500/30 text-[10px] text-teal-200 font-bold flex justify-between items-center">
-                  <span>Vigencia: Inmediata</span>
-                  <span>Año 2026</span>
+                  <span>Revision editorial</span>
+                  <span>10 junio 2026</span>
                 </div>
               </div>
 
@@ -863,38 +894,11 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                   Suscripción a Alertas de Cambio de Leyes
                 </h4>
                 <p className="text-[11px] text-gray-500 leading-relaxed mt-1 mb-4">
-                  Reciba de primera mano en su bandeja las notificaciones del ITBIS, modificaciones fiscales de escala o normativas de pensiones.
+                  El canal de correo esta en preparacion. Mientras tanto, consulte esta pagina y las fuentes oficiales enlazadas.
                 </p>
-
-                {newsletterSuccess ? (
-                  <div className="p-3 bg-teal-50 border border-teal-200 rounded-lg flex items-start gap-2 text-[11px] text-teal-800">
-                    <CheckCircle2 size={14} className="text-[#0F766E] shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="block font-bold">¡Suscripción confirmada!</strong>
-                      Usted ya es parte del boletín corporativo de Tu Negocio RD.
-                    </div>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubscribe} className="space-y-2">
-                    <label htmlFor="news-newsletter-email" className="sr-only">Dirección de correo electrónico</label>
-                    <input
-                      id="news-newsletter-email"
-                      type="email"
-                      required
-                      value={newsletterEmail}
-                      onChange={(e) => setNewsletterEmail(e.target.value)}
-                      aria-label="Dirección de correo electrónico para suscribirse al boletín"
-                      placeholder="ejemplo@correo.com"
-                      className="w-full text-xs px-3 py-2 border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#0F766E] text-[#111827]"
-                    />
-                    <button
-                      type="submit"
-                      className="w-full py-2 bg-[#0F766E] text-white text-xs font-bold rounded-lg cursor-pointer hover:opacity-95 transition-all text-center"
-                    >
-                      Suscribirme Ahora
-                    </button>
-                  </form>
-                )}
+                <button onClick={onBackToHome} className="w-full py-2 border border-[#0F766E] text-[#0F766E] text-xs font-bold rounded-lg cursor-pointer hover:bg-teal-50 transition-all">
+                  Volver a herramientas
+                </button>
               </div>
 
               {/* Consejo y Formatos Oficiales DGII para PYMEs */}
@@ -903,7 +907,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                   <span>📂 Formularios Fundamentales</span>
                 </h4>
                 <div className="text-xs text-teal-950 space-y-2">
-                  <p className="leading-relaxed">Formularios clave que toda empresa en R.D. debe presentar mensualmente:</p>
+                  <p className="leading-relaxed">Formularios frecuentes que pueden aplicar segun las obligaciones y operaciones del contribuyente:</p>
                   <ul className="space-y-1.5 list-disc pl-4 text-gray-700 font-medium">
                     <li><strong className="text-teal-950">IT-1:</strong> Declaración Jurada de ITBIS</li>
                     <li><strong className="text-teal-950">IR-17:</strong> Retenciones y Retribuciones Complementarias</li>
@@ -928,13 +932,13 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
                   <div className="flex gap-2">
                     <span className="text-[#0F766E] font-bold">●</span>
                     <p className="text-gray-650 leading-relaxed">
-                      El aguinaldo navideño es intocable: no está sujeto a retenciones impositivas ni embargos ordinarios.
+                      Revise el tratamiento de cada pago extraordinario antes de incluirlo o excluirlo de nomina y declaraciones.
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <span className="text-[#0F766E] font-bold">●</span>
                     <p className="text-gray-650 leading-relaxed">
-                      Los pagos correspondientes a dietas reportadas de forma justificada no integran la nómina imponible TCS.
+                      Conserve la resolucion, aviso o comprobante oficial que respalde cualquier cambio aplicado en sus calculos.
                     </p>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BriefcaseBusiness, Code, Eye, Monitor, Settings, Smartphone, Tablet } from 'lucide-react';
+import { useAdSenseActivation } from '../lib/useAdSenseActivation';
 
 interface AdSenseBlockProps {
   variant: 'skyscraper-left' | 'skyscraper-right' | 'horizontal-bottom' | 'mobile-infeed' | 'tablet-banner' | 'results-inline' | 'nav-inline';
@@ -24,27 +25,20 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
   const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
   const adSlot = ADSENSE_SLOT_BY_VARIANT[variant];
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');
-
-  useEffect(() => {
-    if (hasClientId && !isDev) {
-      try {
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-      } catch (e) {
-        console.warn("AdSense push warning (expected if script is still loading/blocked): ", e);
-      }
-    }
-  }, [hasClientId, isDev]);
+  const { adElementRef, containerRef, shouldRenderAd } = useAdSenseActivation(Boolean(hasClientId && !isDev));
 
   if (variant === 'nav-inline') {
     if (hasClientId && !isDev) {
       return (
-        <div className={`hidden xl:flex h-10 w-[168px] items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-250 bg-gray-50/70 px-2 text-center ${className}`}>
-          <ins className="adsbygoogle"
+        <div ref={containerRef} className={`hidden xl:flex h-10 w-[168px] items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-250 bg-gray-50/70 px-2 text-center ${className}`}>
+          {shouldRenderAd && <ins className="adsbygoogle"
+               ref={adElementRef}
                style={{ display: 'block', width: '150px', height: '32px' }}
-               data-ad-client={adsenseClientId}
-               data-ad-slot={adSlot}
-               data-ad-format="auto"
-               data-full-width-responsive="false" />
+             data-ad-client={adsenseClientId}
+             data-ad-slot={adSlot}
+             data-ad-placement={variant}
+             data-ad-format="auto"
+               data-full-width-responsive="false" />}
         </div>
       );
     }
@@ -62,18 +56,20 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
   if ((variant === 'skyscraper-left' || variant === 'skyscraper-right') && hasClientId && !isDev) {
     return (
       <div
-        className={`w-full flex flex-col items-center gap-2 ${className}`}
-        id={`adsense-block-${variant}`}
+        ref={containerRef}
+        className={`w-full h-full flex flex-col items-center gap-2.5 ${className}`}
       >
         <div className="w-full flex items-center justify-center px-1 text-[10px] text-gray-400 font-bold uppercase tracking-wider select-none">
           Publicidad
         </div>
-        <ins className="adsbygoogle"
+        {shouldRenderAd && <ins className="adsbygoogle"
+             ref={adElementRef}
              style={{ display: 'inline-block', width: '160px', height: '600px' }}
              data-ad-client={adsenseClientId}
              data-ad-slot={adSlot}
+             data-ad-placement={variant}
              data-ad-format="vertical"
-             data-full-width-responsive="false" />
+             data-full-width-responsive="false" />}
       </div>
     );
   }
@@ -83,23 +79,22 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
     const minHeightStyle = variant.includes('skyscraper') ? '600px' : variant === 'mobile-infeed' ? '120px' : '90px';
     return (
       <div 
+        ref={containerRef}
         className={`w-full max-w-full overflow-hidden text-center my-4 relative rounded-xl border border-dashed border-gray-300 bg-gray-50/20 p-2 flex flex-col justify-center items-center ${className}`} 
         style={{ minHeight: minHeightStyle }}
-        id={`adsense-block-${variant}`}
       >
         <div className="absolute top-1 left-2 text-[8px] font-bold text-gray-400 select-none uppercase tracking-wider z-0">
           Anuncio (AdSense)
         </div>
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25 z-0">
-          <span className="text-[10px] font-mono font-medium text-gray-400">Publisher: {adsenseClientId}</span>
-        </div>
         <div className="w-full z-10">
-          <ins className="adsbygoogle"
+          {shouldRenderAd && <ins className="adsbygoogle"
+               ref={adElementRef}
                style={{ display: 'block', margin: '0 auto' }}
                data-ad-client={adsenseClientId}
                data-ad-slot={adSlot}
+               data-ad-placement={variant}
                data-ad-format={format}
-              data-full-width-responsive="false" />
+              data-full-width-responsive="false" />}
         </div>
       </div>
     );

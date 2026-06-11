@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { BriefcaseBusiness, Code, Eye } from 'lucide-react';
+import { useAdSenseActivation } from '../lib/useAdSenseActivation';
 
 interface AdSlotProps {
   position: 'horizontal' | 'rectangle' | 'in-article' | 'sidebar' | 'mobile';
@@ -22,39 +23,29 @@ export default function AdSlot({ position, className = '' }: AdSlotProps) {
   const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
   const adSlot = ADSENSE_SLOT_BY_POSITION[position];
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');
-
-  useEffect(() => {
-    if (hasClientId && !isDev) {
-      try {
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-      } catch (e) {
-        console.warn("AdSense push warning (expected if script is still loading/blocked): ", e);
-      }
-    }
-  }, [hasClientId, isDev]);
+  const { adElementRef, containerRef, shouldRenderAd } = useAdSenseActivation(Boolean(hasClientId && !isDev));
 
   if (hasClientId && !isDev) {
     const format = position === 'sidebar' ? 'vertical' : position === 'in-article' || position === 'mobile' ? 'fluid' : 'auto';
     const minHeightStyle = position === 'sidebar' ? '600px' : '100px';
     return (
       <div 
+        ref={containerRef}
         className={`w-full max-w-full overflow-hidden text-center my-4 relative rounded-xl border border-dashed border-gray-300 bg-gray-50/20 p-2 flex flex-col justify-center items-center ${className}`} 
         style={{ minHeight: minHeightStyle }}
-        id={`adsense-slot-${position}`}
       >
         <div className="absolute top-1 left-2 text-[8px] font-bold text-gray-400 select-none uppercase tracking-wider z-0">
           Anuncio (AdSense)
         </div>
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25 z-0">
-          <span className="text-[10px] font-mono font-medium text-gray-400">Publisher: {adsenseClientId}</span>
-        </div>
         <div className="w-full z-10">
-          <ins className="adsbygoogle"
+          {shouldRenderAd && <ins className="adsbygoogle"
+               ref={adElementRef}
                style={{ display: 'block', margin: '0 auto' }}
                data-ad-client={adsenseClientId}
                data-ad-slot={adSlot}
+               data-ad-placement={position}
                data-ad-format={format}
-               data-full-width-responsive="true" />
+               data-full-width-responsive="true" />}
         </div>
       </div>
     );

@@ -4,7 +4,7 @@ import React from 'react';
 const COLORS = {
   darkTeal: '#005556',    // Deep, professional corporate corporate teal
   lightTeal: '#0E8D82',   // Vibrant growth arrow teal
-  gold: '#C5932D',        // Warm mustard gold for bars and 'RD'
+  gold: '#8B6508',        // Accessible warm gold for bars and 'RD'
 };
 
 interface LogoProps {
