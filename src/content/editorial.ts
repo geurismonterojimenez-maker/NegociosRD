@@ -10,6 +10,20 @@ export const OFFICIAL_SOURCES = [
 ] as const;
 
 export const EDITORIAL_PAGES = {
+  "autores/equipo-editorial": {
+    title: "Equipo editorial | Tu Negocio RD",
+    description: "Perfil del equipo editorial de Tu Negocio RD, metodologia de revision, fuentes oficiales y alcance informativo.",
+    heading: "Equipo editorial Tu Negocio RD",
+    intro: "El Equipo editorial Tu Negocio RD publica, revisa y mantiene contenidos educativos sobre nomina, impuestos, seguridad social, prestaciones laborales y finanzas practicas para Republica Dominicana.",
+    sections: [
+      ["Experiencia del proyecto", "El equipo combina desarrollo de herramientas digitales, revision documental y control de calidad de calculos. Las paginas se construyen para explicar conceptos, no para emitir certificaciones oficiales ni sustituir asesoria profesional."],
+      ["Temas cubiertos", "Nomina, salario neto, TSS, AFP, SFS, ISR, ITBIS, retenciones, prestaciones laborales, vacaciones, regalia pascual, costos patronales y finanzas practicas para pymes."],
+      ["Proceso de revision", "Cada pieza editorial se contrasta con fuentes primarias, se revisa contra calculadoras internas cuando aplica y se actualiza cuando una fuente oficial cambia o un usuario reporta una posible inconsistencia."],
+      ["Fuentes preferidas", "Priorizamos DGII, TSS, CNSS, Ministerio de Trabajo, SISALRIL y SIPEN. Las fuentes secundarias se usan solo como contexto y no reemplazan publicaciones institucionales."],
+      ["Correcciones", "Los errores reportados se revisan por impacto: si afectan una formula, tambien se revisan ejemplos, metadata, guias relacionadas y pruebas de calculo."],
+      ["Alcance profesional", "La informacion tiene fines educativos e informativos. Para decisiones legales, fiscales, laborales o financieras definitivas, recomendamos validar con la institucion correspondiente o con un asesor calificado."]
+    ]
+  },
   metodologia: {
     title: "Metodologia de calculo | Tu Negocio RD",
     description: "Conoce como Tu Negocio RD documenta formulas, fuentes, fechas de revision y limites de sus calculadoras.",

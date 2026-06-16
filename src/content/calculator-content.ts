@@ -6,9 +6,17 @@ export interface CalculatorEditorialContent {
   example: string;
   commonErrors: string[];
   faqs: FaqItem[];
+  whatIs: string;
+  howItWorks: string;
+  practicalExample: string;
+  officialSources: string;
+  lastUpdated: string;
+  ymylNotice: string;
 }
 
-const contentById: Record<string, CalculatorEditorialContent> = {
+type CalculatorEditorialBase = Omit<CalculatorEditorialContent, "whatIs" | "howItWorks" | "practicalExample" | "officialSources" | "lastUpdated" | "ymylNotice">;
+
+const contentById: Record<string, CalculatorEditorialBase> = {
   "itbis-calc": {
     overview: "Calcula el ITBIS que se agrega a una base imponible. La tasa general es 18% y determinados bienes pueden usar 16%; una operacion exenta no debe forzarse a ninguna de las dos.",
     steps: "Multiplica la base por la tasa seleccionada y suma el impuesto para obtener el total. Si el precio ya incluye ITBIS, debe separarse dividiendo entre uno mas la tasa.",
@@ -91,8 +99,82 @@ const contentById: Record<string, CalculatorEditorialContent> = {
   }
 };
 
+const LAST_UPDATED = "junio 2026";
+const YMYL_NOTICE = "La informacion proporcionada tiene fines educativos e informativos y no constituye asesoria legal, fiscal ni financiera profesional.";
+
+function categoryContext(calc: CalculatorInfo) {
+  if (calc.category === "laboral") {
+    return {
+      audience: "trabajadores, empleadores, responsables de nomina y asesores laborales",
+      institutions: "Ministerio de Trabajo, TSS, CNSS, SISALRIL y SIPEN",
+      example: "Un trabajador dominicano que gana RD$35,000 mensuales necesita revisar el monto bruto, el periodo de pago, los descuentos obligatorios y cualquier derecho adquirido antes de interpretar el resultado."
+    };
+  }
+  if (calc.category === "impuestos") {
+    return {
+      audience: "personas fisicas, profesionales independientes, contadores, pymes y negocios que facturan en Republica Dominicana",
+      institutions: "DGII y, cuando el calculo toca nomina, TSS y CNSS",
+      example: "Un profesional que factura RD$25,000 por un servicio debe separar base imponible, ITBIS, retenciones y monto neto cobrado antes de registrar la operacion."
+    };
+  }
+  if (calc.category === "finanzas") {
+    return {
+      audience: "hogares, emprendedores y analistas que comparan escenarios de credito, ahorro o inversion",
+      institutions: "Banco Central, Superintendencia de Bancos y entidades financieras reguladas",
+      example: "Una familia que evalua una cuota mensual debe comparar capital, tasa, plazo, seguros y capacidad real de pago antes de comprometer ingresos futuros."
+    };
+  }
+  return {
+    audience: "duenos de negocios, administradores, vendedores y equipos contables de pymes dominicanas",
+    institutions: "DGII, camaras de comercio, entidades financieras y documentacion interna del negocio",
+    example: "Una pyme que vende un producto debe separar costo, margen, impuestos y flujo de caja para evitar confundir ventas con ganancia disponible."
+  };
+}
+
+function buildLongSections(calc: CalculatorInfo, base: CalculatorEditorialBase): CalculatorEditorialContent {
+  const ctx = categoryContext(calc);
+  const faqs = [
+    ...base.faqs,
+    {
+      question: `Para que sirve ${calc.name}?`,
+      answer: `${calc.name} sirve para convertir datos dispersos en una estimacion organizada y revisable. No se limita a mostrar un numero: ayuda a entender que base se usa, que periodo corresponde y que conceptos pueden alterar el resultado. Es util para ${ctx.audience}, especialmente cuando necesitan comparar escenarios antes de tomar una decision o antes de consultar una fuente oficial.`
+    },
+    {
+      question: "El resultado es oficial o definitivo?",
+      answer: "No. El resultado es una estimacion educativa basada en reglas generales, tasas documentadas y datos ingresados por el usuario. Una institucion oficial, un contador, un abogado o un asesor financiero puede revisar documentos adicionales, periodos parciales, acuerdos, exenciones, pagos variables o criterios administrativos que no aparecen en una simulacion automatica."
+    },
+    {
+      question: "Que documentos debo revisar antes de confiar en el calculo?",
+      answer: "Conviene revisar recibos de pago, contratos, facturas con NCF, formularios, comunicaciones laborales, constancias de retencion, estados de cuenta o cualquier documento que pruebe la base usada. Si el documento real usa una base distinta a la que escribiste en la calculadora, el resultado puede cambiar aunque la formula general sea correcta."
+    },
+    {
+      question: "Por que puede variar el resultado entre empresas o periodos?",
+      answer: "Puede variar por descuentos voluntarios, comisiones, bonificaciones, ingresos acumulados, cambios de tasa, topes cotizables, pagos parciales, errores de captura o reglas internas documentadas. En temas fiscales y laborales tambien importa la fecha: una tasa o tope vigente en un mes puede no ser el mismo usado en un periodo anterior."
+    },
+    {
+      question: "Como usa Tu Negocio RD las fuentes oficiales?",
+      answer: `El equipo editorial prioriza fuentes primarias como ${ctx.institutions}. Las fuentes se usan para confirmar conceptos, tasas, topes y criterios generales. Cuando una publicacion oficial cambia, se revisa el texto, los ejemplos y la calculadora relacionada para mantener coherencia entre explicacion y resultado.`
+    },
+    {
+      question: "Que debo hacer si encuentro una diferencia?",
+      answer: "Primero verifica que los datos ingresados coincidan con tu documento real. Luego confirma fecha, periodo, base y concepto aplicado. Si la diferencia persiste, conserva la evidencia y consulta con la institucion correspondiente o con un asesor profesional. Tambien puedes reportar el caso desde la pagina de contacto para que revisemos la explicacion editorial."
+    }
+  ].slice(0, 9);
+
+  return {
+    ...base,
+    faqs,
+    whatIs: `${calc.name} es una herramienta educativa de Tu Negocio RD para ${calc.description.toLowerCase()} Su objetivo es ayudar a ${ctx.audience} a entender un resultado antes de usarlo en una conversacion contable, laboral, fiscal o financiera. La herramienta no presenta el calculo como una verdad aislada: lo coloca dentro de un contexto dominicano, con tasas, topes, periodos y advertencias que explican por que el mismo monto puede producir resultados distintos cuando cambia la base o la fecha. ${base.overview} Esta pagina esta disenada para que el usuario lea primero el alcance del calculo, identifique que datos necesita y luego use la calculadora con una expectativa razonable. En temas de dinero, empleo e impuestos, un resultado rapido sin explicacion puede crear confianza falsa. Por eso se muestran metodologia, ejemplo, errores frecuentes, fuentes oficiales y fecha de actualizacion. Tambien se aclara que el calculo es informativo y que los casos con documentos, acuerdos, sentencias, exenciones, comisiones o tratamientos especiales requieren revision profesional.`,
+    howItWorks: `${base.steps} El proceso comienza identificando la base correcta: salario bruto, salario ordinario, monto facturado, capital, tasa, plazo o costo, segun aplique. Despues se confirma el periodo para evitar mezclar cifras mensuales con anuales, quincenales o proporcionales. Cuando hay tasas, topes o tramos, se aplican en el orden correspondiente y se separan conceptos que no deben mezclarse. En el caso dominicano esto es importante porque una nomina puede involucrar TSS, ISR y descuentos voluntarios; una factura puede involucrar ITBIS y retenciones; y una liquidacion puede mezclar prestaciones con derechos adquiridos. La interpretacion del resultado debe hacerse revisando el desglose y no solo el total. Si el resultado se va a usar para una decision importante, conviene guardar los datos ingresados, revisar la fuente oficial y contrastar con documentos reales.`,
+    practicalExample: `${ctx.example} ${base.example} El ejemplo debe leerse como una demostracion del metodo, no como una promesa de pago. Primero se toma el dato principal y se confirma si es bruto, neto o base imponible. Luego se aplican los pasos en orden y se revisa el total contra el documento real. Si aparece una diferencia, la causa mas comun es que el caso real incluye otro concepto: comisiones, pagos parciales, descuentos voluntarios, topes, periodos incompletos o retenciones acumuladas. Usar el ejemplo de esta forma ayuda a detectar preguntas concretas antes de hablar con la empresa, el contador, el banco o una institucion oficial.`,
+    officialSources: `Las referencias principales para este tipo de calculo son ${ctx.institutions}. Tu Negocio RD utiliza estas fuentes para revisar tasas, topes, conceptos y fechas de vigencia. Cuando una fuente secundaria contradice una fuente oficial, se prioriza la publicacion oficial o se marca el tema para revision editorial antes de cambiar una formula.`,
+    lastUpdated: LAST_UPDATED,
+    ymylNotice: YMYL_NOTICE,
+  };
+}
+
 export function getCalculatorEditorialContent(calc: CalculatorInfo): CalculatorEditorialContent {
-  return contentById[calc.id] || {
+  const base = contentById[calc.id] || {
     overview: `${calc.description} La herramienta organiza los datos y muestra un resultado reproducible.`,
     steps: `Completa los campos de ${calc.name.toLowerCase()}, revisa unidades, periodo y tasa, y compara el desglose.`,
     example: `Prueba un escenario conservador y otro alternativo para entender como cambia ${calc.name.toLowerCase()}.`,
@@ -102,4 +184,5 @@ export function getCalculatorEditorialContent(calc: CalculatorInfo): CalculatorE
       { question: "El resultado es definitivo?", answer: "No. Es una estimacion que debe contrastarse con documentos y normas aplicables." }
     ]
   };
+  return buildLongSections(calc, base);
 }

@@ -36,6 +36,9 @@ export default function SalarySeoPage({ amount, onNavigate }: SalarySeoPageProps
           Este ejemplo calcula AFP, SFS e ISR estimados para un salario bruto mensual de {money(amount)}.
           Usa la escala DGII 2026 y los topes TSS efectivos desde el 1 de febrero de 2026.
         </p>
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 leading-relaxed">
+          La informacion proporcionada tiene fines educativos e informativos y no constituye asesoria legal, fiscal ni financiera profesional. Esta pagina comparativa se mantiene para usuarios, pero la referencia principal indexable es la calculadora de nomina.
+        </p>
         <div className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1.5">
           <CheckCircle size={14} />
           Ultima revision fiscal: 10 de junio de 2026

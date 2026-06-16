@@ -1672,49 +1672,25 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
             Información Educativa y Marco Normativo
           </h2>
 
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 leading-relaxed">
+            {editorialContent.ymylNotice}
+          </div>
+
           <div className="space-y-4 text-sm text-gray-600 leading-relaxed font-sans">
-            <h3 className="text-base font-bold text-gray-900">Que calcula esta herramienta</h3>
-            <p>{editorialContent.overview}</p>
-            <h3 className="text-base font-bold text-gray-900">Proceso de calculo</h3>
-            <p>{editorialContent.steps}</p>
-            <h3 className="text-base font-bold text-gray-900">Ejemplo practico</h3>
-            <p>{editorialContent.example}</p>
+            <h3 className="text-base font-bold text-gray-900">Que es {calc.name}</h3>
+            <p>{editorialContent.whatIs}</p>
+            <h3 className="text-base font-bold text-gray-900">Como funciona</h3>
+            <p>{editorialContent.howItWorks}</p>
+            <h3 className="text-base font-bold text-gray-900">Ejemplo practico dominicano</h3>
+            <p>{editorialContent.practicalExample}</p>
             <h3 className="text-base font-bold text-gray-900">Errores comunes</h3>
             <ul className="list-disc pl-5 space-y-2">
               {editorialContent.commonErrors.map((error) => <li key={error}>{error}</li>)}
             </ul>
-          </div>
-
-          <div className="hidden">
-            <h3 className="text-base font-bold text-gray-900">¿Qué es y cómo funciona el cálculo de {calc.name}?</h3>
-            <p>
-              En la República Dominicana, los procesos {calc.category === 'impuestos' ? 'fiscales de la DGII' : calc.category === 'laboral' ? 'normados por el Ministerio de Trabajo y la TSS' : 'bancarios regulados por la Superintendencia de Bancos'} están estrictamente codificados por leyes nacionales. Comprender su funcionamiento garantiza a los empleados recibir su compensación justa y a los empresarios cumplir con sus obligaciones tributarias de manera transparente.
-            </p>
-
-            <h3 className="text-base font-bold text-gray-900">¿Cómo se calcula paso a paso?</h3>
-            <p>
-              El cálculo técnico combina tanto factores lineales como cotas impositivas. Para dar fe de ello, nuestro simulador aplica las fórmulas oficiales que son utilizadas por las tesorerías de las principales corporaciones y los sistemas contables bancarios del país. Por ejemplo, al calcular el ingreso neto, primero se resguardan las pensiones individuales (AFP) antes de deducir el ISR, evitando así la doble tributación de salarios bajo el régimen fiscal dominicano.
-            </p>
-
-            <h3 className="text-base font-bold text-gray-900">Errores comunes a evitar</h3>
-            <ul className="list-disc pl-5 mt-2 space-y-2">
-              <li><strong>Ignorar topes de cotización:</strong> Muchos contribuyentes omiten que la Tesorería de la Seguridad Social (TSS) tiene límites máximos cotizables para salud y pensiones, por lo que a salarios elevados no se les debe deducir porcentajes planos ilimitados.</li>
-              <li><strong>No actualizar las escalas móviles:</strong> Si bien las escalas del ISR para asalariados de la DGII permanecieron congeladas desde 2017 por disposición legal, es indispensable aplicarlas con cuidado sobre los ingresos anuales acumulados totales.</li>
-              <li><strong>Tratamiento erróneo de comisiones:</strong> En el marco laboral dominicano, las comisiones y horas ordinarias fijas forman parte integrada del salario computable para fines de prestaciones del desahucio.</li>
-            </ul>
-
-            <h3 className="text-base font-bold text-gray-900">Preguntas Frecuentes ({calc.name})</h3>
-            <div className="space-y-4 mt-3">
-              {miniFAQs.map((faq, fIdx) => (
-                <div key={fIdx} className="bg-gray-50/50 p-4 rounded-lg border border-gray-100">
-                  <span className="font-bold text-sm text-[#111827] block mb-1">
-                    ¿{faq.question}
-                  </span>
-                  <p className="text-xs text-[#6B7280]">
-                    {faq.answer}
-                  </p>
-                </div>
-              ))}
+            <div className="bg-teal-50/50 border border-teal-100 rounded-xl p-4">
+              <h3 className="text-base font-bold text-gray-900">Fuentes oficiales</h3>
+              <p className="mt-2">{editorialContent.officialSources}</p>
+              <p className="mt-2 text-xs font-semibold text-[#0F766E]">Ultima actualizacion: {editorialContent.lastUpdated}</p>
             </div>
           </div>
 
@@ -1723,7 +1699,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
             {miniFAQs.map((faq) => (
               <div key={faq.question} className="bg-gray-50/50 p-4 rounded-lg border border-gray-100">
                 <h4 className="font-bold text-sm text-[#111827]">{faq.question}</h4>
-                <p className="text-xs text-[#6B7280] mt-1">{faq.answer}</p>
+                <p className="text-sm text-[#6B7280] mt-1 leading-relaxed">{faq.answer}</p>
               </div>
             ))}
           </div>

@@ -254,6 +254,7 @@ export function parseProgrammaticSeoPage(pathname: string): ProgrammaticSeoPageD
 
 export interface TopicHub {
   slug: string;
+  aliases?: string[];
   title: string;
   description: string;
   intro: string;
@@ -264,44 +265,58 @@ export interface TopicHub {
 export const TOPIC_HUBS: TopicHub[] = [
   {
     slug: "nomina-tss",
+    aliases: ["nomina", "tss"],
     title: "Nomina, TSS y salario neto en RD",
     description: "Guia central para calcular salario neto, AFP, SFS, ISR y costo patronal en Republica Dominicana.",
     intro: "Reune las herramientas necesarias para pasar de salario bruto a neto, revisar topes cotizables y separar aportes del empleado y del empleador.",
     calculatorSlugs: ["calculadora-salario-neto", "calculadora-tss", "calculadora-isr"],
-    guideSlugs: ["como-calcular-salario-neto"]
+    guideSlugs: ["como-interpretar-una-nomina-dominicana", "que-es-la-tss-y-como-funciona", "como-preparar-una-nomina-para-pyme-rd"]
   },
   {
     slug: "liquidacion-laboral",
+    aliases: ["prestaciones-laborales"],
     title: "Liquidacion y prestaciones laborales en RD",
     description: "Calculadoras y guias sobre liquidacion, preaviso, cesantia, vacaciones y regalia pascual.",
     intro: "Ayuda a distinguir prestaciones laborales de derechos adquiridos y a revisar como cambia el resultado segun la causa de terminacion.",
     calculatorSlugs: ["calculadora-liquidacion", "calculadora-prestaciones-laborales", "calculadora-vacaciones", "calculadora-regalia-pascual"],
-    guideSlugs: ["como-calcular-prestaciones", "como-calcular-vacaciones", "como-calcular-regalia"]
+    guideSlugs: ["como-calcular-prestaciones-laborales-rd", "como-reclamar-prestaciones-laborales-rd", "desahucio-despido-y-renuncia-diferencias", "vacaciones-no-tomadas-como-se-pagan", "todo-sobre-regalia-pascual"]
   },
   {
     slug: "isr-asalariados",
+    aliases: ["isr"],
     title: "ISR para asalariados en Republica Dominicana",
     description: "Escala, renta neta gravable y calculadoras de ISR y salario neto para empleados.",
     intro: "Explica el orden correcto: aportes TSS del trabajador, anualizacion de la renta neta y aplicacion progresiva de la escala DGII.",
     calculatorSlugs: ["calculadora-isr", "calculadora-salario-neto", "calculadora-tss"],
-    guideSlugs: ["como-calcular-salario-neto"]
+    guideSlugs: ["guia-completa-isr-dominicano", "errores-al-calcular-isr-asalariados", "como-interpretar-una-nomina-dominicana"]
   },
   {
     slug: "itbis-retenciones",
+    aliases: ["itbis"],
     title: "ITBIS y retenciones DGII",
     description: "Herramientas para agregar o extraer ITBIS y estimar retenciones de ISR e ITBIS.",
     intro: "Centraliza calculadoras para facturacion, retenciones y revision de bases imponibles sin mezclar impuestos con reglas distintas.",
     calculatorSlugs: ["calculadora-itbis", "calculadora-retenciones", "itbis-incluido", "itbis-excluido"],
-    guideSlugs: ["como-calcular-itbis"]
+    guideSlugs: ["itbis-facturas-y-ncf-guia-practica", "retenciones-a-servicios-profesionales-rd", "guia-completa-isr-dominicano"]
   },
   {
     slug: "formalizacion-negocios",
+    aliases: ["negocios"],
     title: "Formalizacion y finanzas para negocios en RD",
     description: "Recursos para precios, margenes, prestamos, impuestos y cumplimiento de pequeñas empresas dominicanas.",
     intro: "Conecta decisiones de precio y financiamiento con obligaciones fiscales basicas para evaluar escenarios antes de comprometer efectivo.",
     calculatorSlugs: ["calculadora-precio-venta-margen", "calculadora-cuota-prestamo", "calculadora-itbis"],
-    guideSlugs: ["como-calcular-itbis"]
+    guideSlugs: ["flujo-de-caja-para-negocios-pequenos-rd", "itbis-facturas-y-ncf-guia-practica", "como-preparar-una-nomina-para-pyme-rd"]
   }
 ];
 
 export const TOPIC_HUB_BY_SLUG = new Map(TOPIC_HUBS.map((hub) => [hub.slug, hub]));
+
+export const TOPIC_HUB_BY_ALIAS = new Map(
+  TOPIC_HUBS.flatMap((hub) => (hub.aliases || []).map((alias) => [alias, hub] as const))
+);
+
+export function getTopicHubByPath(pathname: string): TopicHub | null {
+  const slug = pathname.replace(/^\/temas\//, "").replace(/^\//, "");
+  return TOPIC_HUB_BY_SLUG.get(slug) || TOPIC_HUB_BY_ALIAS.get(slug) || null;
+}

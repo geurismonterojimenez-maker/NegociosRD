@@ -24,13 +24,13 @@ import { isAdminEmail } from './config/admin';
 import { TAX_RATES_REGISTRY } from './config/tax-rates';
 import {
   getCanonicalCalculatorPath,
+  getTopicHubByPath,
   parseProgrammaticSeoPage,
   parseSalaryPageAmount,
   ProgrammaticSeoPageData,
   SEO_LANDING_BY_SLUG,
   SEO_LANDING_PAGES,
   SeoLandingPage,
-  TOPIC_HUB_BY_SLUG,
   TopicHub
 } from './seo-pages';
 import { EDITORIAL_PAGES } from './content/editorial';
@@ -290,6 +290,21 @@ const updateMetaTags = (title: string, description: string, path: string, type: 
         "target": `${PUBLIC_SITE_URL}/?q={search_term_string}`,
         "query-input": "required name=search_term_string"
       }
+    });
+  }
+
+  if (faqItems && faqItems.length > 0) {
+    injectSchema({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqItems.map((item) => ({
+        "@type": "Question",
+        "name": item.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.answer
+        }
+      }))
     });
   }
 
@@ -579,6 +594,7 @@ export default function App() {
   // Load monetization and analytics after the initial interactive path.
   useEffect(() => {
     const customId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
+    const adsEnabled = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ENABLE_ADSENSE === 'true' : false;
     const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
 
     if (typeof window === 'undefined' || isDev) return;
@@ -590,7 +606,7 @@ export default function App() {
         window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
         loadScriptOnce('gtm-runtime', `https://www.googletagmanager.com/gtm.js?id=${GTM_CONTAINER_ID}`);
 
-        if (customId && customId !== 'ca-pub-XXXXXXXXXXXXXXXX' && customId.startsWith('ca-pub-')) {
+        if (adsEnabled && customId && customId !== 'ca-pub-XXXXXXXXXXXXXXXX' && customId.startsWith('ca-pub-')) {
           loadScriptOnce(
             'adsbygoogle-runtime',
             `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${customId}`,
@@ -858,7 +874,9 @@ export default function App() {
     const landingPage = SEO_LANDING_BY_SLUG.get(path.replace(/^\//, ''));
     const salaryAmount = parseSalaryPageAmount(path);
     const programmaticPage = parseProgrammaticSeoPage(path);
-    const topicHub = path.startsWith('/temas/') ? TOPIC_HUB_BY_SLUG.get(path.replace('/temas/', '')) : null;
+    const topicHub = path.startsWith('/temas/') || ['/nomina', '/tss', '/isr', '/prestaciones-laborales', '/itbis', '/negocios'].includes(path)
+      ? getTopicHubByPath(path)
+      : null;
     const editorialKey = path.replace(/^\//, '') as keyof typeof EDITORIAL_PAGES;
     setActiveLandingPage(null);
     setSalarySeoAmount(null);
@@ -911,6 +929,11 @@ export default function App() {
         setSelectedGuideSlug(null);
         return;
       }
+    } else if (path === '/guias' || path === '/aprende') {
+      setCurrentView('blog');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
     } else if (path.startsWith('/guia/')) {
       const slug = path.replace('/guia/', '');
       const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === slug);
@@ -924,7 +947,7 @@ export default function App() {
         setSelectedGuideSlug(null);
         return;
       }
-    } else if (path === '/nosotros') {
+    } else if (path === '/nosotros' || path === '/sobre-nosotros') {
       setCurrentView('nosotros');
       setActiveCalculator(null);
       setSelectedGuideSlug(null);
@@ -1029,10 +1052,11 @@ export default function App() {
         [
           { question: `Cuanto se descuenta de TSS con ${formatted}?`, answer: "Se calculan AFP y SFS usando los porcentajes del trabajador y los topes cotizables vigentes." },
           { question: "El resultado incluye ISR?", answer: "Si. La renta neta despues de TSS se anualiza y se compara con la escala DGII 2026." },
-        ]
+        ],
+        "noindex, follow"
       );
     } else if (currentView === 'programmatic-seo' && programmaticSeoPage) {
-      updateMetaTags(programmaticSeoPage.title, programmaticSeoPage.description, `/${programmaticSeoPage.slug}`, 'article');
+      updateMetaTags(programmaticSeoPage.title, programmaticSeoPage.description, `/${programmaticSeoPage.slug}`, 'article', undefined, "noindex, follow");
     } else if (currentView === 'topic-hub' && activeTopicHub) {
       updateMetaTags(activeTopicHub.title, activeTopicHub.description, `/temas/${activeTopicHub.slug}`, 'article');
     } else if (currentView === 'editorial' && activeEditorialPage) {
@@ -1041,10 +1065,21 @@ export default function App() {
     } else if (currentView === 'blog' && selectedGuideSlug) {
       const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === selectedGuideSlug);
       if (guide) {
-        updateMetaTags(guide.seoTitle, guide.seoMetaDescription, `/guia/${selectedGuideSlug}`, 'article');
+        updateMetaTags(guide.seoTitle, guide.seoMetaDescription, `/guia/${selectedGuideSlug}`, 'article', [
+          { question: "Esta guia sustituye una consulta profesional?", answer: "No. La guia organiza reglas generales, ejemplos y fuentes oficiales para mejorar la comprension, pero no reemplaza una revision profesional individual." },
+          { question: "Que fuentes oficiales usa Tu Negocio RD?", answer: "Se priorizan DGII, TSS, CNSS, Ministerio de Trabajo y otras instituciones dominicanas relacionadas con salud, pensiones o finanzas cuando el tema lo requiere." },
+          { question: "Cada cuanto se actualiza la informacion?", answer: "Las paginas centrales se revisan cuando hay cambios normativos, publicaciones oficiales o reportes de usuarios que puedan afectar formulas, ejemplos o interpretaciones." }
+        ]);
       }
+    } else if (currentView === 'blog') {
+      updateMetaTags(
+        "Centro de aprendizaje financiero y laboral RD | Tu Negocio RD",
+        "Guias extensas sobre nomina, ISR, TSS, prestaciones, regalia, horas extras y finanzas para Republica Dominicana.",
+        "/guias",
+        "website"
+      );
     } else if (currentView === 'nosotros') {
-      updateMetaTags("Sobre Nosotros | Tu Negocio RD", "Conoce al equipo de Tu Negocio RD y nuestro compromiso con proveer herramientas de cálculo y consultoría fiscal confiables en República Dominicana.", "/nosotros", "website");
+      updateMetaTags("Sobre Nosotros | Tu Negocio RD", "Conoce la mision, metodologia editorial, fuentes oficiales y compromiso de precision de Tu Negocio RD.", "/sobre-nosotros", "website");
     } else if (currentView in TRUST_PAGES) {
       const page = TRUST_PAGES[currentView as keyof typeof TRUST_PAGES];
       updateMetaTags(page.title, page.description, `/${currentView}`, "website");
@@ -1197,7 +1232,7 @@ export default function App() {
               Centros RD
             </button>
             <button 
-              onClick={() => { navigateTo('/guia/como-calcular-itbis'); }}
+              onClick={() => { navigateTo('/guias'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'blog' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -1332,7 +1367,7 @@ export default function App() {
                 Centro Financiero RD (Deudas)
               </button>
               <button 
-                onClick={() => { navigateTo('/guia/como-calcular-itbis'); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/guias'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'blog' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-blog"
               >
@@ -1944,20 +1979,42 @@ export default function App() {
               <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-10 shadow-xs space-y-6">
                 <h1 className="text-2xl md:text-3xl font-bold text-[#111827] border-b pb-4 flex items-center gap-2">
                   <Info size={24} className="text-[#0F766E]" />
-                  Acerca de Tu Negocio RD
+                  Sobre nosotros
                 </h1>
                 <p className="text-[#6B7280] leading-relaxed text-sm">
-                  <strong>Tu Negocio RD</strong> ayuda a profesionales y negocios dominicanos a resolver cálculos fiscales, laborales y financieros sin depender de hojas sueltas o fórmulas difíciles de auditar.
+                  <strong>Tu Negocio RD</strong> es un portal educativo dominicano enfocado en calculos de nomina, impuestos, seguridad social, prestaciones laborales y finanzas practicas. Nuestro proposito es que trabajadores, emprendedores, contadores y duenos de negocios puedan entender el metodo detras de un resultado antes de tomar decisiones que afecten dinero, empleo o cumplimiento fiscal.
                 </p>
                 <p className="text-[#6B7280] leading-relaxed text-sm">
-                  La plataforma documenta tasas, topes y referencias de entidades como DGII, Ministerio de Trabajo y TSS para que cada resultado sea más fácil de revisar antes de tomar una decisión.
+                  La experiencia del proyecto combina desarrollo de software, investigacion documental, control de fuentes y pruebas de calculo. No presentamos las herramientas como certificaciones oficiales: las usamos como apoyo educativo para organizar datos, explicar formulas y detectar preguntas que luego pueden validarse con DGII, TSS, CNSS, Ministerio de Trabajo o un asesor profesional.
                 </p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {[
+                    ["Mision", "Hacer mas comprensibles los calculos fiscales, laborales y financieros frecuentes en Republica Dominicana."],
+                    ["Metodologia de investigacion", "Priorizamos fuentes oficiales, documentamos fechas de revision y contrastamos textos con calculadoras internas."],
+                    ["Compromiso con la precision", "Cuando una tasa, tope o formula cambia, revisamos el contenido, los ejemplos y el resultado asociado antes de publicarlo como actualizado."],
+                    ["Actualizacion periodica", "Las paginas centrales muestran fecha de actualizacion y se revisan ante cambios normativos o reportes de usuarios."],
+                  ].map(([title, body]) => (
+                    <div key={title} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                      <h2 className="font-bold text-gray-950 text-sm">{title}</h2>
+                      <p className="text-xs text-gray-600 leading-relaxed mt-2">{body}</p>
+                    </div>
+                  ))}
+                </div>
                 <div className="bg-teal-50/50 p-4 rounded-xl border border-teal-100 text-[#0F766E] space-y-2 text-xs leading-relaxed">
-                  <span className="font-bold text-base block">Nuestro Compromiso</span>
-                  <p className="text-gray-600">Ofrecer herramientas claras, rápidas y verificables para cálculos frecuentes de impuestos, nómina, préstamos y gestión financiera en República Dominicana.</p>
+                  <span className="font-bold text-base block">Fuentes oficiales utilizadas</span>
+                  <p className="text-gray-600">DGII para ISR, ITBIS, retenciones y recargos; TSS y CNSS para seguridad social y topes cotizables; Ministerio de Trabajo para prestaciones, vacaciones, jornada y salario de Navidad; SISALRIL y SIPEN para referencias relacionadas con salud y pensiones.</p>
+                </div>
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 leading-relaxed">
+                  La informacion publicada tiene fines educativos e informativos y no constituye asesoria legal, fiscal ni financiera profesional. Para decisiones definitivas recomendamos confirmar con la institucion oficial correspondiente o con un asesor calificado.
                 </div>
 
                 <div className="pt-4 flex flex-wrap gap-4">
+                  <button
+                    onClick={() => { navigateTo('/politica-editorial'); }}
+                    className="px-6 py-2.5 border border-[#0F766E] text-[#0F766E] text-xs font-bold rounded-lg cursor-pointer hover:bg-teal-50 transition-all"
+                  >
+                    Ver politica editorial
+                  </button>
                   <button
                     onClick={() => { navigateTo('/'); }}
                     className="px-6 py-2.5 bg-[#0F766E] text-white text-xs font-bold rounded-lg cursor-pointer hover:opacity-95 transition-all shadow-xs"
@@ -2464,28 +2521,28 @@ export default function App() {
                 <h2 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Guías de cálculo SEO</h2>
                 <ul className="space-y-2 text-xs">
                   <li>
-                    <a href="/guia/como-calcular-itbis" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-itbis')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
-                      Como calcular el ITBIS en RD
+                    <a href="/guias" onClick={(event) => { event.preventDefault(); navigateTo('/guias'); }} className="hover:text-[#0F766E] transition-colors text-left inline-block">
+                      Centro de aprendizaje
                     </a>
                   </li>
                   <li>
-                    <a href="/guia/como-calcular-prestaciones" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-prestaciones')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
+                    <a href="/guia/como-calcular-prestaciones-laborales-rd" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-prestaciones-laborales-rd')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
                       Como calcular prestaciones laborales
                     </a>
                   </li>
                   <li>
-                    <a href="/guia/como-calcular-salario-neto" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-salario-neto')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
-                      Cómo calcular salario neto
+                    <a href="/guia/guia-completa-isr-dominicano" onClick={(event) => handleGuideLinkClick(event, 'guia-completa-isr-dominicano')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
+                      Guia completa del ISR
                     </a>
                   </li>
                   <li>
-                    <a href="/guia/como-calcular-vacaciones" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-vacaciones')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
-                      Desglose de vacaciones pagadas
+                    <a href="/guia/que-es-la-tss-y-como-funciona" onClick={(event) => handleGuideLinkClick(event, 'que-es-la-tss-y-como-funciona')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
+                      Que es la TSS
                     </a>
                   </li>
                   <li>
-                    <a href="/guia/como-calcular-regalia" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-regalia')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
-                      Salario de navidad / regalías
+                    <a href="/guia/todo-sobre-regalia-pascual" onClick={(event) => handleGuideLinkClick(event, 'todo-sobre-regalia-pascual')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
+                      Salario de navidad / regalia
                     </a>
                   </li>
                 </ul>
@@ -2501,6 +2558,7 @@ export default function App() {
                   <li><button onClick={() => navigateTo('/contacto')} className="hover:text-[#0F766E] transition-colors text-left">Contacto</button></li>
                   <li><button onClick={() => navigateTo('/metodologia')} className="hover:text-[#0F766E] transition-colors text-left">Metodologia</button></li>
                   <li><button onClick={() => navigateTo('/politica-editorial')} className="hover:text-[#0F766E] transition-colors text-left">Politica editorial</button></li>
+                  <li><button onClick={() => navigateTo('/autores/equipo-editorial')} className="hover:text-[#0F766E] transition-colors text-left">Equipo editorial</button></li>
                   <li><button onClick={() => navigateTo('/fuentes-oficiales')} className="hover:text-[#0F766E] transition-colors text-left">Fuentes oficiales</button></li>
                   <li><button onClick={() => navigateTo('/privacidad')} className="hover:text-[#0F766E] transition-colors text-left">Privacidad</button></li>
                   <li><button onClick={() => navigateTo('/terminos')} className="hover:text-[#0F766E] transition-colors text-left">Términos</button></li>

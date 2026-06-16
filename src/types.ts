@@ -50,6 +50,7 @@ export interface GuidePage {
   publishDate: string;
   readTime: string;
   imageAlt: string;
+  relatedCalculatorSlug?: string;
   contentMarkdown: string; // Full high-quality article (800-1500 words)
 }
 

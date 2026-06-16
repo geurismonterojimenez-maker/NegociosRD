@@ -9,6 +9,7 @@ import { readRatesCache, refreshOfficialRates } from "./src/lib/rates/rate-updat
 import { CALCULATORS, PROGRAMMATIC_GUIDES } from "./src/data";
 import {
   getCanonicalCalculatorPath,
+  getTopicHubByPath,
   getSalaryPageAmounts,
   parseProgrammaticSeoPage,
   parseSalaryPageAmount,
@@ -16,7 +17,6 @@ import {
   salaryPageSlug,
   SEO_LANDING_BY_SLUG,
   SEO_LANDING_PAGES,
-  TOPIC_HUB_BY_SLUG,
   TOPIC_HUBS
 } from "./src/seo-pages";
 import { EDITORIAL_PAGES } from "./src/content/editorial";
@@ -786,21 +786,11 @@ app.get("/sitemap.xml", (req, res) => {
     <priority>0.9</priority>
   </url>`).join('');
 
-  const salaryUrls = getSalaryPageAmounts().map(amount => `
-  <url>
-    <loc>${ORIGIN_URL}/${salaryPageSlug(amount)}</loc>
-    <lastmod>2026-06-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`).join('');
+  // Salary amount pages remain available for users, but are intentionally
+  // excluded from the sitemap because their templates are highly similar.
 
-  const programmaticUrls = PROGRAMMATIC_SEO_PAGES.map(page => `
-  <url>
-    <loc>${ORIGIN_URL}/${page.slug}</loc>
-    <lastmod>2026-06-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.65</priority>
-  </url>`).join('');
+  // Small programmatic examples are available for users but excluded from the
+  // sitemap to avoid presenting thin generated pages as primary inventory.
 
   const topicUrls = TOPIC_HUBS.map(hub => `
   <url>
@@ -810,9 +800,20 @@ app.get("/sitemap.xml", (req, res) => {
     <priority>0.8</priority>
   </url>`).join('');
 
+  const topicAliasUrls = TOPIC_HUBS.flatMap(hub => hub.aliases || []).map(alias => `
+  <url>
+    <loc>${ORIGIN_URL}/${alias}</loc>
+    <lastmod>2026-06-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>`).join('');
+
   const staticUrls = [
     '/',
+    '/guias',
     '/noticias',
+    '/sobre-nosotros',
+    '/autores/equipo-editorial',
     '/nosotros',
     '/contacto',
     '/privacidad',
@@ -835,9 +836,8 @@ ${staticUrls}
 ${calculatedUrls}
 ${guideUrls}
 ${landingUrls}
-${salaryUrls}
-${programmaticUrls}
 ${topicUrls}
+${topicAliasUrls}
 </urlset>`;
 
   res.header("Content-Type", "application/xml");
@@ -856,6 +856,18 @@ Sitemap: ${ORIGIN_URL}/sitemap.xml`;
   res.status(200).send(robots);
 });
 
+const LEGACY_GUIDE_REDIRECTS: Record<string, string> = {
+  "/guia/como-calcular-itbis": "/guia/itbis-facturas-y-ncf-guia-practica",
+  "/guia/como-calcular-prestaciones": "/guia/como-calcular-prestaciones-laborales-rd",
+  "/guia/como-calcular-salario-neto": "/guia/como-interpretar-una-nomina-dominicana",
+  "/guia/como-calcular-vacaciones": "/guia/vacaciones-no-tomadas-como-se-pagan",
+  "/guia/como-calcular-regalia": "/guia/todo-sobre-regalia-pascual"
+};
+
+app.get(Object.keys(LEGACY_GUIDE_REDIRECTS), (req, res) => {
+  res.redirect(301, LEGACY_GUIDE_REDIRECTS[req.path]);
+});
+
 // Helper to pre-render HTML with unique meta tags, OpenGraph, dynamic canonicals & JSON-LD schemas
 function getPrerenderedHTML(html: string, originalUrl: string): string {
   let title = "Tu Negocio RD - Calculadoras Fiscales, Laborales y Financieras de R.D.";
@@ -868,7 +880,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   const landingPage = SEO_LANDING_BY_SLUG.get(pathPart.replace(/^\//, ""));
   const salaryAmount = parseSalaryPageAmount(pathPart);
   const programmaticPage = parseProgrammaticSeoPage(pathPart);
-  const topicHub = pathPart.startsWith("/temas/") ? TOPIC_HUB_BY_SLUG.get(pathPart.replace("/temas/", "")) : null;
+  const topicHub = getTopicHubByPath(pathPart);
   const editorialKey = pathPart.replace(/^\//, "") as keyof typeof EDITORIAL_PAGES;
 
   if (landingPage) {
@@ -897,10 +909,12 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     const formatted = `RD$ ${salaryAmount.toLocaleString("es-DO")}`;
     title = `Si gano ${formatted}, cuanto me descuentan en RD? | 2026`;
     description = `Calcula AFP, SFS, ISR y salario neto para un sueldo bruto mensual de ${formatted} en Republica Dominicana con tasas y topes 2026.`;
+    robots = "noindex, follow";
     type = "article";
   } else if (programmaticPage) {
     title = programmaticPage.title;
     description = programmaticPage.description;
+    robots = "noindex, follow";
     type = "article";
   } else if (topicHub) {
     title = `${topicHub.title} | Tu Negocio RD`;
@@ -936,6 +950,9 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   </script>`;
 
     }
+  } else if (pathPart === "/guias" || pathPart === "/aprende") {
+    title = "Centro de aprendizaje financiero y laboral RD | Tu Negocio RD";
+    description = "Guias extensas sobre nomina, ISR, TSS, prestaciones, regalia, horas extras y finanzas para Republica Dominicana.";
   } else if (pathPart.startsWith("/guia/")) {
     const slug = pathPart.replace("/guia/", "");
     const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === slug);
@@ -944,9 +961,9 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
       description = guide.seoMetaDescription;
       type = "article";
     }
-  } else if (pathPart === "/nosotros") {
+  } else if (pathPart === "/nosotros" || pathPart === "/sobre-nosotros") {
     title = "Sobre Nosotros | Tu Negocio RD";
-    description = "Conoce al equipo de Tu Negocio RD y nuestro compromiso con proveer herramientas financieras, fiscales y laborales de la más alta confiabilidad en la República Dominicana.";
+    description = "Conoce la mision, metodologia editorial, fuentes oficiales y compromiso de precision de Tu Negocio RD.";
   } else if (pathPart === "/contacto") {
     title = "Contacto | Tu Negocio RD";
     description = "Contacta a Tu Negocio RD para soporte, alianzas y dudas sobre herramientas fiscales, laborales y financieras.";
@@ -970,7 +987,12 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
 
   // Canonical link setup
   const originUrl = ORIGIN_URL;
-  const canonicalUrl = `${originUrl}${pathPart}`;
+  const canonicalPath = topicHub
+    ? `/temas/${topicHub.slug}`
+    : pathPart === "/nosotros"
+      ? "/sobre-nosotros"
+      : pathPart;
+  const canonicalUrl = `${originUrl}${canonicalPath}`;
 
   if (pathPart === "/" || pathPart === "") {
     homeSchema = jsonLdScript({
@@ -1073,7 +1095,34 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     "mainEntityOfPage": canonicalUrl
   }) : "";
 
-  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${homeSchema}${articleSchema}\n</head>`;
+  const faqItems = landingPage?.faqs || (pathPart.startsWith("/guia/") ? [
+    {
+      question: "Esta guia sustituye una consulta profesional?",
+      answer: "No. La guia organiza reglas generales, ejemplos y fuentes oficiales para mejorar la comprension, pero no reemplaza una revision profesional individual."
+    },
+    {
+      question: "Que fuentes oficiales usa Tu Negocio RD?",
+      answer: "Se priorizan DGII, TSS, CNSS, Ministerio de Trabajo y otras instituciones dominicanas relacionadas con salud, pensiones o finanzas cuando el tema lo requiere."
+    },
+    {
+      question: "Cada cuanto se actualiza la informacion?",
+      answer: "Las paginas centrales se revisan cuando hay cambios normativos, publicaciones oficiales o reportes de usuarios que puedan afectar formulas, ejemplos o interpretaciones."
+    }
+  ] : []);
+  const faqSchema = faqItems.length > 0 ? jsonLdScript({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map((item) => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer
+      }
+    }))
+  }) : "";
+
+  const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${homeSchema}${articleSchema}${faqSchema}\n</head>`;
   return html.replace('</head>', injectedElements);
 }
 
@@ -1084,7 +1133,7 @@ function isValidRoute(originalUrl: string): boolean {
     SEO_LANDING_BY_SLUG.has(pathPart.replace(/^\//, "")) ||
     parseSalaryPageAmount(pathPart) !== null ||
     parseProgrammaticSeoPage(pathPart) !== null ||
-    (pathPart.startsWith("/temas/") && TOPIC_HUB_BY_SLUG.has(pathPart.replace("/temas/", ""))) ||
+    !!getTopicHubByPath(pathPart) ||
     pathPart.replace(/^\//, "") in EDITORIAL_PAGES
   ) {
     return true;
@@ -1092,7 +1141,10 @@ function isValidRoute(originalUrl: string): boolean {
   
   const validStaticPaths = [
     "/",
+    "/guias",
+    "/aprende",
     "/noticias",
+    "/sobre-nosotros",
     "/nosotros",
     "/contacto",
     "/privacidad",

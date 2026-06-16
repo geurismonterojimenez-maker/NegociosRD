@@ -22,13 +22,14 @@ const ADSENSE_SLOT_BY_VARIANT: Record<AdSenseBlockProps['variant'], string> = {
 export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockProps) {
   const [showCode, setShowCode] = useState(false);
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
+  const adsEnabled = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ENABLE_ADSENSE === 'true' : false;
   const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
   const adSlot = ADSENSE_SLOT_BY_VARIANT[variant];
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');
-  const { adElementRef, containerRef, shouldRenderAd } = useAdSenseActivation(Boolean(hasClientId && !isDev));
+  const { adElementRef, containerRef, shouldRenderAd } = useAdSenseActivation(Boolean(adsEnabled && hasClientId && !isDev));
 
   if (variant === 'nav-inline') {
-    if (hasClientId && !isDev) {
+    if (adsEnabled && hasClientId && !isDev) {
       return (
         <div ref={containerRef} className={`hidden xl:flex h-10 w-[168px] items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-250 bg-gray-50/70 px-2 text-center ${className}`}>
           {shouldRenderAd && <ins className="adsbygoogle"
@@ -53,7 +54,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
     );
   }
 
-  if ((variant === 'skyscraper-left' || variant === 'skyscraper-right') && hasClientId && !isDev) {
+  if ((variant === 'skyscraper-left' || variant === 'skyscraper-right') && adsEnabled && hasClientId && !isDev) {
     return (
       <div
         ref={containerRef}
@@ -74,7 +75,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
     );
   }
 
-  if (hasClientId && !isDev) {
+  if (adsEnabled && hasClientId && !isDev) {
     const format = variant === 'mobile-infeed' ? 'fluid' : variant.includes('skyscraper') ? 'vertical' : 'auto';
     const minHeightStyle = variant.includes('skyscraper') ? '600px' : variant === 'mobile-infeed' ? '120px' : '90px';
     return (

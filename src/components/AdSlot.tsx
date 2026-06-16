@@ -20,12 +20,13 @@ const ADSENSE_SLOT_BY_POSITION: Record<AdSlotProps['position'], string> = {
 export default function AdSlot({ position, className = '' }: AdSlotProps) {
   const [showCode, setShowCode] = useState(false);
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
+  const adsEnabled = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ENABLE_ADSENSE === 'true' : false;
   const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
   const adSlot = ADSENSE_SLOT_BY_POSITION[position];
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');
-  const { adElementRef, containerRef, shouldRenderAd } = useAdSenseActivation(Boolean(hasClientId && !isDev));
+  const { adElementRef, containerRef, shouldRenderAd } = useAdSenseActivation(Boolean(adsEnabled && hasClientId && !isDev));
 
-  if (hasClientId && !isDev) {
+  if (adsEnabled && hasClientId && !isDev) {
     const format = position === 'sidebar' ? 'vertical' : position === 'in-article' || position === 'mobile' ? 'fluid' : 'auto';
     const minHeightStyle = position === 'sidebar' ? '600px' : '100px';
     return (

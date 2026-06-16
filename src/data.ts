@@ -1,4 +1,5 @@
 import { CalculatorInfo, FaqItem, GuidePage, SEOContent } from './types';
+import { LEARNING_GUIDES } from './content/learning-guides';
 
 export const CATEGORIES = [
   { id: 'impuestos', name: 'Impuestos', icon: 'account_balance', descdgii: '6 calculadoras DGII', color: 'text-teal-600 bg-teal-50' },
@@ -646,7 +647,7 @@ export const HOME_FAQS: FaqItem[] = [
   }
 ];
 
-export const PROGRAMMATIC_GUIDES: GuidePage[] = [
+const LEGACY_PROGRAMMATIC_GUIDES: GuidePage[] = [
   {
     slug: 'como-calcular-itbis',
     title: '¿Cómo calcular el ITBIS en la República Dominicana?',
@@ -915,4 +916,6 @@ Una de las características más importantes de la Regalía Pascual en la Repúb
 - **No se puede embargar judicialmente** (con la única excepción de pensiones alimentarias por orden judicial formal de menores de edad).`
   }
 ];
+
+export const PROGRAMMATIC_GUIDES: GuidePage[] = LEARNING_GUIDES;
 export const SEO_PROGRAMMATIC_CONTENT: Record<string, SEOContent> = {} 

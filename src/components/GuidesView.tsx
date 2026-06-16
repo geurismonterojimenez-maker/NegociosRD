@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PROGRAMMATIC_GUIDES } from '../data';
+import { CALCULATORS, PROGRAMMATIC_GUIDES } from '../data';
 import { GuidePage } from '../types';
 import { BookOpen, Calendar, Clock, ArrowLeft, ArrowUpRight, DollarSign } from 'lucide-react';
 import AdSlot from './AdSlot';
@@ -32,6 +32,9 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
   };
 
   const currentGuideIndex = selectedGuide ? PROGRAMMATIC_GUIDES.indexOf(selectedGuide) : -1;
+  const relatedCalculator = selectedGuide?.relatedCalculatorSlug
+    ? CALCULATORS.find((calc) => calc.urlSlug === selectedGuide.relatedCalculatorSlug || calc.id === selectedGuide.relatedCalculatorSlug)
+    : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
@@ -40,7 +43,10 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
         <div className="max-w-4xl mx-auto">
           {/* Back button */}
           <button
-            onClick={() => setSelectedGuide(null)}
+            onClick={() => {
+              window.history.pushState(null, '', '/guias');
+              setSelectedGuide(null);
+            }}
             className="inline-flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#0F766E] font-medium transition-colors mb-6 cursor-pointer group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
@@ -52,6 +58,9 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-[#111827] mb-4">
               {selectedGuide.title}
             </h1>
+            <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 leading-relaxed mb-4">
+              La informacion proporcionada tiene fines educativos e informativos y no constituye asesoria legal, fiscal ni financiera profesional.
+            </p>
             <div className="flex flex-wrap items-center gap-4 text-xs text-[#6B7280]">
               <span className="flex items-center gap-1">
                 <Calendar size={14} />
@@ -73,7 +82,7 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
               <div className="prose prose-teal max-w-none text-[#111827] font-sans text-sm md:text-base leading-relaxed space-y-6">
                 {/* Simplified markdown parser for bold, section header rendering */}
                 {selectedGuide.contentMarkdown.split('\n\n').map((paragraph, pIdx) => {
-                  const shouldRenderInArticleAd = pIdx === 1;
+                  const shouldRenderInArticleAd = pIdx === 7;
                   const withInArticleAd = (node: React.ReactNode) => (
                     <React.Fragment key={pIdx}>
                       {node}
@@ -123,6 +132,25 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                   );
                 })}
               </div>
+              <section className="mt-8 rounded-xl border border-teal-100 bg-teal-50/40 p-5">
+                <h2 className="text-base font-bold text-gray-950">Recursos relacionados para seguir aprendiendo</h2>
+                <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                  {relatedCalculator && (
+                    <button
+                      onClick={() => handleCalcClick(relatedCalculator.urlSlug)}
+                      className="rounded-lg border border-teal-200 bg-white px-3 py-2 font-semibold text-[#0F766E] hover:border-[#0F766E] cursor-pointer"
+                    >
+                      Abrir {relatedCalculator.name}
+                    </button>
+                  )}
+                  <a href="/guias" onClick={(event) => { event.preventDefault(); setSelectedGuide(null); window.history.pushState(null, '', '/guias'); }} className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">
+                    Ver centro de aprendizaje
+                  </a>
+                  <a href="/nomina" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">Nomina y TSS</a>
+                  <a href="/prestaciones-laborales" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">Prestaciones laborales</a>
+                  <a href="/itbis" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">ITBIS y retenciones</a>
+                </div>
+              </section>
             </div>
 
             {/* Sidebar with related action or static AdSense */}
@@ -136,17 +164,8 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                 </p>
                 <button
                   onClick={() => {
-                    // Try to guess which calculator fits the guide
-                    if (selectedGuide.slug.includes('itbis')) {
-                      handleCalcClick('calculadora-itbis');
-                    } else if (selectedGuide.slug.includes('prestaciones')) {
-                      handleCalcClick('calculadora-prestaciones-laborales');
-                    } else if (selectedGuide.slug.includes('salario-neto')) {
-                      handleCalcClick('calculadora-salario-neto');
-                    } else if (selectedGuide.slug.includes('vacaciones')) {
-                      handleCalcClick('calculadora-vacaciones');
-                    } else if (selectedGuide.slug.includes('regalia')) {
-                      handleCalcClick('calculadora-regalia-pascual');
+                    if (selectedGuide.relatedCalculatorSlug) {
+                      handleCalcClick(selectedGuide.relatedCalculatorSlug);
                     } else {
                       onBackToHome();
                     }
@@ -169,18 +188,23 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
           <div className="border-b pb-4 mb-8">
             <h1 className="text-3xl font-bold tracking-tight text-[#111827] mb-2 flex items-center gap-2">
               <BookOpen size={24} className="text-[#0F766E]" />
-              Guías Fiscales y Laborales (República Dominicana)
+              Centro de aprendizaje financiero y laboral
             </h1>
             <p className="text-[#6B7280]">
-              Educación fiscal y laboral rigurosa de 800 a 1500 palabras por artículo, actualizada y redactada para República Dominicana.
+              Guias educativas extensas sobre nomina, impuestos, TSS, prestaciones y finanzas para Republica Dominicana.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {PROGRAMMATIC_GUIDES.map((guide) => (
-              <div
+              <a
                 key={guide.slug}
-                onClick={() => setSelectedGuide(guide)}
+                href={`/guia/${guide.slug}`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  window.history.pushState(null, '', `/guia/${guide.slug}`);
+                  setSelectedGuide(guide);
+                }}
                 className="bg-white border hover:border-[#0F766E] rounded-xl p-5 shadow-sm hover:shadow-md cursor-pointer transition-all flex flex-col justify-between group h-72"
               >
                 <div>
@@ -204,7 +228,7 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                   <span>Leer artículo experto completo →</span>
                   <BookOpen size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
