@@ -1,12 +1,16 @@
-import { ExternalLink, ShieldCheck } from "lucide-react";
+import { ArrowRight, ExternalLink, ShieldCheck } from "lucide-react";
 import { EDITORIAL_PAGES, EDITORIAL_REVIEW_DATE, OFFICIAL_SOURCES } from "../content/editorial";
 
 interface EditorialPageProps {
   pageKey: keyof typeof EDITORIAL_PAGES;
 }
 
+type EditorialPageData = (typeof EDITORIAL_PAGES)[keyof typeof EDITORIAL_PAGES] & {
+  relatedLinks?: readonly (readonly [string, string])[];
+};
+
 export default function EditorialPage({ pageKey }: EditorialPageProps) {
-  const page = EDITORIAL_PAGES[pageKey];
+  const page = EDITORIAL_PAGES[pageKey] as EditorialPageData;
   return (
     <article className="max-w-4xl mx-auto space-y-6 pb-12">
       <header className="bg-white border border-gray-200 rounded-2xl p-7 md:p-10 shadow-sm">
@@ -26,6 +30,23 @@ export default function EditorialPage({ pageKey }: EditorialPageProps) {
           </section>
         ))}
       </div>
+
+      {page.relatedLinks && page.relatedLinks.length > 0 && (
+        <section className="bg-teal-50/40 border border-teal-100 rounded-xl p-6">
+          <h2 className="font-bold text-[#0F766E]">Siguiente paso recomendado</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {page.relatedLinks.map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className="inline-flex items-center gap-2 bg-white border border-teal-100 rounded-lg px-3 py-2 text-sm font-semibold text-[#0F766E] hover:border-teal-400"
+              >
+                {label}<ArrowRight size={14} />
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {pageKey === "fuentes-oficiales" && (
         <section className="bg-teal-50/40 border border-teal-100 rounded-xl p-6">

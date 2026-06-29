@@ -808,20 +808,29 @@ app.get("/sitemap.xml", (req, res) => {
     <priority>0.85</priority>
   </url>`).join('');
 
+  const trustUrls = [
+    '/autores/equipo-editorial',
+    '/metodologia',
+    '/politica-editorial',
+    '/fuentes-oficiales'
+  ];
+
+  const editorialUrls = Object.keys(EDITORIAL_PAGES)
+    .map(slug => `/${slug}`)
+    .filter(path => !trustUrls.includes(path));
+
   const staticUrls = [
     '/',
     '/guias',
     '/noticias',
     '/sobre-nosotros',
-    '/autores/equipo-editorial',
     '/nosotros',
     '/contacto',
     '/privacidad',
     '/terminos',
-    '/reembolsos'
-    ,'/metodologia'
-    ,'/politica-editorial'
-    ,'/fuentes-oficiales'
+    '/reembolsos',
+    ...trustUrls,
+    ...editorialUrls
   ].map(path => `
   <url>
     <loc>${ORIGIN_URL}${path}</loc>
