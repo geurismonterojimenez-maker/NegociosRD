@@ -3,6 +3,7 @@ type AnalyticsValue = string | number | boolean | null | undefined;
 declare global {
   interface Window {
     dataLayer?: Array<Record<string, AnalyticsValue>>;
+    gtag?: (command: "event" | "config" | "js", eventName: string | Date, params?: Record<string, AnalyticsValue>) => void;
   }
 }
 
@@ -14,15 +15,23 @@ function cleanParams(params: Record<string, AnalyticsValue>) {
 
 export function trackEvent(event: string, params: Record<string, AnalyticsValue> = {}) {
   if (typeof window === "undefined") return;
+  const cleanedParams = cleanParams(params);
+  if (typeof window.gtag === "function") {
+    window.gtag("event", event, cleanedParams);
+  }
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push(cleanParams({ event, ...params }));
 }
 
 export function trackPageView(path: string, title = document.title) {
-  trackEvent("virtual_page_view", {
+  const pageParams = {
     page_path: path,
     page_title: title
-  });
+  };
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    window.gtag("event", "page_view", pageParams);
+  }
+  trackEvent("virtual_page_view", pageParams);
 }
 
 export function reportWebVitals() {
