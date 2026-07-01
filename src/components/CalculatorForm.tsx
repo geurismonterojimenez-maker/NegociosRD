@@ -462,14 +462,25 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
           )}
           <p className="text-lg text-[#6B7280] max-w-3xl">{calc.description}</p>
         </div>
-        <div className="flex items-center gap-2 self-start md:self-auto">
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
           <button 
             onClick={handleShare}
             className="inline-flex items-center gap-2 px-4 py-2 border border-[#bdc9c6] rounded-md bg-white hover:bg-[#FAFAFA] text-sm font-medium text-[#111827] transition-all cursor-pointer shadow-sm active:scale-95"
           >
             <Share2 size={16} />
-            {copied ? 'Copiado!' : 'Compartir enlace'}
+            {copied ? 'Copiado!' : 'Copiar Enlace'}
           </button>
+
+          <a 
+            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hola, calculé esto usando la ${calc.name} en Tu Negocio RD: ` + window.location.href)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#25D366]/40 rounded-md bg-[#25D366]/5 hover:bg-[#25D366]/10 text-xs font-bold text-[#128C7E] transition-all cursor-pointer shadow-sm active:scale-95"
+            title="Compartir por WhatsApp"
+          >
+            <span className="text-sm">💬</span>
+            <span>WhatsApp</span>
+          </a>
         </div>
       </div>
 
@@ -494,32 +505,40 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
                       id="itbis-amount-input"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       placeholder="0"
                       value={itbisAmountInput || ''}
                       onChange={(e) => {
                         const val = e.target.value;
                         setItbisAmountInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                       }}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
 
-                {showAdvanced && (
-                  <div className="pt-2 animate-in slide-in-from-top-2 duration-150">
-                    <label htmlFor="itbis-rate-input" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Tasa impositiva de ITBIS</label>
-                    <select 
-                      id="itbis-rate-input"
-                      value={itbisRateInput}
-                      onChange={(e) => setItbisRateInput(parseFloat(e.target.value))}
-                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
-                    >
-                      <option value={0.18}>18% (Tasa general)</option>
-                      <option value={0.16}>16% (Tasa reducida / Alimentos selectos)</option>
-                    </select>
+                <div className="mt-3.5">
+                  <span className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tasa de ITBIS</span>
+                  <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                    {[
+                      { value: 0.18, label: '18% General' },
+                      { value: 0.16, label: '16% Reducido' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setItbisRateInput(opt.value)}
+                        className={`py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
+                          itbisRateInput === opt.value
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'text-gray-600 hover:bg-gray-200/50'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
-                )}
+                </div>
               </>
             )}
 
@@ -532,14 +551,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
                       id="isr-salary-input"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       placeholder="0"
                       value={isrSalaryInput || ''}
                       onChange={(e) => {
                         const val = e.target.value;
                         setIsrSalaryInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                       }}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
@@ -570,14 +589,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
                       id="retencion-invoice-amount"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       placeholder="0"
                       value={retencionInvoiceAmount || ''}
                       onChange={(e) => {
                         const val = e.target.value;
                         setRetencionInvoiceAmount(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                       }}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
@@ -590,7 +609,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                         id="retencion-service-type"
                         value={retencionServiceType}
                         onChange={(e) => setRetencionServiceType(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                        className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
                       >
                         <option value="honorarios">Honorarios Profesionales (10% ISR)</option>
                         <option value="tecnicos">Servicios Técnicos / Plomería / Albañil (2% ISR)</option>
@@ -605,7 +624,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                         id="retencion-itbis-option"
                         value={retencionItbisOption}
                         onChange={(e) => setRetencionItbisOption(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                        className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
                       >
                         <option value="100">100% de ITBIS (Normal para servicios profesionales)</option>
                         <option value="30">30% de ITBIS (Norma 02-05 entre sociedades jurídicas)</option>
@@ -626,14 +645,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium font-semibold">RD$</div>
                     <input 
                       id="recargos-tax-base"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       placeholder="0"
                       value={recargosTaxBase || ''}
                       onChange={(e) => {
                         const val = e.target.value;
                         setRecargosTaxBase(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                       }}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
@@ -643,7 +662,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <label htmlFor="recargos-months-late" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Meses de atraso (desde el vencimiento)</label>
                     <input 
                       id="recargos-months-late"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       min="1"
                       max="120"
                       placeholder="e.g. 1"
@@ -652,7 +671,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                         const val = e.target.value;
                         setRecargosMonthsLate(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
                       }}
-                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 )}
@@ -667,14 +686,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                   <input 
                     id="net-salary-input"
-                    type="number" 
+                    type="number" inputMode="decimal" 
                     placeholder="0"
                     value={netSalaryInput || ''}
                     onChange={(e) => {
                       const val = e.target.value;
                       setNetSalaryInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                     }}
-                    className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                    className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                   />
                 </div>
               </div>
@@ -688,14 +707,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                   <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                   <input 
                     id="tss-salary-input"
-                    type="number" 
+                    type="number" inputMode="decimal" 
                     placeholder="0"
                     value={tssSalaryInput || ''}
                     onChange={(e) => {
                       const val = e.target.value;
                       setTssSalaryInput(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                     }}
-                    className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                    className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                   />
                 </div>
               </div>
@@ -710,14 +729,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
                       id="prestaciones-salary"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       placeholder="0"
                       value={prestacionesSalary || ''}
                       onChange={(e) => {
                         const val = e.target.value;
                         setPrestacionesSalary(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                       }}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
@@ -732,7 +751,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                         type="date"
                         value={prestacionesIngreso}
                         onChange={(e) => setPrestacionesIngreso(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] font-semibold"
                       />
                     </div>
                     <div>
@@ -742,7 +761,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                         type="date"
                         value={prestacionesSalida}
                         onChange={(e) => setPrestacionesSalida(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] font-semibold"
                       />
                     </div>
                   </div>
@@ -757,7 +776,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                           id="liquidacion-motivo"
                           value={liquidacionMotivo}
                           onChange={(e) => setLiquidacionMotivo(e.target.value)}
-                          className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                          className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
                         >
                           <option value="desahucio_patronal">Desahucio del Empleador (Le tocan prestaciones completas)</option>
                           <option value="renuncia">Renuncia Voluntaria (Solo adquiere Vacaciones y Regalía)</option>
@@ -802,7 +821,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                           id="prestaciones-vacaciones"
                           value={prestacionesVacaciones}
                           onChange={(e) => setPrestacionesVacaciones(e.target.value as any)}
-                          className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
+                          className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all"
                         >
                           <option value="pendientes_completas">No tomadas (Pagar completas/proporcional)</option>
                           <option value="ninguna">Ya fueron tomadas o disfrutadas por completo</option>
@@ -843,14 +862,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
                       id="loan-principal"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       placeholder="0"
                       value={loanPrincipal || ''}
                       onChange={(e) => {
                         const val = e.target.value;
                         setLoanPrincipal(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                       }}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
@@ -862,7 +881,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                         <label htmlFor="loan-interest" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Tasa de interés (%)</label>
                         <input 
                           id="loan-interest"
-                          type="number" 
+                          type="number" inputMode="decimal" 
                           step="0.01"
                           placeholder="0"
                           value={loanInterest || ''}
@@ -870,22 +889,43 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                             const val = e.target.value;
                             setLoanInterest(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                           }}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] font-semibold"
                         />
                       </div>
                       <div>
                         <label htmlFor="loan-plazo" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Plazo (meses)</label>
                         <input 
                           id="loan-plazo"
-                          type="number" 
+                          type="number" inputMode="decimal" 
                           placeholder="e.g. 1"
                           value={loanPlazo || ''}
                           onChange={(e) => {
                             const val = e.target.value;
                             setLoanPlazo(val === '' ? 1 : Math.max(1, parseInt(val) || 1));
                           }}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] font-semibold"
                         />
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {[
+                            { label: '1A', val: 12 },
+                            { label: '3A', val: 36 },
+                            { label: '5A', val: 60 },
+                            { label: '10A', val: 120 }
+                          ].map((preset) => (
+                            <button
+                              key={preset.val}
+                              type="button"
+                              onClick={() => setLoanPlazo(preset.val)}
+                              className={`px-2 py-1 text-[10px] font-bold rounded border cursor-pointer transition-all ${
+                                loanPlazo === preset.val
+                                  ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                                  : 'bg-white border-gray-250 text-gray-600 hover:border-gray-300'
+                              }`}
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
@@ -894,7 +934,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                         <label htmlFor="loan-interest-compare" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Tasa a comparar (%)</label>
                         <input 
                           id="loan-interest-compare"
-                          type="number" 
+                          type="number" inputMode="decimal" 
                           step="0.01"
                           placeholder="0"
                           value={loanInterestCompare || ''}
@@ -902,7 +942,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                             const val = e.target.value;
                             setLoanInterestCompare(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                           }}
-                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] font-semibold"
+                          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] font-semibold"
                         />
                       </div>
                     )}
@@ -920,14 +960,14 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium">RD$</div>
                     <input 
                       id="biz-cost"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       placeholder="0"
                       value={bizCost || ''}
                       onChange={(e) => {
                         const val = e.target.value;
                         setBizCost(val === '' ? 0 : Math.max(0, parseFloat(val) || 0));
                       }}
-                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full pl-12 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                   </div>
                 </div>
@@ -937,7 +977,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <label htmlFor="biz-margin-desired" className="block text-sm font-medium text-[#111827] mb-1.5 cursor-pointer">Margen de ganancia bruto pretendido (%)</label>
                     <input 
                       id="biz-margin-desired"
-                      type="number" 
+                      type="number" inputMode="decimal" 
                       min="1"
                       max="99"
                       placeholder="0"
@@ -946,7 +986,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                         const val = e.target.value;
                         setBizMarginDesired(val === '' ? 0 : Math.max(0, Math.min(99.9, parseFloat(val) || 0)));
                       }}
-                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
+                      className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-base md:text-sm text-[#111827] focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] transition-all font-semibold"
                     />
                     <span className="text-xs text-gray-400 mt-1 block">Margen de utilidad sobre precio de venta, no simple markup.</span>
                   </div>
@@ -969,7 +1009,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
         </div>
 
         {/* Results Screen - occupies 7 cols on lg */}
-        <div className="2xl:col-span-7 space-y-6 min-w-0">
+        <div className="2xl:col-span-7 space-y-6 min-w-0 lg:sticky lg:top-20 self-start">
           {/* Main Results Graphic Widget in deep primary teal */}
           <div className="calculator-results-panel bg-[#0F766E] rounded-2xl p-5 sm:p-6 md:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between border border-teal-700 min-w-0" aria-live="polite" aria-atomic="true">
             <span className="text-xs font-bold text-teal-200 uppercase tracking-widest mb-5 block flex items-center gap-1.5">
@@ -1012,6 +1052,10 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <span>Total consolidado:</span>
                     <span className="font-mono text-teal-200 break-words">RD$ {calculatedResults.totalWithItbis.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-teal-500/20 text-[10px] text-teal-200/85 leading-relaxed">
+                  <p><strong>Base Legal:</strong> Título III del Código Tributario de la República Dominicana. Las tasas vigentes del 18% y 16% son fiscalizadas por la Dirección General de Impuestos Internos (DGII).</p>
+                  <p className="mt-1"><strong>Fórmulas:</strong> ITBIS Excluido = Neto × Tasa (0.18 o 0.16) | ITBIS Incluido = Total Facturado - [Total Facturado ÷ (1 + Tasa)].</p>
                 </div>
               </div>
             )}
@@ -1057,6 +1101,10 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <span>Impuesto ISR Retenido Anual:</span>
                     <span className="font-mono text-rose-200">RD$ {calculatedResults.annualIsrAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-teal-500/20 text-[10px] text-rose-100/85 leading-relaxed">
+                  <p><strong>Base Legal:</strong> Título II del Código Tributario de la República Dominicana. La escala progresiva de la DGII se computa sobre la base neta después de descontar el seguro de vejez (AFP) y salud (SFS).</p>
+                  <p className="mt-1"><strong>Fórmula:</strong> Se anualiza el sueldo neto y se aplica el excedente por tramo legal: 15% (sobre RD$ 416,220.01), 20% (sobre RD$ 624,329.01) o 25% (sobre RD$ 867,123.01).</p>
                 </div>
               </div>
             )}
@@ -1161,6 +1209,51 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                   </div>
                 </div>
 
+                {/* Stacked Percentage Bar Chart */}
+                <div className="mb-6 bg-teal-950/20 p-3 rounded-xl border border-teal-500/10">
+                  <div className="flex justify-between text-[10px] text-teal-200/80 mb-2 font-bold uppercase tracking-wider">
+                    <span>Distribución del Sueldo Bruto</span>
+                    <span>100% Bruto</span>
+                  </div>
+                  <div className="w-full h-5 rounded-full bg-teal-950/60 flex overflow-hidden border border-teal-500/15">
+                    {/* Neto Segment */}
+                    <div 
+                      style={{ width: `${calculatedResults.porcentajeNeto}%` }}
+                      className="bg-emerald-500 h-full flex items-center justify-center text-[9px] font-black text-emerald-950 transition-all duration-300"
+                      title={`Neto: ${calculatedResults.porcentajeNeto}%`}
+                    >
+                      {calculatedResults.porcentajeNeto >= 20 ? `${calculatedResults.porcentajeNeto}% Neto` : ''}
+                    </div>
+                    {/* TSS Segment */}
+                    {calculatedResults.totalDescuentos > 0 && (
+                      <div 
+                        style={{ width: `${((calculatedResults.afpMonto + calculatedResults.sfsMonto) / calculatedResults.salarioBruto * 100).toFixed(1)}%` }}
+                        className="bg-amber-500 h-full flex items-center justify-center text-[9px] font-black text-amber-950 transition-all duration-300"
+                        title={`TSS: ${((calculatedResults.afpMonto + calculatedResults.sfsMonto) / calculatedResults.salarioBruto * 100).toFixed(1)}%`}
+                      >
+                        {((calculatedResults.afpMonto + calculatedResults.sfsMonto) / calculatedResults.salarioBruto * 100) >= 10 ? 'TSS' : ''}
+                      </div>
+                    )}
+                    {/* ISR Segment */}
+                    {calculatedResults.isrMonto > 0 && (
+                      <div 
+                        style={{ width: `${(calculatedResults.isrMonto / calculatedResults.salarioBruto * 100).toFixed(1)}%` }}
+                        className="bg-rose-500 h-full flex items-center justify-center text-[9px] font-black text-rose-50 transition-all duration-300"
+                        title={`ISR: ${(calculatedResults.isrMonto / calculatedResults.salarioBruto * 100).toFixed(1)}%`}
+                      >
+                        {(calculatedResults.isrMonto / calculatedResults.salarioBruto * 100) >= 10 ? 'ISR' : ''}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 justify-center text-[10px] text-teal-100 font-medium">
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span>Neto ({calculatedResults.porcentajeNeto}%)</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span>TSS ({((calculatedResults.afpMonto + calculatedResults.sfsMonto) / calculatedResults.salarioBruto * 100).toFixed(1)}%)</span>
+                    {calculatedResults.isrMonto > 0 && (
+                      <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-rose-500 inline-block"></span>ISR ({(calculatedResults.isrMonto / calculatedResults.salarioBruto * 100).toFixed(1)}%)</span>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between border-b border-teal-600/30 pb-2">
                     <span className="text-teal-100">Sueldo Bruto:</span>
@@ -1196,6 +1289,10 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <span>Cargos corporativos totales de empleador:</span>
                     <span className="font-mono">RD$ {calculatedResults.patronalEstimado.total.toLocaleString('en-US')}</span>
                   </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-teal-500/20 text-[10px] text-teal-200/85 leading-relaxed">
+                  <p><strong>Base Legal:</strong> Ley 87-01 de Seguridad Social. La TSS descuenta al trabajador 2.87% de AFP y 3.04% de SFS, más retenciones de ISR de la DGII. El empleador asume el seguro de riesgos laborales (SRL) y aportes adicionales.</p>
+                  <p className="mt-1"><strong>Fórmula:</strong> Sueldo Neto = Sueldo Bruto - AFP - SFS - ISR Retenido DGII.</p>
                 </div>
               </div>
             )}
@@ -1301,6 +1398,10 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <span className="font-bold text-teal-200 text-xs block">Nota de Transparencia de Ley</span>
                     <p>El aguinaldo de navidad (Sueldo 13) y las vacaciones acumuladas constituyen derechos adquiridos irrenunciables que le corresponden independientemente del motivo de desvinculación.</p>
                   </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-teal-500/20 text-[10px] text-teal-200/85 leading-relaxed">
+                  <p><strong>Base Legal:</strong> Artículos 76, 80, 86, 177 y 219 del Código de Trabajo de la República Dominicana. El factor legal de división mensual es 23.83 para determinar el jornal diario ordinario.</p>
+                  <p className="mt-1"><strong>Fórmula:</strong> Salario Diario = Sueldo Mensual ÷ 23.83 | Preaviso y Cesantía = Salario Diario × Días correspondientes según la antigüedad laboral de ley.</p>
                 </div>
               </div>
             )}
@@ -1487,6 +1588,10 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
                     <span>Ahorro total final de intereses:</span>
                     <span className="font-bold text-rose-300 font-mono">RD$ {calculatedResults.diferenciaInteres.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-teal-500/20 text-[10px] text-teal-200/85 leading-relaxed">
+                  <p><strong>Base Legal:</strong> Amortización bajo el sistema francés (cuotas fijas amortizables). La cuota integra capital y los intereses devengados mensualmente.</p>
+                  <p className="mt-1"><strong>Fórmula:</strong> Cuota = [P × r] / [1 - (1 + r)^-n] | P = Principal, r = Tasa mensual (Anual / 12), n = Plazo en meses.</p>
                 </div>
               </div>
             )}

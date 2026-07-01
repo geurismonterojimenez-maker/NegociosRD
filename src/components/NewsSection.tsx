@@ -153,8 +153,8 @@ Igualmente, la prima patronal aportada (SFS, AFP, SRL e INFOTEP) se expandirá p
     readTime: '4 min',
     author: 'Comité de Auditoría de Nóminas Tu Negocio RD',
     tags: ['TSS', 'AFP', 'SFS', 'Nómina', 'Seguridad Social', 'Topes de Ley'],
-    relatedCalculatorSlug: 'calculadora-tss',
-    relatedCalculatorName: 'Calculadora de la TSS',
+    relatedCalculatorSlug: 'calculadora-salario-neto',
+    relatedCalculatorName: 'Calculadora de Salario Neto',
     isFeatured: false
   },
   {
@@ -209,8 +209,8 @@ Le animamos a evaluar junto a su consultor tributario la viabilidad de incorpora
     readTime: '5 min',
     author: 'Asociación de Emprendedores Tu Negocio RD',
     tags: ['RST', 'DGII', 'Impuestos', 'PYMEs', 'Emprendimiento'],
-    relatedCalculatorSlug: 'itbis-incluido',
-    relatedCalculatorName: 'ITBIS Incluido',
+    relatedCalculatorSlug: 'calculadora-itbis',
+    relatedCalculatorName: 'Calculadora ITBIS',
     isFeatured: false
   }
 ];

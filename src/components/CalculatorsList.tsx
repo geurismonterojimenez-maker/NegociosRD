@@ -20,8 +20,8 @@ const CATEGORY_INDEX: Record<string, CalculatorInfo[]> = {
   impuestos: CALCULATORS.filter(c => c.category === 'impuestos'),
   laboral: CALCULATORS.filter(c => c.category === 'laboral'),
   finanzas: CALCULATORS.filter(c => c.category === 'finanzas'),
-  negocios: CALCULATORS.filter(c => c.category === 'negocios'),
 };
+
 
 // OPTIMIZATION 2 - Static Fuse.js cache to prevent instance rebuilding during keystroke cycles
 const FUSE_CACHE: Record<string, Fuse<CalculatorInfo>> = {};
@@ -148,7 +148,7 @@ export default function CalculatorsList({
         <Sparkles size={14} className="text-[#0F766E]" />
         <span>Filtrar por Categoría</span>
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-8">
         <button
           onClick={() => setActiveCategory(null)}
           type="button"
@@ -202,43 +202,10 @@ export default function CalculatorsList({
               : 'Directorio de cálculos'
             }
           </h2>
-          <p className="text-sm text-[#6B7280]">
-            Mostrando {filteredCalculators.length} de {CALCULATORS.length} calculadoras con fuentes documentadas.
-          </p>
+
         </div>
 
-        {/* Suggestion Chips */}
-        <div className="flex flex-wrap gap-2 text-xs items-center">
-          <span className="text-gray-500 font-medium">Sugeridos:</span>
-          <button 
-            type="button"
-            onClick={() => handleSuggestionClick('Calculadora ITBIS', 'calculadora-itbis')}
-            className="px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:border-[#0F766E] text-gray-700 hover:text-[#0F766E] transition-all cursor-pointer font-medium"
-          >
-            Factura ITBIS
-          </button>
-          <button 
-            type="button"
-            onClick={() => handleSuggestionClick('Salario neto', 'calculadora-salario-neto')}
-            className="px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:border-[#0F766E] text-gray-700 hover:text-[#0F766E] transition-all cursor-pointer font-medium"
-          >
-            Sueldo Neto
-          </button>
-          <button 
-            type="button"
-            onClick={() => handleSuggestionClick('Prestaciones laborales', 'calculadora-prestaciones-laborales')}
-            className="px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:border-[#0F766E] text-gray-700 hover:text-[#0F766E] transition-all cursor-pointer font-medium"
-          >
-            Liquidación
-          </button>
-          <button 
-            type="button"
-            onClick={() => handleSuggestionClick('Préstamo Hipotecario', 'calculadora-prestamo-hipotecario')}
-            className="px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:border-[#0F766E] text-gray-700 hover:text-[#0F766E] transition-all cursor-pointer font-medium"
-          >
-            Hipotecas
-          </button>
-        </div>
+
       </div>
 
       {filteredCalculators.length === 0 ? (
@@ -282,15 +249,8 @@ export default function CalculatorsList({
                   </p>
                 </div>
 
-                {/* Tags and Action footer */}
-                <div className="flex flex-wrap gap-1 pt-4 items-center justify-between text-[11px] font-semibold text-[#0F766E] border-t border-gray-50 mt-3">
-                  <div className="flex flex-wrap gap-1">
-                    {calc.tags.slice(0, 2).map((tag, tIdx) => (
-                      <span key={tIdx} className="text-[9px] font-medium text-gray-400">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+                {/* Clean Action footer */}
+                <div className="flex items-center justify-end text-[11px] font-semibold text-[#0F766E] border-t border-gray-50 mt-3 pt-3">
                   <span className="opacity-80 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all text-[11px] font-bold flex items-center gap-0.5">
                     Calcular <span>→</span>
                   </span>

@@ -73,7 +73,7 @@ const injectSchema = (schemaObj: any) => {
 };
 
 export const PUBLIC_SITE_URL = (import.meta.env.VITE_PUBLIC_SITE_URL || "https://tunegociord.com").replace(/\/$/, "");
-const DEFAULT_SHARE_IMAGE = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop";
+const DEFAULT_SHARE_IMAGE = "/og-image.png";
 
 const TRUST_PAGES = {
   contacto: {
@@ -588,6 +588,7 @@ export default function App() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [homeTab, setHomeTab] = useState<'salario-neto' | 'otras'>('salario-neto');
   const [footerEmail, setFooterEmail] = useState('');
   const [footerEmailStatus, setFooterEmailStatus] = useState<'idle' | 'error' | 'success'>('idle');
 
@@ -1092,7 +1093,13 @@ export default function App() {
     } else if (currentView === 'admin') {
       updateMetaTags("Administración Privada | Tu Negocio RD", "Consola interna privada para administración y backend de Tu Negocio RD.", "/admin", "website", undefined, "noindex, nofollow");
     } else {
-      updateMetaTags("Tu Negocio RD - Calculadoras Fiscales, Laborales y Financieras de R.D.", "La plataforma de herramientas fiscales, laborales y contables de referencia para la República Dominicana. Calcule prestaciones laborales, TSS, retenciones de ISR y recargos de la DGII.", "/", "website");
+      updateMetaTags(
+        "Calculadoras simples de República Dominicana | Tu Negocio RD", 
+        "Calcula tus prestaciones laborales, salario neto, préstamos e impuestos (ITBIS/ISR) de forma sencilla y rápida con datos oficiales de la DGII y la TSS.", 
+        "/", 
+        "website", 
+        HOME_FAQS
+      );
     }
   }, [currentView, activeCalculator, activeLandingPage, salarySeoAmount, programmaticSeoPage, activeTopicHub, activeEditorialPage, selectedGuideSlug]);
 
@@ -1159,7 +1166,7 @@ export default function App() {
       c.id === 'itbis-calc' || 
       c.id === 'prestaciones-laborales' || 
       c.id === 'salario-neto' || 
-      c.id === 'prestamo-hipotecario'
+      c.id === 'cuota-prestamo'
     );
   }, []);
 
@@ -1186,7 +1193,7 @@ export default function App() {
           {/* Logo brand */}
           <button
             type="button"
-            onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); }} 
+            onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setHomeTab('salario-neto'); }} 
             className="flex items-center gap-3 cursor-pointer select-none hover:opacity-90 transition-opacity"
             id="header-logo-brand"
             aria-label="TU NEGOCIO RD - Ir al inicio"
@@ -1216,7 +1223,7 @@ export default function App() {
           {/* Nav links - hidden on mobile/tablet screens (< lg) */}
           <nav className="hidden lg:flex items-center gap-2 xl:gap-4 text-xs xl:text-sm font-medium text-[#6B7280]">
             <button 
-              onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); }}
+              onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setHomeTab('otras'); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -1258,50 +1265,54 @@ export default function App() {
                 Administración
               </button>
             )}
-            <button 
-              onClick={() => setShowPortalModal(true)}
-              className="lg:px-2 px-4 py-1.5 bg-[#0F766E] text-white rounded-md text-xs font-semibold hover:opacity-95 transition-opacity hidden md:inline-block cursor-pointer active:scale-95"
-            >
-              Documentos RD
-            </button>
+            {PUBLIC_PRO_FEATURES_ENABLED && (
+              <button 
+                onClick={() => setShowPortalModal(true)}
+                className="lg:px-2 px-4 py-1.5 bg-[#0F766E] text-white rounded-md text-xs font-semibold hover:opacity-95 transition-opacity hidden md:inline-block cursor-pointer active:scale-95"
+              >
+                Documentos RD
+              </button>
+            )}
 
             {/* Google Account Profile / Login Button */}
-            <div className="hidden md:flex items-center gap-2">
-              {firebaseUser ? (
-                <button
-                  onClick={() => setShowAccountModal(true)}
-                  className="flex items-center gap-1.5 focus:outline-none cursor-pointer group active:scale-95 transition-all text-left bg-teal-50/40 p-1.5 rounded-lg border border-teal-100"
-                  title="Gestionar mi cuenta y tarjetas"
-                >
-                  {firebaseUser.photoURL ? (
-                    <img 
-                      src={firebaseUser.photoURL} 
-                      alt="Avatar" 
-                      width="22"
-                      height="22"
-                      loading="lazy"
-                      decoding="async"
-                      className="w-5.5 h-5.5 rounded-full border border-teal-600"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-5.5 h-5.5 rounded-full bg-teal-600 text-white flex items-center justify-center text-[10px] font-bold">
-                      {firebaseUser.displayName ? firebaseUser.displayName[0].toUpperCase() : 'U'}
-                    </div>
-                  )}
-                  <span className="text-[11px] font-bold text-gray-750 max-w-[80px] truncate hidden xl:inline-block">
-                    {firebaseUser.displayName?.split(' ')[0]}
-                  </span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => setShowAccountModal(true)}
-                  className="px-3 py-1.5 border border-[#0F766E]/40 text-[#0F766E] hover:bg-teal-50/40 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 active:scale-95"
-                >
-                  <span>👤 Mi Cuenta</span>
-                </button>
-              )}
-            </div>
+            {PUBLIC_PRO_FEATURES_ENABLED && (
+              <div className="hidden md:flex items-center gap-2">
+                {firebaseUser ? (
+                  <button
+                    onClick={() => setShowAccountModal(true)}
+                    className="flex items-center gap-1.5 focus:outline-none cursor-pointer group active:scale-95 transition-all text-left bg-teal-50/40 p-1.5 rounded-lg border border-teal-100"
+                    title="Gestionar mi cuenta y tarjetas"
+                  >
+                    {firebaseUser.photoURL ? (
+                      <img 
+                        src={firebaseUser.photoURL} 
+                        alt="Avatar" 
+                        width="22"
+                        height="22"
+                        loading="lazy"
+                        decoding="async"
+                        className="w-5.5 h-5.5 rounded-full border border-teal-600"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-5.5 h-5.5 rounded-full bg-teal-600 text-white flex items-center justify-center text-[10px] font-bold">
+                        {firebaseUser.displayName ? firebaseUser.displayName[0].toUpperCase() : 'U'}
+                      </div>
+                    )}
+                    <span className="text-[11px] font-bold text-gray-750 max-w-[80px] truncate hidden xl:inline-block">
+                      {firebaseUser.displayName?.split(' ')[0]}
+                    </span>
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setShowAccountModal(true)}
+                    className="px-3 py-1.5 border border-[#0F766E]/40 text-[#0F766E] hover:bg-teal-50/40 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+                  >
+                    <span>👤 Mi Cuenta</span>
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Live Interactive Tier Selector - Hidden */}
           </nav>
@@ -1346,8 +1357,8 @@ export default function App() {
 
             <div className="flex flex-col gap-1 font-medium text-gray-600">
               <button 
-                onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setMobileMenuOpen(false); }}
-                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-100 font-semibold text-sm ${currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E]' : ''}`}
+                onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setHomeTab('otras'); setMobileMenuOpen(false); }}
+                className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-150 font-semibold text-sm ${currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-home"
               >
                 Herramientas de Cálculos
@@ -1400,45 +1411,49 @@ export default function App() {
             </div>
 
             {/* Mobile Google Account Portal Trigger */}
-            <div className="pt-2">
-              {firebaseUser ? (
-                <button 
-                  onClick={() => { setShowAccountModal(true); setMobileMenuOpen(false); }}
-                  className="w-full text-center py-2.5 border border-teal-500/50 bg-teal-50/20 text-[#0F766E] rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
-                >
-                  {firebaseUser.photoURL && (
-                    <img src={firebaseUser.photoURL} alt="User" width="20" height="20" loading="lazy" decoding="async" className="w-5 h-5 rounded-full border border-teal-600" referrerPolicy="no-referrer" />
-                  )}
-                  <span>Mi Perfil: {firebaseUser.displayName?.split(' ')[0]} 👤</span>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => { setShowAccountModal(true); setMobileMenuOpen(false); }}
-                  className="w-full text-center py-2.5 border border-[#0F766E]/40 text-[#0F766E] rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
-                >
-                  <span>👤 Iniciar Sesión con Google</span>
-                </button>
-              )}
-            </div>
+            {PUBLIC_PRO_FEATURES_ENABLED && (
+              <div className="pt-2">
+                {firebaseUser ? (
+                  <button 
+                    onClick={() => { setShowAccountModal(true); setMobileMenuOpen(false); }}
+                    className="w-full text-center py-2.5 border border-teal-500/50 bg-teal-50/20 text-[#0F766E] rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+                  >
+                    {firebaseUser.photoURL && (
+                      <img src={firebaseUser.photoURL} alt="User" width="20" height="20" loading="lazy" decoding="async" className="w-5 h-5 rounded-full border border-teal-600" referrerPolicy="no-referrer" />
+                    )}
+                    <span>Mi Perfil: {firebaseUser.displayName?.split(' ')[0]} 👤</span>
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => { setShowAccountModal(true); setMobileMenuOpen(false); }}
+                    className="w-full text-center py-2.5 border border-[#0F766E]/40 text-[#0F766E] rounded-md text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <span>👤 Iniciar Sesión con Google</span>
+                  </button>
+                )}
+              </div>
+            )}
 
-            <button 
-              onClick={() => { setShowPortalModal(true); setMobileMenuOpen(false); }}
-              className="w-full text-center py-2.5 bg-[#0F766E] text-white rounded-md text-sm font-semibold hover:opacity-95 transition-all cursor-pointer active:scale-95 shadow-xs"
-              id="mob-nav-expertBtn"
-            >
-              Documentos RD
-            </button>
+            {PUBLIC_PRO_FEATURES_ENABLED && (
+              <button 
+                onClick={() => { setShowPortalModal(true); setMobileMenuOpen(false); }}
+                className="w-full text-center py-2.5 bg-[#0F766E] text-white rounded-md text-sm font-semibold hover:opacity-95 transition-all cursor-pointer active:scale-95 shadow-xs"
+                id="mob-nav-expertBtn"
+              >
+                Documentos RD
+              </button>
+            )}
           </div>
         </div>
       )}
 
       {/* 3-Column Responsive AdSense Layout Frame - Centered Grid Framework matching requirements with precise column structure */}
       <div 
-        className={`pt-16 flex-grow w-full ${
+        className={`flex-grow w-full ${
           shouldShowAdRail 
             ? 'site-shell' 
             : 'max-w-[1040px] mx-auto px-5'
-        } min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] bg-[#FAFAFA]`} 
+        } min-h-screen lg:h-screen bg-[#FAFAFA]`} 
         id="outer-adsense-grid-wrapper"
       >
         
@@ -1450,11 +1465,11 @@ export default function App() {
         )}
 
         {/* CENTRAL CORE CONTENT CONTAINER (flexible width, grows to fill standard viewport layout while leaving side ads stable) */}
-        <div className="content-shell flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white lg:h-full lg:overflow-hidden" id="center-content-ad-hybrid">
+        <div className="content-shell flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white lg:h-full lg:overflow-hidden lg:self-stretch" id="center-content-ad-hybrid">
           
           {/* SIDEBAR NAVIGATION - Exact Match */}
           {shouldShowToolSidebar && (
-          <aside className="min-[1700px]:col-span-2 border-r border-gray-200 bg-white p-4 xl:p-5 hidden min-[1700px]:flex flex-col justify-between lg:h-full lg:overflow-y-auto z-10">
+          <aside className="min-[1700px]:col-span-2 border-r border-gray-200 bg-white pt-20 pb-4 px-4 xl:pb-5 xl:px-5 hidden min-[1700px]:flex flex-col justify-between lg:h-full lg:overflow-y-auto z-10">
           <div>
             <h2 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-4">Herramientas Populares</h2>
             <ul className="space-y-1">
@@ -1548,87 +1563,97 @@ export default function App() {
           )}
 
         {/* WORKSPACE AREA - occupies col-span-9 on desktop, col-span-12 on smaller displays */}
-        <div className={`col-span-12 ${shouldShowToolSidebar ? 'min-[1700px]:col-span-10' : ''} p-4 md:p-6 2xl:p-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto`} id="main-workspace-balance" role="main" tabIndex={-1}>
+        <div className={`col-span-12 ${shouldShowToolSidebar ? 'min-[1700px]:col-span-10' : ''} pt-20 pb-4 px-4 md:pb-6 md:px-6 2xl:pb-8 2xl:px-8 flex flex-col bg-[#FAFAFA] min-w-0 overflow-x-hidden lg:h-full lg:overflow-y-auto`} id="main-workspace-balance" role="main" tabIndex={-1}>
           
-          {currentView === 'home' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              
-              {/* COMPACT & elegant HERO WITH INTEGRATED SEARCH */}
-              <div className="bg-[#115E59]/5 border border-[#115E59]/10 rounded-2xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden">
-                <div className="max-w-2xl">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-[#0F766E] uppercase tracking-wider mb-2">
-                    <span>Oficial RD</span>
-                    <span>•</span>
-                    <span className="text-[#6B7280]">Actualizado 2026</span>
-                  </div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#111827] mb-2 leading-tight">
-                    Calculadoras de República Dominicana
-                  </h1>
-                  <p className="text-gray-550 text-xs md:text-sm leading-relaxed mb-6">
-                    Estime sueldos netos, deducciones TSS (AFP/SFS), prestaciones laborales, ITBIS y préstamos bancarios con tasas oficiales documentadas.
-                  </p>
-                </div>
+          {/* TAB BAR NAVIGATION - Style and simplicity (estilo tunominard.com) */}
+          <div className="flex flex-nowrap overflow-x-auto border-b border-gray-200 mb-6 gap-1 bg-white p-1 rounded-xl shadow-xs border max-w-4xl w-full animate-in fade-in duration-200 -mx-4 px-4 sm:mx-0 sm:px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shrink-0">
+            {[
+              { id: 'salario-neto', name: 'Salario Neto', icon: '💼', slug: 'calculadora-salario-neto' },
+              { id: 'prestaciones-laborales', name: 'Prestaciones', icon: '⚖️', slug: 'calculadora-prestaciones-laborales' },
+              { id: 'itbis-calc', name: 'ITBIS', icon: '🏛️', slug: 'calculadora-itbis' },
+              { id: 'cuota-prestamo', name: 'Préstamos', icon: '📈', slug: 'calculadora-cuota-prestamo' },
+            ].map((tab) => {
+              const isActive = (currentView === 'calculator' && activeCalculator?.id === tab.id) ||
+                               (currentView === 'home' && homeTab === tab.id);
+              let activeColorClass = 'bg-[#0F766E] text-white shadow-sm';
+              if (tab.id === 'salario-neto') activeColorClass = 'bg-amber-600 text-white shadow-sm';
+              if (tab.id === 'prestaciones-laborales') activeColorClass = 'bg-indigo-600 text-white shadow-sm';
+              if (tab.id === 'itbis-calc') activeColorClass = 'bg-emerald-600 text-white shadow-sm';
+              if (tab.id === 'cuota-prestamo') activeColorClass = 'bg-blue-600 text-white shadow-sm';
 
-                {/* INLINE CORE ACTION SEARCH BAR */}
-                <div className="relative group max-w-xl w-full">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
-                    <Search size={16} />
-                  </div>
-                  <input 
-                    id="search-input-header"
-                    type="text" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar herramienta: ITBIS, liquidación, ISR..."
-                    className="w-full h-11 pl-11 pr-4 bg-white border border-gray-250 rounded-xl focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] outline-none text-xs text-[#111827] shadow-xs"
-                  />
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (tab.id === 'salario-neto') {
+                      setHomeTab('salario-neto');
+                      navigateTo('/');
+                    } else {
+                      navigateTo('/herramientas/' + tab.slug);
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    isActive 
+                      ? activeColorClass 
+                      : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <span>{tab.icon}</span>
+                  <span>{tab.name}</span>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => {
+                setHomeTab('otras');
+                navigateTo('/');
+              }}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                (currentView === 'home' && homeTab === 'otras') ||
+                (currentView === 'calculator' && activeCalculator && !['salario-neto', 'prestaciones-laborales', 'itbis-calc', 'cuota-prestamo'].includes(activeCalculator.id))
+                  ? 'bg-[#0F766E] text-white shadow-sm' 
+                  : 'text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              <span>🌟</span>
+              <span>Otras Herramientas</span>
+            </button>
+          </div>
+
+          {currentView === 'home' && homeTab === 'salario-neto' && (
+            <div className="animate-in fade-in duration-150">
+              <React.Suspense fallback={<LazyFallback label="Cargando calculadora..." />}>
+                <CalculatorForm 
+                  calc={CALCULATORS.find(c => c.id === 'salario-neto')!} 
+                  onBack={() => setHomeTab('otras')} 
+                  onNavigateToCalc={handleNavigateToCalcBySlug}
+                  userTier={userTier}
+                  onProRequired={handleProRequired}
+                />
+              </React.Suspense>
+            </div>
+          )}
+
+          {currentView === 'home' && homeTab === 'otras' && (
+            <div className="space-y-6 animate-in fade-in duration-150 max-w-4xl w-full">
+              
+              {/* Clean compact Search Input */}
+              <div className="relative group w-full">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
+                  <Search size={16} />
                 </div>
+                <input 
+                  id="search-input-header"
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar herramientas: ITBIS, liquidación, ISR, recargos..."
+                  className="w-full h-11 pl-11 pr-4 bg-white border border-gray-250 rounded-xl focus:ring-1 focus:ring-[#0F766E] focus:border-[#0F766E] outline-none text-sm text-[#111827] shadow-xs"
+                />
               </div>
 
-              {shouldShowAdRail && (
-                <div className="responsive-flow-ad" id="adsense-responsive-after-hero">
-                  <AdSenseBlock variant="mobile-infeed" />
-                </div>
-              )}
-
-              <section className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
-                  <div>
-                    <span className="text-[10px] font-bold text-[#0F766E] uppercase tracking-wider block mb-1">Fuentes y vigencia</span>
-                    <h2 className="text-base font-extrabold text-[#111827]">Tasas criticas visibles antes de calcular</h2>
-                  </div>
-                  <button
-                    onClick={() => navigateTo('/contacto')}
-                    className="text-xs font-bold text-[#0F766E] hover:underline text-left"
-                  >
-                    Reportar una tasa desactualizada
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-                  {SOURCE_SUMMARY.map((rate) => (
-                    <a
-                      key={rate.label}
-                      href={rate.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-xl border border-gray-200 bg-[#FAFAFA] p-4 hover:border-[#0F766E]/40 transition-colors"
-                    >
-                      <div className="text-[10px] uppercase tracking-wider font-black text-gray-400">{rate.sourceName}</div>
-                      <div className="mt-1 text-xs font-extrabold text-gray-950 leading-snug">{rate.label}</div>
-                      <div className="mt-2 text-[10px] text-gray-500">Verificado: {rate.lastChecked}</div>
-                    </a>
-                  ))}
-                </div>
-              </section>
-
-              {shouldShowAdRail && (
-                <div className="responsive-flow-ad" id="adsense-responsive-after-rates">
-                  <AdSenseBlock variant="horizontal-bottom" />
-                </div>
-              )}
-
               {/* MAIN DYNAMIC DIRECTORY COMPONENT */}
-              <div className="bg-white rounded-2xl border border-gray-250/80 shadow-xs overflow-hidden">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
                 <React.Suspense fallback={<LazyFallback label="Cargando directorio..." />}>
                   <CalculatorsList 
                     onSelectCalculator={handleSelectCalculator}
@@ -1817,7 +1842,12 @@ export default function App() {
             <div className="animate-in fade-in duration-150">
               {/* Dynamic Path Breadcrumb matching design */}
               <div className="flex items-center gap-2 text-[11px] font-semibold text-[#0F766E] mb-3 capitalize tracking-wider">
-                <span>Directorio</span>
+                <button 
+                  onClick={() => { setHomeTab('otras'); navigateTo('/'); }} 
+                  className="hover:underline cursor-pointer text-[#0F766E] font-semibold bg-transparent border-0 p-0"
+                >
+                  Directorio
+                </button>
                 <span>/</span>
                 <span className="text-gray-400 capitalize">{activeCalculator.category}</span>
                 <span>/</span>

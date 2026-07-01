@@ -6,7 +6,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { readRatesCache, refreshOfficialRates } from "./src/lib/rates/rate-updater";
-import { CALCULATORS, PROGRAMMATIC_GUIDES } from "./src/data";
+import { CALCULATORS, PROGRAMMATIC_GUIDES, HOME_FAQS } from "./src/data";
 import {
   getCanonicalCalculatorPath,
   getTopicHubByPath,
@@ -52,7 +52,7 @@ const OFFICIAL_NEWS_HOSTS = [
 ];
 const CHECKOUT_PROVIDER = process.env.CHECKOUT_PROVIDER || "demo";
 const ORIGIN_URL = (process.env.PUBLIC_SITE_URL || process.env.APP_URL || "https://tunegociord.com").replace(/\/$/, "");
-const DEFAULT_SHARE_IMAGE = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop";
+const DEFAULT_SHARE_IMAGE = "/og-image.png";
 const INVOICE_FROM_NAME = process.env.INVOICE_FROM_NAME || "Tu Negocio RD";
 const INVOICE_BCC = process.env.INVOICE_BCC || "";
 const INVOICE_REPLY_TO = process.env.INVOICE_REPLY_TO || process.env.GMAIL_USER || "";
@@ -879,8 +879,8 @@ app.get(Object.keys(LEGACY_GUIDE_REDIRECTS), (req, res) => {
 
 // Helper to pre-render HTML with unique meta tags, OpenGraph, dynamic canonicals & JSON-LD schemas
 function getPrerenderedHTML(html: string, originalUrl: string): string {
-  let title = "Tu Negocio RD - Calculadoras Fiscales, Laborales y Financieras de R.D.";
-  let description = "Calculadoras fiscales, laborales y financieras para República Dominicana: ITBIS, ISR, TSS, prestaciones, préstamos, retenciones y documentos empresariales.";
+  let title = "Calculadoras simples de República Dominicana | Tu Negocio RD";
+  let description = "Calcula tus prestaciones laborales, salario neto, préstamos e impuestos (ITBIS/ISR) de forma sencilla y rápida con datos oficiales de la DGII y la TSS.";
   let robots = "index, follow";
   const pathPart = originalUrl.split("?")[0];
   let type: 'article' | 'website' = 'website';
@@ -1021,7 +1021,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
       "@type": "Organization",
       "name": "Tu Negocio RD",
       "url": originUrl,
-      "logo": DEFAULT_SHARE_IMAGE
+      "logo": `${originUrl}/og-image.png`
     });
   }
 
@@ -1104,7 +1104,9 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     "mainEntityOfPage": canonicalUrl
   }) : "";
 
-  const faqItems = landingPage?.faqs || (pathPart.startsWith("/guia/") ? [
+  const faqItems = (pathPart === "/" || pathPart === "")
+    ? HOME_FAQS
+    : landingPage?.faqs || (pathPart.startsWith("/guia/") ? [
     {
       question: "Esta guia sustituye una consulta profesional?",
       answer: "No. La guia organiza reglas generales, ejemplos y fuentes oficiales para mejorar la comprension, pero no reemplaza una revision profesional individual."

@@ -20,6 +20,7 @@ body,
 }
 
 #main-workspace-balance {
+  padding-top: 80px !important;
   scrollbar-gutter: stable;
 }
 
@@ -383,8 +384,10 @@ body,
 .site-shell {
   width: 100%;
   max-width: 1040px;
-  margin: 0 auto;
-  padding: 0 20px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .content-shell {
@@ -441,7 +444,8 @@ body,
 
   .site-shell {
     max-width: 1456px;
-    padding: 0 24px;
+    padding-left: 24px;
+    padding-right: 24px;
     display: grid;
     grid-template-columns: 160px minmax(0, 1040px) 160px;
     gap: 24px;
