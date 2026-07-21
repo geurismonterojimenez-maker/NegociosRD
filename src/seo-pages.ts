@@ -294,7 +294,7 @@ export const TOPIC_HUBS: TopicHub[] = [
     slug: "itbis-retenciones",
     aliases: ["itbis"],
     title: "ITBIS y retenciones DGII",
-    description: "Herramientas para agregar o extraer ITBIS y estimar retenciones de ISR e ITBIS.",
+    description: "Herramientas para agregar o extraer ITBIS, revisar la base imponible y estimar retenciones de ISR e ITBIS en operaciones frecuentes de RD.",
     intro: "Centraliza calculadoras para facturacion, retenciones y revision de bases imponibles sin mezclar impuestos con reglas distintas.",
     calculatorSlugs: ["calculadora-itbis", "calculadora-retenciones", "itbis-incluido", "itbis-excluido"],
     guideSlugs: ["itbis-facturas-y-ncf-guia-practica", "retenciones-a-servicios-profesionales-rd", "guia-completa-isr-dominicano"]

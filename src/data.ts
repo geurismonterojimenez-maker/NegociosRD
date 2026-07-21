@@ -79,7 +79,7 @@ export const CALCULATORS: CalculatorInfo[] = [
     tags: ['Liquidación', 'Despidos', 'Trabajo', 'Derechos'],
     urlSlug: 'calculadora-prestaciones-laborales',
     seoTitle: 'Calculadora de Prestaciones Laborales República Dominicana',
-    seoMetaDescription: 'Calcula de forma oficial las prestaciones de trabajo según el Código de Trabajo del Ministerio de Trabajo. Preaviso, Cesantía, Vacaciones y Regalía.',
+    seoMetaDescription: 'Estima prestaciones laborales según reglas generales del Código de Trabajo: preaviso, cesantía, vacaciones y regalía. Verifica el caso con el Ministerio de Trabajo.',
     hasFaq: true
   },
   {
@@ -205,8 +205,8 @@ Sí, cuando las personas físicas prestan servicios a personas jurídicas, estas
   {
     slug: 'como-calcular-prestaciones',
     title: '¿Cómo calcular las prestaciones laborales dominicanas?',
-    seoTitle: 'Guía Oficial para Calcular Liquidaciones y Prestaciones — RD',
-    seoMetaDescription: 'Aprende a calcular tus prestaciones en RD paso a paso. Cálculo oficial de preaviso, cesantía, vacaciones y regalía pascual en República Dominicana.',
+    seoTitle: 'Guía para calcular liquidación y prestaciones laborales en RD',
+    seoMetaDescription: 'Aprende a estimar prestaciones en RD paso a paso: preaviso, cesantía, vacaciones y regalía pascual, con ejemplos y fuentes para verificar.',
     shortIntro: 'Conoce tus derechos en el Código de Trabajo. Aprende cómo calcular el sueldo de navidad, preaviso y cesantías en pesos dominicanos.',
     publishDate: '2026-05-20',
     readTime: '12 min de lectura',

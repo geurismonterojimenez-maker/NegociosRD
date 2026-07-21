@@ -146,9 +146,9 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                   <a href="/guias" onClick={(event) => { event.preventDefault(); setSelectedGuide(null); window.history.pushState(null, '', '/guias'); }} className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">
                     Ver centro de aprendizaje
                   </a>
-                  <a href="/nomina" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">Nomina y TSS</a>
-                  <a href="/prestaciones-laborales" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">Prestaciones laborales</a>
-                  <a href="/itbis" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">ITBIS y retenciones</a>
+                  <a href="/temas/nomina-tss" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">Nomina y TSS</a>
+                  <a href="/temas/liquidacion-laboral" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">Prestaciones laborales</a>
+                  <a href="/temas/itbis-retenciones" className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:text-[#0F766E]">ITBIS y retenciones</a>
                 </div>
               </section>
             </div>
@@ -160,7 +160,7 @@ export default function GuidesView({ onBackToHome, onNavigateToCalcBySlug, initi
                 <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-900/40 text-emerald-200 px-2.5 py-1 rounded-full mb-3 inline-block">Herramienta Interactiva</span>
                 <h3 className="text-base font-bold mb-2">¿Quieres hacer este cálculo automáticamente?</h3>
                 <p className="text-xs text-emerald-100 leading-relaxed mb-6">
-                  Tenemos la calculadora oficial de República Dominicana configurada para responder en tiempo real con este tema impositivo.
+                  Tenemos una calculadora educativa configurada para estimar este escenario con referencias dominicanas documentadas.
                 </p>
                 <button
                   onClick={() => {

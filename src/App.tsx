@@ -135,8 +135,18 @@ function LazyFallback({ label = 'Cargando modulo...' }: { label?: string }) {
   );
 }
 
+const compactSeoTitle = (value: string) => {
+  const compact = value
+    .replace(/República Dominicana/gi, 'RD')
+    .replace(/Republica Dominicana/gi, 'RD');
+  if (compact.length <= 65) return compact;
+  const withoutBrand = compact.replace(/\s*\|\s*Tu Negocio RD$/i, '');
+  return withoutBrand.length <= 65 ? withoutBrand : `${withoutBrand.slice(0, 62).trimEnd()}…`;
+};
+
 const updateMetaTags = (title: string, description: string, path: string, type: 'article' | 'website' = 'website', faqItems?: FaqSchemaItem[], robots: string = 'index, follow') => {
   if (typeof document === "undefined") return;
+  title = compactSeoTitle(title);
   
   // 1. Update Title
   document.title = title;
@@ -1095,7 +1105,7 @@ export default function App() {
     } else {
       updateMetaTags(
         "Calculadoras simples de República Dominicana | Tu Negocio RD", 
-        "Calcula tus prestaciones laborales, salario neto, préstamos e impuestos (ITBIS/ISR) de forma sencilla y rápida con datos oficiales de la DGII y la TSS.", 
+        "Estima prestaciones, salario neto, préstamos e impuestos en RD con fórmulas explicadas, tasas documentadas y enlaces a fuentes de la DGII, TSS y Ministerio de Trabajo.",
         "/", 
         "website", 
         HOME_FAQS
@@ -1402,7 +1412,7 @@ export default function App() {
                 </button>
               )}
               <button 
-                onClick={() => { navigateTo('/nosotros'); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/sobre-nosotros'); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors font-semibold text-sm ${currentView === 'nosotros' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-about"
               >

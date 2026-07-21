@@ -120,6 +120,15 @@ function escapeHtmlAttribute(value: string): string {
     .replace(/>/g, "&gt;");
 }
 
+function compactSeoTitle(value: string): string {
+  const compact = value
+    .replace(/República Dominicana/gi, "RD")
+    .replace(/Republica Dominicana/gi, "RD");
+  if (compact.length <= 65) return compact;
+  const withoutBrand = compact.replace(/\s*\|\s*Tu Negocio RD$/i, "");
+  return withoutBrand.length <= 65 ? withoutBrand : `${withoutBrand.slice(0, 62).trimEnd()}…`;
+}
+
 function jsonLdScript(schema: Record<string, any>): string {
   return `
   <script type="application/ld+json" class="dynamic-schema">
@@ -758,6 +767,18 @@ app.get("/herramientas/:slug", (req, res, next) => {
   next();
 });
 
+const TOPIC_ALIAS_REDIRECTS = Object.fromEntries(
+  TOPIC_HUBS.flatMap(hub => (hub.aliases || []).map(alias => [`/${alias}`, `/temas/${hub.slug}`]))
+);
+
+app.get(Object.keys(TOPIC_ALIAS_REDIRECTS), (req, res) => {
+  res.redirect(301, TOPIC_ALIAS_REDIRECTS[req.path]);
+});
+
+app.get("/nosotros", (_req, res) => {
+  res.redirect(301, "/sobre-nosotros");
+});
+
 // 7. GET /sitemap.xml - Dynamic XML sitemap for search engines
 app.get("/sitemap.xml", (req, res) => {
   const calculatedUrls = CALCULATORS
@@ -800,14 +821,6 @@ app.get("/sitemap.xml", (req, res) => {
     <priority>0.8</priority>
   </url>`).join('');
 
-  const topicAliasUrls = TOPIC_HUBS.flatMap(hub => hub.aliases || []).map(alias => `
-  <url>
-    <loc>${ORIGIN_URL}/${alias}</loc>
-    <lastmod>2026-06-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>`).join('');
-
   const trustUrls = [
     '/autores/equipo-editorial',
     '/metodologia',
@@ -824,7 +837,6 @@ app.get("/sitemap.xml", (req, res) => {
     '/guias',
     '/noticias',
     '/sobre-nosotros',
-    '/nosotros',
     '/contacto',
     '/privacidad',
     '/terminos',
@@ -846,7 +858,6 @@ ${calculatedUrls}
 ${guideUrls}
 ${landingUrls}
 ${topicUrls}
-${topicAliasUrls}
 </urlset>`;
 
   res.header("Content-Type", "application/xml");
@@ -880,7 +891,7 @@ app.get(Object.keys(LEGACY_GUIDE_REDIRECTS), (req, res) => {
 // Helper to pre-render HTML with unique meta tags, OpenGraph, dynamic canonicals & JSON-LD schemas
 function getPrerenderedHTML(html: string, originalUrl: string): string {
   let title = "Calculadoras simples de República Dominicana | Tu Negocio RD";
-  let description = "Calcula tus prestaciones laborales, salario neto, préstamos e impuestos (ITBIS/ISR) de forma sencilla y rápida con datos oficiales de la DGII y la TSS.";
+  let description = "Estima prestaciones, salario neto, préstamos e impuestos en RD con fórmulas explicadas, tasas documentadas y enlaces a fuentes de la DGII, TSS y Ministerio de Trabajo.";
   let robots = "index, follow";
   const pathPart = originalUrl.split("?")[0];
   let type: 'article' | 'website' = 'website';
@@ -974,7 +985,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     title = "Sobre Nosotros | Tu Negocio RD";
     description = "Conoce la mision, metodologia editorial, fuentes oficiales y compromiso de precision de Tu Negocio RD.";
   } else if (pathPart === "/contacto") {
-    title = "Contacto | Tu Negocio RD";
+    title = "Contacto y soporte | Tu Negocio RD";
     description = "Contacta a Tu Negocio RD para soporte, alianzas y dudas sobre herramientas fiscales, laborales y financieras.";
   } else if (pathPart === "/privacidad") {
     title = "Politica de Privacidad | Tu Negocio RD";
@@ -1025,6 +1036,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
     });
   }
 
+  title = compactSeoTitle(title);
   const safeTitle = escapeHtmlAttribute(title);
   const safeDescription = escapeHtmlAttribute(description);
 
@@ -1196,6 +1208,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath, {
+      index: false,
       etag: true,
       maxAge: "1y",
       immutable: true,
