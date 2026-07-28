@@ -33,6 +33,12 @@ process.on("uncaughtException", (error) => {
 });
 
 const app = express();
+app.use((req, res, next) => {
+  if (req.hostname.toLowerCase() === "www.tunegociord.com") {
+    return res.redirect(301, `https://tunegociord.com${req.originalUrl}`);
+  }
+  next();
+});
 app.use(express.json());
 const PORT_VALUE = process.env.PORT || "3000";
 const NUMERIC_PORT = Number(PORT_VALUE);
