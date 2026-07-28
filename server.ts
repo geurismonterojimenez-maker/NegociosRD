@@ -1146,7 +1146,17 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   }) : "";
 
   const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${homeSchema}${articleSchema}${faqSchema}\n</head>`;
-  return html.replace('</head>', injectedElements);
+  html = html.replace('</head>', injectedElements);
+
+  const crawlerFallback = `<main id="seo-fallback">
+    <nav aria-label="Navegación principal"><a href="/">Inicio</a> · <a href="/calculadoras">Calculadoras</a> · <a href="/guias">Guías</a> · <a href="/sobre-nosotros">Sobre nosotros</a></nav>
+    <article>
+      <h1>${safeTitle}</h1>
+      <p>${safeDescription}</p>
+      <p>Información educativa para República Dominicana, respaldada por fuentes oficiales y ejemplos prácticos. Verifica siempre las reglas vigentes para tu caso particular.</p>
+    </article>
+  </main>`;
+  return html.replace('<div id="root"></div>', `<div id="root">${crawlerFallback}</div>`);
 }
 
 // Route validation helper for server-side responses
