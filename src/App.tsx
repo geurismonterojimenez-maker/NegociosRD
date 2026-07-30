@@ -47,6 +47,7 @@ import {
   FileText, 
   Info,
   DollarSign,
+  BriefcaseBusiness,
   TrendingUp,
   User,
   ExternalLink,
@@ -55,7 +56,10 @@ import {
   Menu,
   X,
   ShieldCheck,
-  Lock
+  Lock,
+  Landmark,
+  Calculator,
+  BadgeCheck
 } from 'lucide-react';
 
 interface FaqSchemaItem {
@@ -131,6 +135,157 @@ function LazyFallback({ label = 'Cargando modulo...' }: { label?: string }) {
   return (
     <div className="py-10 text-center text-xs font-bold text-gray-500">
       {label}
+    </div>
+  );
+}
+
+function HomeOverview({ navigateTo }: { navigateTo: (path: string) => void }) {
+  const primaryTools = [
+    {
+      title: 'Salario neto',
+      description: 'Estima AFP, SFS, ISR y el dinero disponible después de los descuentos obligatorios.',
+      href: '/herramientas/calculadora-salario-neto',
+      icon: DollarSign,
+    },
+    {
+      title: 'Prestaciones laborales',
+      description: 'Calcula cesantía, preaviso, vacaciones y regalía con un desglose comprensible.',
+      href: '/herramientas/calculadora-prestaciones-laborales',
+      icon: BriefcaseBusiness,
+    },
+    {
+      title: 'ITBIS',
+      description: 'Separa base imponible e impuesto para revisar facturas y operaciones comerciales.',
+      href: '/herramientas/calculadora-itbis',
+      icon: Landmark,
+    },
+    {
+      title: 'Cuota de préstamo',
+      description: 'Compara cuota, intereses y costo total antes de asumir un financiamiento.',
+      href: '/herramientas/calculadora-cuota-prestamo',
+      icon: TrendingUp,
+    },
+  ];
+
+  const go = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
+    navigateTo(href);
+  };
+
+  return (
+    <div className="home-overview max-w-6xl w-full mx-auto space-y-8">
+      <section className="home-hero overflow-hidden rounded-3xl border border-teal-100 bg-white shadow-sm">
+        <div className="grid lg:grid-cols-[1.15fr_.85fr]">
+          <div className="p-6 sm:p-9 lg:p-12">
+            <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-[#0F766E]">
+              <BadgeCheck size={16} aria-hidden="true" />
+              Cálculos explicados para República Dominicana
+            </span>
+            <h1 className="mt-5 max-w-3xl text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-gray-950">
+              Toma decisiones con números que puedes entender y verificar
+            </h1>
+            <p className="mt-5 max-w-2xl text-base sm:text-lg leading-relaxed text-gray-600">
+              Calcula nómina, prestaciones, impuestos y préstamos con fórmulas transparentes,
+              ejemplos dominicanos y referencias de instituciones oficiales.
+            </p>
+            <div className="mt-7 flex flex-col sm:flex-row gap-3">
+              <a
+                href="/herramientas/calculadora-salario-neto"
+                onClick={(event) => go(event, '/herramientas/calculadora-salario-neto')}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#0F766E] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-teal-800"
+              >
+                Calcular mi salario neto <ArrowRight size={17} aria-hidden="true" />
+              </a>
+              <a
+                href="/calculadoras"
+                onClick={(event) => go(event, '/calculadoras')}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-bold text-gray-800 transition hover:border-teal-600 hover:text-[#0F766E]"
+              >
+                Ver todas las calculadoras
+              </a>
+            </div>
+            <p className="mt-4 text-xs leading-relaxed text-gray-500">
+              Uso educativo. Para decisiones fiscales, laborales o financieras definitivas, confirma el resultado con la institución o profesional correspondiente.
+            </p>
+          </div>
+
+          <div className="home-trust-panel bg-gradient-to-br from-teal-950 via-teal-900 to-emerald-800 p-6 sm:p-9 text-white">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
+                <Calculator size={24} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-teal-100">Método verificable</p>
+                <p className="text-xs text-teal-200">Revisión editorial junio de 2026</p>
+              </div>
+            </div>
+            <ul className="mt-7 space-y-4">
+              {[
+                'Desglose de cada resultado, no solo una cifra final.',
+                'Tasas, topes y fechas de vigencia visibles.',
+                'Referencias a DGII, TSS y Ministerio de Trabajo.',
+                'Datos ingresados procesados directamente en la herramienta.',
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm leading-relaxed text-teal-50">
+                  <CheckCircle size={18} className="mt-0.5 shrink-0 text-amber-300" aria-hidden="true" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="herramientas-destacadas">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#0F766E]">Empieza por aquí</p>
+            <h2 id="herramientas-destacadas" className="mt-1 text-2xl sm:text-3xl font-black text-gray-950">
+              Herramientas más consultadas
+            </h2>
+          </div>
+          <a href="/calculadoras" onClick={(event) => go(event, '/calculadoras')} className="text-sm font-bold text-[#0F766E] hover:underline">
+            Explorar el directorio completo
+          </a>
+        </div>
+        <div className="mt-5 grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {primaryTools.map(({ title, description, href, icon: Icon }) => (
+            <a
+              key={href}
+              href={href}
+              onClick={(event) => go(event, href)}
+              className="group rounded-2xl border border-gray-200 bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md"
+            >
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-[#0F766E]">
+                <Icon size={21} aria-hidden="true" />
+              </span>
+              <h3 className="mt-4 text-base font-extrabold text-gray-950 group-hover:text-[#0F766E]">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600">{description}</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-[#0F766E]">
+                Abrir calculadora <ArrowRight size={15} aria-hidden="true" />
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid md:grid-cols-3 gap-4" aria-label="Compromisos de calidad">
+        {[
+          ['Fuentes documentadas', 'Indicamos las instituciones y el periodo usado para que puedas contrastar la información.', BookOpen],
+          ['Privacidad práctica', 'Las calculadoras principales funcionan sin pedir documentos personales ni datos bancarios.', ShieldCheck],
+          ['Contenido revisable', 'Mostramos metodología, ejemplos, errores frecuentes y fecha de actualización.', FileText],
+        ].map(([title, description, Icon]) => {
+          const QualityIcon = Icon as React.ComponentType<{ size?: number; className?: string; 'aria-hidden'?: boolean }>;
+          return (
+            <article key={title as string} className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
+              <QualityIcon size={20} className="text-[#0F766E]" aria-hidden={true} />
+              <h2 className="mt-3 text-base font-extrabold text-gray-950">{title as string}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600">{description as string}</p>
+            </article>
+          );
+        })}
+      </section>
     </div>
   );
 }
@@ -598,7 +753,7 @@ export default function App() {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorInfo | null>(null);
   const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [homeTab, setHomeTab] = useState<'salario-neto' | 'otras'>('salario-neto');
+  const [homeTab, setHomeTab] = useState<'inicio' | 'salario-neto' | 'otras'>('inicio');
   const [footerEmail, setFooterEmail] = useState('');
   const [footerEmailStatus, setFooterEmailStatus] = useState<'idle' | 'error' | 'success'>('idle');
 
@@ -1008,8 +1163,15 @@ export default function App() {
       setActiveCalculator(null);
       setSelectedGuideSlug(null);
       return;
+    } else if (path === '/calculadoras') {
+      setCurrentView('home');
+      setHomeTab('otras');
+      setActiveCalculator(null);
+      setSelectedGuideSlug(null);
+      return;
     } else if (path === '/') {
       setCurrentView('home');
+      setHomeTab('inicio');
       setActiveCalculator(null);
       setSelectedGuideSlug(null);
       return;
@@ -1073,6 +1235,13 @@ export default function App() {
     } else if (currentView === 'editorial' && activeEditorialPage) {
       const page = EDITORIAL_PAGES[activeEditorialPage];
       updateMetaTags(page.title, page.description, `/${activeEditorialPage}`, 'article');
+    } else if (currentView === 'home' && homeTab === 'otras') {
+      updateMetaTags(
+        "Calculadoras para República Dominicana | Tu Negocio RD",
+        "Directorio de calculadoras laborales, fiscales, financieras y comerciales para RD con resultados desglosados y fuentes documentadas.",
+        "/calculadoras",
+        "website"
+      );
     } else if (currentView === 'blog' && selectedGuideSlug) {
       const guide = PROGRAMMATIC_GUIDES.find(g => g.slug === selectedGuideSlug);
       if (guide) {
@@ -1111,7 +1280,7 @@ export default function App() {
         HOME_FAQS
       );
     }
-  }, [currentView, activeCalculator, activeLandingPage, salarySeoAmount, programmaticSeoPage, activeTopicHub, activeEditorialPage, selectedGuideSlug]);
+  }, [currentView, homeTab, activeCalculator, activeLandingPage, salarySeoAmount, programmaticSeoPage, activeTopicHub, activeEditorialPage, selectedGuideSlug]);
 
   // Switch to a calculator view
   const handleSelectCalculator = useCallback((calc: CalculatorInfo) => {
@@ -1183,6 +1352,7 @@ export default function App() {
   // Global Header search input updates searchQuery & returns to Home view to list matching calculators
   const handleGlobalSearchChange = useCallback((val: string) => {
     setSearchQuery(val);
+    setHomeTab('otras');
     if (currentView !== 'home') {
       setCurrentView('home');
       setActiveCalculator(null);
@@ -1203,10 +1373,11 @@ export default function App() {
           {/* Logo brand */}
           <button
             type="button"
-            onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setHomeTab('salario-neto'); }} 
+            onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setHomeTab('inicio'); }}
             className="flex items-center gap-3 cursor-pointer select-none hover:opacity-90 transition-opacity"
             id="header-logo-brand"
-            aria-label="TU NEGOCIO RD - Ir al inicio"
+            aria-label="TU NEGOCIO RD"
+            title="Ir al inicio"
           >
             <LogoFull size={34} textClass="text-xl font-black" />
           </button>
@@ -1233,7 +1404,7 @@ export default function App() {
           {/* Nav links - hidden on mobile/tablet screens (< lg) */}
           <nav className="hidden lg:flex items-center gap-2 xl:gap-4 text-xs xl:text-sm font-medium text-[#6B7280]">
             <button 
-              onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setHomeTab('otras'); }}
+              onClick={() => { navigateTo('/calculadoras'); setSearchQuery(''); setSearchFilter(''); }}
               className={`hover:text-[#0F766E] cursor-pointer transition-colors ${
                 currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E] font-semibold' : ''
               }`}
@@ -1367,7 +1538,7 @@ export default function App() {
 
             <div className="flex flex-col gap-1 font-medium text-gray-600">
               <button 
-                onClick={() => { navigateTo('/'); setSearchQuery(''); setSearchFilter(''); setHomeTab('otras'); setMobileMenuOpen(false); }}
+                onClick={() => { navigateTo('/calculadoras'); setSearchQuery(''); setSearchFilter(''); setMobileMenuOpen(false); }}
                 className={`py-2.5 text-left hover:text-[#0F766E] transition-colors border-b border-gray-150 font-semibold text-sm ${currentView === 'home' || currentView === 'calculator' ? 'text-[#0F766E]' : ''}`}
                 id="mob-nav-home"
               >
@@ -1577,6 +1748,20 @@ export default function App() {
           
           {/* TAB BAR NAVIGATION - Style and simplicity (estilo tunominard.com) */}
           <div className="flex flex-nowrap overflow-x-auto border-b border-gray-200 mb-6 gap-1 bg-white p-1 rounded-xl shadow-xs border max-w-4xl w-full animate-in fade-in duration-200 -mx-4 px-4 sm:mx-0 sm:px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shrink-0">
+            <button
+              onClick={() => {
+                setHomeTab('inicio');
+                navigateTo('/');
+              }}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                currentView === 'home' && homeTab === 'inicio'
+                  ? 'bg-[#0F766E] text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Compass size={15} aria-hidden="true" />
+              <span>Inicio</span>
+            </button>
             {[
               { id: 'salario-neto', name: 'Salario Neto', icon: '💼', slug: 'calculadora-salario-neto' },
               { id: 'prestaciones-laborales', name: 'Prestaciones', icon: '⚖️', slug: 'calculadora-prestaciones-laborales' },
@@ -1596,8 +1781,7 @@ export default function App() {
                   key={tab.id}
                   onClick={() => {
                     if (tab.id === 'salario-neto') {
-                      setHomeTab('salario-neto');
-                      navigateTo('/');
+                      navigateTo('/herramientas/calculadora-salario-neto');
                     } else {
                       navigateTo('/herramientas/' + tab.slug);
                     }
@@ -1615,8 +1799,7 @@ export default function App() {
             })}
             <button
               onClick={() => {
-                setHomeTab('otras');
-                navigateTo('/');
+                navigateTo('/calculadoras');
               }}
               className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 (currentView === 'home' && homeTab === 'otras') ||
@@ -1629,6 +1812,10 @@ export default function App() {
               <span>Otras Herramientas</span>
             </button>
           </div>
+
+          {currentView === 'home' && homeTab === 'inicio' && (
+            <HomeOverview navigateTo={navigateTo} />
+          )}
 
           {currentView === 'home' && homeTab === 'salario-neto' && (
             <div className="animate-in fade-in duration-150">
@@ -1646,6 +1833,13 @@ export default function App() {
 
           {currentView === 'home' && homeTab === 'otras' && (
             <div className="space-y-6 animate-in fade-in duration-150 max-w-4xl w-full">
+              <header>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#0F766E]">Directorio gratuito</p>
+                <h1 className="mt-1 text-2xl md:text-3xl font-black text-gray-950">Calculadoras para República Dominicana</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600">
+                  Encuentra herramientas laborales, fiscales, financieras y comerciales con resultados desglosados y referencias para verificar.
+                </p>
+              </header>
               
               {/* Clean compact Search Input */}
               <div className="relative group w-full">
@@ -1853,7 +2047,7 @@ export default function App() {
               {/* Dynamic Path Breadcrumb matching design */}
               <div className="flex items-center gap-2 text-[11px] font-semibold text-[#0F766E] mb-3 capitalize tracking-wider">
                 <button 
-                  onClick={() => { setHomeTab('otras'); navigateTo('/'); }} 
+                  onClick={() => { navigateTo('/calculadoras'); }}
                   className="hover:underline cursor-pointer text-[#0F766E] font-semibold bg-transparent border-0 p-0"
                 >
                   Directorio
@@ -2558,7 +2752,7 @@ export default function App() {
               </div>
 
               <div>
-                <h2 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Guías de cálculo SEO</h2>
+                <h2 className="font-bold text-[#111827] text-xs uppercase tracking-wider mb-3">Guías de cálculo</h2>
                 <ul className="space-y-2 text-xs">
                   <li>
                     <a href="/guias" onClick={(event) => { event.preventDefault(); navigateTo('/guias'); }} className="hover:text-[#0F766E] transition-colors text-left inline-block">
@@ -2567,22 +2761,22 @@ export default function App() {
                   </li>
                   <li>
                     <a href="/guia/como-calcular-prestaciones-laborales-rd" onClick={(event) => handleGuideLinkClick(event, 'como-calcular-prestaciones-laborales-rd')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
-                      Como calcular prestaciones laborales
+                      Cómo calcular prestaciones laborales
                     </a>
                   </li>
                   <li>
                     <a href="/guia/guia-completa-isr-dominicano" onClick={(event) => handleGuideLinkClick(event, 'guia-completa-isr-dominicano')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
-                      Guia completa del ISR
+                      Guía completa del ISR
                     </a>
                   </li>
                   <li>
                     <a href="/guia/que-es-la-tss-y-como-funciona" onClick={(event) => handleGuideLinkClick(event, 'que-es-la-tss-y-como-funciona')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
-                      Que es la TSS
+                      Qué es la TSS
                     </a>
                   </li>
                   <li>
                     <a href="/guia/todo-sobre-regalia-pascual" onClick={(event) => handleGuideLinkClick(event, 'todo-sobre-regalia-pascual')} className="hover:text-[#0F766E] transition-colors text-left inline-block">
-                      Salario de navidad / regalia
+                      Salario de Navidad y regalía
                     </a>
                   </li>
                 </ul>
@@ -2596,8 +2790,8 @@ export default function App() {
                   <li><a href="https://www.tss.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">Seguridad Social TSS <ExternalLink size={10} /></a></li>
                   <li><a href="https://ProUsuario.gob.do" target="_blank" rel="noopener noreferrer" className="hover:text-[#0F766E] transition-colors flex items-center gap-1">ProUsuario SB <ExternalLink size={10} /></a></li>
                   <li><button onClick={() => navigateTo('/contacto')} className="hover:text-[#0F766E] transition-colors text-left">Contacto</button></li>
-                  <li><button onClick={() => navigateTo('/metodologia')} className="hover:text-[#0F766E] transition-colors text-left">Metodologia</button></li>
-                  <li><button onClick={() => navigateTo('/politica-editorial')} className="hover:text-[#0F766E] transition-colors text-left">Politica editorial</button></li>
+                  <li><button onClick={() => navigateTo('/metodologia')} className="hover:text-[#0F766E] transition-colors text-left">Metodología</button></li>
+                  <li><button onClick={() => navigateTo('/politica-editorial')} className="hover:text-[#0F766E] transition-colors text-left">Política editorial</button></li>
                   <li><button onClick={() => navigateTo('/autores/equipo-editorial')} className="hover:text-[#0F766E] transition-colors text-left">Equipo editorial</button></li>
                   <li><button onClick={() => navigateTo('/fuentes-oficiales')} className="hover:text-[#0F766E] transition-colors text-left">Fuentes oficiales</button></li>
                   <li><button onClick={() => navigateTo('/privacidad')} className="hover:text-[#0F766E] transition-colors text-left">Privacidad</button></li>

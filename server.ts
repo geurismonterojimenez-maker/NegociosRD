@@ -840,6 +840,7 @@ app.get("/sitemap.xml", (req, res) => {
 
   const staticUrls = [
     '/',
+    '/calculadoras',
     '/guias',
     '/noticias',
     '/sobre-nosotros',
@@ -976,6 +977,9 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   </script>`;
 
     }
+  } else if (pathPart === "/calculadoras") {
+    title = "Calculadoras para República Dominicana | Tu Negocio RD";
+    description = "Directorio de calculadoras laborales, fiscales, financieras y comerciales para RD con resultados desglosados y fuentes documentadas.";
   } else if (pathPart === "/guias" || pathPart === "/aprende") {
     title = "Centro de aprendizaje financiero y laboral RD | Tu Negocio RD";
     description = "Guias extensas sobre nomina, ISR, TSS, prestaciones, regalia, horas extras y finanzas para Republica Dominicana.";
@@ -1180,6 +1184,7 @@ function isValidRoute(originalUrl: string): boolean {
   
   const validStaticPaths = [
     "/",
+    "/calculadoras",
     "/guias",
     "/aprende",
     "/noticias",

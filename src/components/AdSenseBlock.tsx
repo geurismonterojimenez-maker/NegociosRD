@@ -231,7 +231,7 @@ export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockPr
 
   return (
     <div className={`w-full max-w-full flex flex-col gap-2 ${className}`}>
-      <div className="flex items-center justify-between px-1 text-[9px] text-[#9CA3AF] font-bold uppercase tracking-wider select-none">
+      <div className="flex items-center justify-between px-1 text-xs text-gray-600 font-bold uppercase tracking-wider select-none">
         <span>Publicidad</span>
         <DevToggle />
       </div>

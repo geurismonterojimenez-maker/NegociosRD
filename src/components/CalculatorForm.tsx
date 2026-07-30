@@ -1782,11 +1782,11 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
           </div>
 
           <div className="space-y-4 text-sm text-gray-600 leading-relaxed font-sans">
-            <h3 className="text-base font-bold text-gray-900">Que es {calc.name}</h3>
+            <h3 className="text-base font-bold text-gray-900">Qué es {calc.name}</h3>
             <p>{editorialContent.whatIs}</p>
-            <h3 className="text-base font-bold text-gray-900">Como funciona</h3>
+            <h3 className="text-base font-bold text-gray-900">Cómo funciona</h3>
             <p>{editorialContent.howItWorks}</p>
-            <h3 className="text-base font-bold text-gray-900">Ejemplo practico dominicano</h3>
+            <h3 className="text-base font-bold text-gray-900">Ejemplo práctico dominicano</h3>
             <p>{editorialContent.practicalExample}</p>
             <h3 className="text-base font-bold text-gray-900">Errores comunes</h3>
             <ul className="list-disc pl-5 space-y-2">
@@ -1795,7 +1795,7 @@ export default function CalculatorForm({ calc, onBack, onNavigateToCalc, onProRe
             <div className="bg-teal-50/50 border border-teal-100 rounded-xl p-4">
               <h3 className="text-base font-bold text-gray-900">Fuentes oficiales</h3>
               <p className="mt-2">{editorialContent.officialSources}</p>
-              <p className="mt-2 text-xs font-semibold text-[#0F766E]">Ultima actualizacion: {editorialContent.lastUpdated}</p>
+              <p className="mt-2 text-xs font-semibold text-[#0F766E]">Última actualización: {editorialContent.lastUpdated}</p>
             </div>
           </div>
 
