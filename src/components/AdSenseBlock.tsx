@@ -22,7 +22,9 @@ const ADSENSE_SLOT_BY_VARIANT: Record<AdSenseBlockProps['variant'], string> = {
 export default function AdSenseBlock({ variant, className = '' }: AdSenseBlockProps) {
   const [showCode, setShowCode] = useState(false);
   const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
-  const adsEnabled = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ENABLE_ADSENSE === 'true' : false;
+  const adsEnabled = typeof import.meta !== 'undefined' && (import.meta as any).env
+    ? (import.meta as any).env.VITE_ENABLE_ADSENSE !== 'false'
+    : true;
   const adsenseClientId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
   const adSlot = ADSENSE_SLOT_BY_VARIANT[variant];
   const hasClientId = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' && adsenseClientId.startsWith('ca-pub-');

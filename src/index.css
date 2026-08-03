@@ -380,7 +380,7 @@ body,
   }
 }
 
-/* Precise 3-Column AdSense Responsive Layout Framework */
+/* Content-first layout with one optional desktop advertising rail. */
 .site-shell {
   width: 100%;
   max-width: 1040px;
@@ -443,11 +443,11 @@ body,
   }
 
   .site-shell {
-    max-width: 1456px;
+    max-width: 1248px;
     padding-left: 24px;
     padding-right: 24px;
     display: grid;
-    grid-template-columns: 160px minmax(0, 1040px) 160px;
+    grid-template-columns: minmax(0, 1040px) 160px;
     gap: 24px;
     align-items: start;
     justify-content: center;
@@ -458,16 +458,12 @@ body,
     margin: 0 auto;
   }
 
-  #left-adsense-skyscraper-column {
+  #center-content-ad-hybrid {
     grid-column: 1;
   }
 
-  #center-content-ad-hybrid {
-    grid-column: 2;
-  }
-
   #right-adsense-skyscraper-column {
-    grid-column: 3;
+    grid-column: 2;
   }
 
   .desktop-ad {
@@ -515,7 +511,6 @@ body,
   .site-shell {
     max-width: 92vw;
     grid-template-columns:
-      minmax(180px, 11vw)
       minmax(1040px, 1fr)
       minmax(180px, 11vw);
     gap: clamp(24px, 2vw, 72px);

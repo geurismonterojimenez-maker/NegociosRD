@@ -760,7 +760,9 @@ export default function App() {
   // Load monetization and analytics after the initial interactive path.
   useEffect(() => {
     const customId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
-    const adsEnabled = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ENABLE_ADSENSE === 'true' : false;
+    const adsEnabled = typeof import.meta !== 'undefined' && (import.meta as any).env
+      ? (import.meta as any).env.VITE_ENABLE_ADSENSE !== 'false'
+      : true;
     const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.DEV === true;
 
     if (typeof window === 'undefined' || isDev) return;
@@ -779,8 +781,8 @@ export default function App() {
             { crossorigin: 'anonymous' }
           );
         }
-      }, 2500);
-    }, 12000);
+      }, 1000);
+    }, 3500);
 
     return () => {
       window.clearTimeout(thirdPartyTimer);
@@ -1017,7 +1019,11 @@ export default function App() {
 
   // Simple dialog for "Portal" or "Login"
   const [showPortalModal, setShowPortalModal] = useState(false);
-  const shouldShowAdRail = currentView !== 'precios' && currentView !== 'admin';
+  const monetizableViews = new Set([
+    'home', 'calculator', 'salary-seo', 'programmatic-seo', 'topic-hub',
+    'editorial', 'blog', 'news', 'centro-laboral', 'centro-financiero'
+  ]);
+  const shouldShowAdRail = monetizableViews.has(currentView);
   const shouldShowGlobalBottomAds = shouldShowAdRail && currentView !== 'calculator';
   const shouldShowToolSidebar = false;
 
@@ -1638,13 +1644,6 @@ export default function App() {
         id="outer-adsense-grid-wrapper"
       >
         
-        {/* LEFT AD BANNER (Vertical Skyscraper, visible from 1456px) */}
-        {shouldShowAdRail && (
-        <aside className="desktop-ad" id="left-adsense-skyscraper-column">
-          <AdSenseBlock variant="skyscraper-left" />
-        </aside>
-        )}
-
         {/* CENTRAL CORE CONTENT CONTAINER (flexible width, grows to fill standard viewport layout while leaving side ads stable) */}
         <div className="content-shell flex flex-col lg:grid lg:grid-cols-12 border-x border-gray-150 bg-white lg:h-full lg:overflow-hidden lg:self-stretch" id="center-content-ad-hybrid">
           
@@ -2088,10 +2087,6 @@ export default function App() {
                   hasExternalH1={Boolean(activeLandingPage)}
                 />
               </React.Suspense>
-
-              <div className="mt-6 mb-8 shrink-0 deferred-section" id="adsense-slot-after-calculator">
-                <AdSenseBlock variant="results-inline" className="border border-gray-200 bg-gray-50/20" />
-              </div>
 
               {activeLandingPage && (
                 <section className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm mb-10">
@@ -2726,14 +2721,7 @@ export default function App() {
             </div>
           )}
 
-          {/* Ad Slot 3 (Contraparte Móvil): Visible en móviles/tablets para completar las 4 inserciones publicitarias con alta visibilidad */}
-          {shouldShowGlobalBottomAds && (
-          <div className="xl:hidden mt-6 shrink-0" id="adsense-slot-3-mobile-alternative">
-            <AdSenseBlock variant="results-inline" className="shadow-xs border border-gray-150" />
-          </div>
-          )}
-
-          {/* 2. Publicidad Segura - Adsense horizontal placeholder rendered inside scrollable workspace */}
+          {/* Publicidad final: una sola inserción adaptable, separada del contenido y del pie. */}
           {shouldShowGlobalBottomAds && (
           <section className="max-w-7xl mx-auto px-4 py-6 w-full mt-6 deferred-section" id="adsense-bottom-section">
             <AdSenseBlock variant="horizontal-bottom" />

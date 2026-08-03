@@ -483,7 +483,7 @@ export default function NewsSection({ onBackToHome, onNavigateToCalcBySlug }: Ne
             {/* Detailed styled markup content parser */}
             <div className="space-y-4 text-sm text-gray-700 leading-relaxed font-normal">
               {selectedArticle.contentMarkdown.split('\n\n').map((paragraph, idx) => {
-                const shouldRenderInArticleAd = idx === 1;
+                const shouldRenderInArticleAd = idx === 4;
                 const withInArticleAd = (node: React.ReactNode) => (
                   <React.Fragment key={idx}>
                     {node}
