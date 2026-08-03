@@ -1121,7 +1121,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
       "name": "Tu Negocio RD"
     },
     "datePublished": "2026-06-10",
-    "dateModified": "2026-06-10",
+    "dateModified": "2026-08-01",
     "image": DEFAULT_SHARE_IMAGE,
     "mainEntityOfPage": canonicalUrl
   }) : "";
@@ -1158,11 +1158,18 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${homeSchema}${articleSchema}${faqSchema}\n</head>`;
   html = html.replace('</head>', injectedElements);
 
+  const routeContext = landingPage
+    ? `<h2>Cómo usar esta calculadora</h2><p>Introduce datos actuales y revisa cada resultado antes de utilizarlo. La herramienta organiza el cálculo, muestra los componentes principales y enlaza información relacionada para que puedas comprobar la fórmula. Los importes son estimaciones educativas y pueden cambiar por topes, tasas, fechas o condiciones particulares.</p><h2>Qué debes verificar</h2><p>Compara el resultado con tu nómina, contrato, factura o declaración. Para decisiones laborales o tributarias consulta también las publicaciones vigentes de la DGII, la TSS, el CNSS y el Ministerio de Trabajo.</p>`
+    : type === "article"
+      ? `<h2>Cómo utilizar esta guía</h2><p>Lee el ejemplo completo, identifica la norma o fórmula aplicable y comprueba la fecha de actualización. Las guías explican conceptos dominicanos en lenguaje sencillo, pero una situación individual puede requerir documentos adicionales o revisión profesional.</p><h2>Fuentes y actualización</h2><p>Priorizamos referencias de la DGII, TSS, CNSS, Banco Central y Ministerio de Trabajo cuando corresponde. Si una tasa cambia, vuelve a calcular con la información oficial más reciente.</p>`
+      : `<h2>Herramientas para tomar mejores decisiones</h2><p>Tu Negocio RD reúne calculadoras laborales, fiscales, comerciales y financieras para personas y pequeños negocios dominicanos. Cada resultado debe interpretarse junto con sus supuestos, fecha y fuente.</p><h2>Proceso recomendado</h2><ol><li>Selecciona la herramienta adecuada.</li><li>Introduce datos netos y verificables.</li><li>Revisa el desglose y las advertencias.</li><li>Contrasta el resultado con fuentes oficiales.</li></ol>`;
+  const trustContext = `<h2>Transparencia y límites</h2><p>El contenido es informativo y no sustituye asesoría contable, fiscal, jurídica o laboral. No prometemos un resultado oficial ni almacenamos deliberadamente los valores de una simulación como expediente personal. Las fórmulas se documentan para que puedas detectar diferencias y solicitar una corrección.</p><h2>Preguntas frecuentes</h2><h3>¿Los resultados son oficiales?</h3><p>No. Son estimaciones basadas en reglas y supuestos publicados.</p><h3>¿Las herramientas son gratuitas?</h3><p>Sí, las calculadoras públicas pueden utilizarse desde el navegador.</p><h3>¿Dónde informo un error?</h3><p>Utiliza la página de contacto e incluye la URL, el dato cuestionado, la fecha y una fuente verificable.</p>`;
   const crawlerFallback = `<main id="seo-fallback">
-    <nav aria-label="Navegación principal"><a href="/">Inicio</a> · <a href="/calculadoras">Calculadoras</a> · <a href="/guias">Guías</a> · <a href="/sobre-nosotros">Sobre nosotros</a></nav>
+    <nav aria-label="Navegación principal"><a href="/">Inicio</a> · <a href="/calculadoras">Calculadoras</a> · <a href="/guias">Guías</a> · <a href="/sobre-nosotros">Sobre nosotros</a> · <a href="/metodologia">Metodología</a></nav>
     <article>
       <h1>${safeTitle}</h1>
       <p>${safeDescription}</p>
+      ${routeContext}${trustContext}
       <p>Información educativa para República Dominicana, respaldada por fuentes oficiales y ejemplos prácticos. Verifica siempre las reglas vigentes para tu caso particular.</p>
     </article>
   </main>`;
