@@ -17,7 +17,7 @@ export interface SeoLandingPage {
   faqs: SeoFaq[];
 }
 
-const officialUpdate = "Revisado con fuentes oficiales disponibles al 10 de junio de 2026.";
+const officialUpdate = "Revisado con fuentes oficiales disponibles al 11 de agosto de 2026.";
 
 export const SEO_LANDING_PAGES: SeoLandingPage[] = [
   {

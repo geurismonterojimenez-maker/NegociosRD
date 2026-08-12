@@ -126,6 +126,17 @@ function escapeHtmlAttribute(value: string): string {
     .replace(/>/g, "&gt;");
 }
 
+function renderCrawlerText(value: string): string {
+  return escapeHtmlAttribute(value)
+    .replace(/^###\s+(.+)$/gm, '<h3>$1</h3>')
+    .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>')
+    .replace(/^#\s+(.+)$/gm, '<h2>$1</h2>')
+    .replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>')
+    .split(/\n{2,}/)
+    .map((block) => block.startsWith('<h') || block.startsWith('<li>') ? block : `<p>${block.replace(/\n/g, ' ')}</p>`)
+    .join('');
+}
+
 function compactSeoTitle(value: string): string {
   const compact = value
     .replace(/República Dominicana/gi, "RD")
@@ -1121,7 +1132,7 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
       "name": "Tu Negocio RD"
     },
     "datePublished": "2026-06-10",
-    "dateModified": "2026-08-01",
+    "dateModified": "2026-08-11",
     "image": DEFAULT_SHARE_IMAGE,
     "mainEntityOfPage": canonicalUrl
   }) : "";
@@ -1158,11 +1169,29 @@ function getPrerenderedHTML(html: string, originalUrl: string): string {
   const injectedElements = `\n  ${breadcrumbSchema}${appSchema}${homeSchema}${articleSchema}${faqSchema}\n</head>`;
   html = html.replace('</head>', injectedElements);
 
+  const selectedGuide = pathPart.startsWith("/guia/")
+    ? PROGRAMMATIC_GUIDES.find((guide) => guide.slug === pathPart.replace("/guia/", ""))
+    : undefined;
+  const selectedEditorial = editorialKey in EDITORIAL_PAGES ? EDITORIAL_PAGES[editorialKey] : undefined;
+  const selectedCalculator = pathPart.startsWith("/herramientas/")
+    ? CALCULATORS.find((calculator) => calculator.urlSlug === pathPart.replace("/herramientas/", "") || calculator.id === pathPart.replace("/herramientas/", ""))
+    : undefined;
+  const uniqueRouteContent = landingPage
+    ? `<p>${escapeHtmlAttribute(landingPage.intro)}</p><h2>Cómo se calcula</h2><p>${escapeHtmlAttribute(landingPage.explanation)}</p><h2>Ejemplo práctico</h2><p>${escapeHtmlAttribute(landingPage.example)}</p><h2>Preguntas frecuentes</h2>${landingPage.faqs.map((faq) => `<h3>${escapeHtmlAttribute(faq.question)}</h3><p>${escapeHtmlAttribute(faq.answer)}</p>`).join('')}`
+    : selectedGuide
+      ? `<p>${escapeHtmlAttribute(selectedGuide.shortIntro)}</p>${renderCrawlerText(selectedGuide.contentMarkdown)}`
+      : selectedEditorial
+        ? `<p>${escapeHtmlAttribute(selectedEditorial.intro)}</p>${selectedEditorial.sections.map(([heading, body]) => `<h2>${escapeHtmlAttribute(heading)}</h2><p>${escapeHtmlAttribute(body)}</p>`).join('')}`
+        : topicHub
+          ? `<p>${escapeHtmlAttribute(topicHub.intro)}</p><h2>Calculadoras relacionadas</h2><ul>${topicHub.calculatorSlugs.map((slug) => `<li><a href="${getCanonicalCalculatorPath(slug)}">${escapeHtmlAttribute(slug.replace(/-/g, ' '))}</a></li>`).join('')}</ul><h2>Guías relacionadas</h2><ul>${topicHub.guideSlugs.map((slug) => `<li><a href="/guia/${slug}">${escapeHtmlAttribute(slug.replace(/-/g, ' '))}</a></li>`).join('')}</ul>`
+          : selectedCalculator
+            ? `<p>${escapeHtmlAttribute(selectedCalculator.seoMetaDescription)}</p><h2>Qué resuelve esta herramienta</h2><p>Permite organizar los datos del cálculo, revisar el desglose y comparar el resultado con la documentación de la operación. Los valores se procesan en el navegador y deben confirmarse cuando formen parte de una declaración, contrato o reclamación.</p>`
+            : '';
   const routeContext = landingPage
-    ? `<h2>Cómo usar esta calculadora</h2><p>Introduce datos actuales y revisa cada resultado antes de utilizarlo. La herramienta organiza el cálculo, muestra los componentes principales y enlaza información relacionada para que puedas comprobar la fórmula. Los importes son estimaciones educativas y pueden cambiar por topes, tasas, fechas o condiciones particulares.</p><h2>Qué debes verificar</h2><p>Compara el resultado con tu nómina, contrato, factura o declaración. Para decisiones laborales o tributarias consulta también las publicaciones vigentes de la DGII, la TSS, el CNSS y el Ministerio de Trabajo.</p>`
+    ? `${uniqueRouteContent}<h2>Cómo usar esta calculadora</h2><p>Introduce datos actuales y revisa cada resultado antes de utilizarlo. La herramienta organiza el cálculo, muestra los componentes principales y enlaza información relacionada para que puedas comprobar la fórmula. Los importes son estimaciones educativas y pueden cambiar por topes, tasas, fechas o condiciones particulares.</p><h2>Qué debes verificar</h2><p>Compara el resultado con tu nómina, contrato, factura o declaración. Para decisiones laborales o tributarias consulta también las publicaciones vigentes de la DGII, la TSS, el CNSS y el Ministerio de Trabajo.</p>`
     : type === "article"
-      ? `<h2>Cómo utilizar esta guía</h2><p>Lee el ejemplo completo, identifica la norma o fórmula aplicable y comprueba la fecha de actualización. Las guías explican conceptos dominicanos en lenguaje sencillo, pero una situación individual puede requerir documentos adicionales o revisión profesional.</p><h2>Fuentes y actualización</h2><p>Priorizamos referencias de la DGII, TSS, CNSS, Banco Central y Ministerio de Trabajo cuando corresponde. Si una tasa cambia, vuelve a calcular con la información oficial más reciente.</p>`
-      : `<h2>Herramientas para tomar mejores decisiones</h2><p>Tu Negocio RD reúne calculadoras laborales, fiscales, comerciales y financieras para personas y pequeños negocios dominicanos. Cada resultado debe interpretarse junto con sus supuestos, fecha y fuente.</p><h2>Proceso recomendado</h2><ol><li>Selecciona la herramienta adecuada.</li><li>Introduce datos netos y verificables.</li><li>Revisa el desglose y las advertencias.</li><li>Contrasta el resultado con fuentes oficiales.</li></ol>`;
+      ? `${uniqueRouteContent}<h2>Cómo utilizar esta guía</h2><p>Lee el ejemplo completo, identifica la norma o fórmula aplicable y comprueba la fecha de actualización. Las guías explican conceptos dominicanos en lenguaje sencillo, pero una situación individual puede requerir documentos adicionales o revisión profesional.</p><h2>Fuentes y actualización</h2><p>Priorizamos referencias de la DGII, TSS, CNSS, Banco Central y Ministerio de Trabajo cuando corresponde. Si una tasa cambia, vuelve a calcular con la información oficial más reciente.</p>`
+      : `${uniqueRouteContent}<h2>Herramientas para tomar mejores decisiones</h2><p>Tu Negocio RD reúne calculadoras laborales, fiscales, comerciales y financieras para personas y pequeños negocios dominicanos. Cada resultado debe interpretarse junto con sus supuestos, fecha y fuente.</p><h2>Proceso recomendado</h2><ol><li>Selecciona la herramienta adecuada.</li><li>Introduce datos netos y verificables.</li><li>Revisa el desglose y las advertencias.</li><li>Contrasta el resultado con fuentes oficiales.</li></ol>`;
   const trustContext = `<h2>Transparencia y límites</h2><p>El contenido es informativo y no sustituye asesoría contable, fiscal, jurídica o laboral. No prometemos un resultado oficial ni almacenamos deliberadamente los valores de una simulación como expediente personal. Las fórmulas se documentan para que puedas detectar diferencias y solicitar una corrección.</p><h2>Preguntas frecuentes</h2><h3>¿Los resultados son oficiales?</h3><p>No. Son estimaciones basadas en reglas y supuestos publicados.</p><h3>¿Las herramientas son gratuitas?</h3><p>Sí, las calculadoras públicas pueden utilizarse desde el navegador.</p><h3>¿Dónde informo un error?</h3><p>Utiliza la página de contacto e incluye la URL, el dato cuestionado, la fecha y una fuente verificable.</p>`;
   const crawlerFallback = `<main id="seo-fallback">
     <nav aria-label="Navegación principal"><a href="/">Inicio</a> · <a href="/calculadoras">Calculadoras</a> · <a href="/guias">Guías</a> · <a href="/sobre-nosotros">Sobre nosotros</a> · <a href="/metodologia">Metodología</a></nav>

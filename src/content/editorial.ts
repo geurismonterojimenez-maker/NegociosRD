@@ -1,4 +1,4 @@
-export const EDITORIAL_REVIEW_DATE = "10 de junio de 2026";
+export const EDITORIAL_REVIEW_DATE = "11 de agosto de 2026";
 
 export const OFFICIAL_SOURCES = [
   { name: "DGII", url: "https://dgii.gov.do", scope: "ITBIS, ISR, retenciones y recargos tributarios" },
