@@ -757,7 +757,8 @@ export default function App() {
   const [footerEmail, setFooterEmail] = useState('');
   const [footerEmailStatus, setFooterEmailStatus] = useState<'idle' | 'error' | 'success'>('idle');
 
-  // Load monetization and analytics after the initial interactive path.
+  // Load analytics as soon as the browser is idle. Delaying GTM by several
+  // seconds loses short visits and makes consent/analytics verification flaky.
   useEffect(() => {
     const customId = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_ADSENSE_CLIENT_ID || OFFICIAL_ADSENSE_CLIENT_ID : OFFICIAL_ADSENSE_CLIENT_ID;
     const adsEnabled = typeof import.meta !== 'undefined' && (import.meta as any).env
@@ -767,9 +768,7 @@ export default function App() {
 
     if (typeof window === 'undefined' || isDev) return;
 
-    let cancelIdleLoad = () => {};
-    const thirdPartyTimer = window.setTimeout(() => {
-      cancelIdleLoad = runWhenIdle(() => {
+    const cancelIdleLoad = runWhenIdle(() => {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
         loadScriptOnce('gtm-runtime', `https://www.googletagmanager.com/gtm.js?id=${GTM_CONTAINER_ID}`);
@@ -781,11 +780,9 @@ export default function App() {
             { crossorigin: 'anonymous' }
           );
         }
-      }, 1000);
-    }, 3500);
+      }, 800);
 
     return () => {
-      window.clearTimeout(thirdPartyTimer);
       cancelIdleLoad();
     };
   }, []);
